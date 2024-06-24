@@ -1,28 +1,34 @@
-'use client';  // Add this directive at the top
+import '../../styles/globals.css';
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import NavBar from './components/nav/NavBar'
+import Footer from './components/footer/Footer'
 
-import React from 'react';
-import '../../styles/globals.css';  // Correct path
-import { Inter } from 'next/font/google';
-import NavBar from './components/nav/NavBar';
-import Footer from './components/footer/Footer';
+const inter = Inter({ subsets: ['latin'] })
 
-const inter = Inter({ subsets: ['latin'] });
+export const metadata: Metadata = {
+  title: 'MN168',
+  description: 'Chinese and Thai cargo services',
+}
 
-const UserLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <head>
-        <title>User - MN168</title>
-      </head>
-      <body className={`${inter.className} text-slate-700`}>
+      <body className={'${inter.className} text-slate-700'}>
         <div className="flex flex-col min-h-screen">
-          <NavBar />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+        <NavBar/>
+          <div className="flex flex-grow">
+            <main className='flex-grow '>
+              {children}
+            </main>
+          </div>
+        <Footer/>
         </div>
       </body>
     </html>
-  );
-};
-
-export default UserLayout;
+  )
+}
