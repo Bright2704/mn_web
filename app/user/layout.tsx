@@ -1,9 +1,11 @@
-import '../../styles/globals.css';
+import '../../styles/globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import NavBar from './components/nav/NavBar'
 import Footer from './components/footer/Footer'
-
+import SideBar from './components/side/SideBar'
+import SideBar2 from './components/side/SideBar2'
+import SideBar3 from './components/side/SideBar3'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -22,6 +24,7 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
         <NavBar/>
           <div className="flex flex-grow">
+            <SideBar2/>
             <main className='flex-grow '>
               {children}
             </main>

@@ -2,3 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.sidebar h1 {
+    color: #333;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li a {
+    display: block;
+    color: #333;
+    /* background-color: aquamarine; */
+    padding: 8px 16px;
+    text-decoration: none;
+}
+.sidebar ul li a:hover{
+    background-color: #EEE7DA;
+}
+.submenu {
+    display: none;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0 20px; /* Indent sub-menu */
+}
+
+.submenu li a {
+    display: block;
+    color: #666;
+    padding: 5px 0;
+    text-decoration: none;
+}
+
+.sidebar ul li:hover .submenu {
+    display: block; /* Show submenu on hover */
+}
