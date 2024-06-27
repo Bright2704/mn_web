@@ -1,5 +1,6 @@
-"use client"
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface SideBarItem {
     title: string;
@@ -14,11 +15,11 @@ const SideBar3 = () => {
     const menuItems: SideBarItem[] = [
         {
             title: 'สินค้าไม่มีจำหน่าย',
-            icon: '../../images/icon3.png',
+            icon: '/images/icon3.png',  // Ensure path is correct and starts from the public directory
             link: '#',
             subItems: [
-                { title: 'Sub Item 1', icon: '../../images/icon1.png', link: '#' },
-                { title: 'Sub Item 2', icon: '../../images/icon2.png', link: '#' }
+                { title: 'Sub Item 1', icon: '/images/icon1.png', link: '#' },
+                { title: 'Sub Item 2', icon: '/images/icon2.png', link: '#' }
             ]
         },
         // More items...
@@ -33,21 +34,25 @@ const SideBar3 = () => {
             <ul>
                 {menuItems.map((item, index) => (
                     <li key={index}>
-                        <a href={item.link} onClick={(e) => {
-                            e.preventDefault();
-                            toggleSubMenu(index);
-                        }}>
-                            <img src={item.icon} alt={item.title} />
-                            {item.title}
-                        </a>
+                        <Link href={item.link}>
+                            <a onClick={(e) => {
+                                e.preventDefault();
+                                toggleSubMenu(index);
+                            }}>
+                                <Image src={item.icon} alt={item.title} width={50} height={50} />
+                                {item.title}
+                            </a>
+                        </Link>
                         {item.subItems && activeIndex === index && (
                             <ul className="submenu">
                                 {item.subItems.map((subItem, subIndex) => (
                                     <li key={subIndex}>
-                                        <a href={subItem.link}>
-                                            <img src={subItem.icon} alt={subItem.title} />
-                                            {subItem.title}
-                                        </a>
+                                        <Link href={subItem.link}>
+                                            <a>
+                                                <Image src={subItem.icon} alt={subItem.title} width={50} height={50} />
+                                                {subItem.title}
+                                            </a>
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

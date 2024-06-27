@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 // Define types for menu items
 type MenuItem = {
@@ -26,25 +28,30 @@ const SideBar4: React.FC<SidebarProps> = ({ menuItems }) => {
                 {menuItems.map((item, index) => (
                     <li key={index}>
                         {item.subMenuItems ? (
-                            <a onClick={() => toggleSubMenu(index)} style={{ cursor: 'pointer' }}>
-                                {item.icon && <img src={item.icon} alt={item.name} style={{ marginRight: '8px' }} />}
+                            <a onClick={(e) => {
+                                e.preventDefault();
+                                toggleSubMenu(index);
+                            }} style={{ cursor: 'pointer' }}>
+                                {item.icon && <Image src={item.icon} alt={item.name} width={20} height={20} />}
                                 {item.name}
                             </a>
                         ) : (
-                            <a href={item.link}>
-                                {item.icon && <img src={item.icon} alt={item.name} style={{ marginRight: '8px' }} />}
-                                {item.name}
-                            </a>
+                            <Link href={item.link}>
+                                <a>
+                                    {item.icon && <Image src={item.icon} alt={item.name} width={20} height={20} />}
+                                    {item.name}
+                                </a>
+                            </Link>
                         )}
                         {activeSubMenu === index && item.subMenuItems && (
                             <ul>
                                 {item.subMenuItems.map((subItem, subIndex) => (
-                                    <li key={subIndex}>
-                                        <a href={subItem.link}>
-                                            {subItem.icon && <img src={subItem.icon} alt={subItem.name} style={{ marginRight: '8px' }} />}
+                                    <Link key={subIndex} href={subItem.link}>
+                                        <a>
+                                            {subItem.icon && <Image src={subItem.icon} alt={subItem.name} width={20} height={20} />}
                                             {subItem.name}
                                         </a>
-                                    </li>
+                                    </Link>
                                 ))}
                             </ul>
                         )}

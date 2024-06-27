@@ -1,5 +1,4 @@
 // app/components/SideBar2.tsx
-"use client"
 import Link from 'next/link';
 // import Styles from '../../globals.css';
 // import styles from './SideBar.module.css'; // Ensure this path is correct based on your CSS file location
@@ -10,67 +9,67 @@ const SideBar2 = () => {
             {/* <h1 className="text-2xl font-bold">Menu</h1> */}
             <ul>
                 <li>
-                    <a href="/dashboard">
+                    <Link href="/dashboard">
                         แดชบอร์ด
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/announcement">
+                    <Link href="/announcement">
                         ประกาศ
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/BuyList">
+                    <Link href="/BuyList">
                         รายการสั่งซื้อ
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Import">
+                    <Link href="/Import">
                         เช็คสถานะสินค้าและแจ้งนำออก
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Export">
+                    <Link href="/Export">
                         รายการนำสินค้าออก
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Code">
+                    <Link href="/Code">
                         รหัสพัสดุ
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Service">
+                    <Link href="/Service">
                         บริการขนส่งไปจีน
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Money">
+                    <Link href="/Money">
                         กระเป๋าเงิน
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Point">
+                    <Link href="/Point">
                         สะสมแต้ม
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/ImportExport">
+                    <Link href="/ImportExport">
                         เช็คสถานะสินค้าและแจ้งนำออก
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/ListNoOwner">
+                    <Link href="/ListNoOwner">
                         รายการสินค้าไม่มีเจ้าของ
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/Setting">
+                    <Link href="/Setting">
                         ตั้งค่าบัญชีผู้ใช้งาน
-                    </a>
+                    </Link>
                 </li>
                 <li>
-                    <a href="/GuideBook">
+                    <Link href="/GuideBook">
                         คู่มือการใช้งาน
                             <div className="submenu">
                                 <li>
@@ -88,7 +87,7 @@ const SideBar2 = () => {
                                     </a>
                                 </li>
                             </div>
-                    </a>
+                    </Link>
                 </li>
                 <li>
                     <a href="/LineNotification">
