@@ -9,11 +9,6 @@ import SideBar3 from './components/side/SideBar3'
 import SideBar4 from './components/side/SideBar4'
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'MN168',
-  description: 'Chinese and Thai cargo services',
-}
-
 export default function RootLayout({
   children,
 }: {

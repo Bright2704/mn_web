@@ -18,14 +18,14 @@
     padding: 0;
 }
 
-.sidebar ul li a {
+.sidebar ul li Link {
     display: block;
     color: #333;
     /* background-color: aquamarine; */
     padding: 8px 16px;
     text-decoration: none;
 }
-.sidebar ul li a:hover{
+.sidebar ul li Link:hover{
     background-color: #EEE7DA;
 }
 .submenu {
@@ -45,20 +45,18 @@
 .sidebar ul li:hover .submenu {
     display: block; /* Show submenu on hover */
 }
-.annoucement{
-    display: flex;
-    padding: 1.5px;
-    margin: 1.5px;
-    background-color: #666;
-    width: 1000px;
-    height: 100px;
+.dashboard {
+    padding: 20px;
 }
-.annoucement a {
-    display: block;
-    color: #666;
-    padding: 5px 0;
-    text-decoration: none;
+
+.content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
 }
-.annoucement a:hover{
-    background-color: #EEE7DA;
+
+.tracking-widget {
+    background: lightblue;
+    padding: 10px;
+    border-radius: 8px;
 }
