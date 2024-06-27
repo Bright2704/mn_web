@@ -9,13 +9,16 @@ services:
 
 # version: '3.8'
 # services:
-#   db:
-#     image: mongo:latest
-#     container_name: db
+#   mongo: 
+#     image: mongo:7.0
 #     environment:
 #       MONGO_INITDB_ROOT_USERNAME: root
 #       MONGO_INITDB_ROOT_PASSWORD: pass123
 #     ports:
 #       - 8888:27017
 #     volumes:
-#       - /mongodata:/data/db
+#       - ./mongodata:/data/db
+
+# volumes:
+#   mongodata:
+#     driver: local
