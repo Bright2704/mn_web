@@ -14,7 +14,7 @@ const SideBar3 = () => {
     const menuItems: SideBarItem[] = [
         {
             title: 'สินค้าไม่มีจำหน่าย',
-            icon: '/path-to-icon1.png',
+            icon: '../../images/icon3.png',
             link: '#',
             subItems: [
                 { title: 'Sub Item 1', icon: '../../images/icon1.png', link: '#' },

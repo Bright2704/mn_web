@@ -45,3 +45,20 @@
 .sidebar ul li:hover .submenu {
     display: block; /* Show submenu on hover */
 }
+.annoucement{
+    display: flex;
+    padding: 1.5px;
+    margin: 1.5px;
+    background-color: #666;
+    width: 1000px;
+    height: 100px;
+}
+.annoucement a {
+    display: block;
+    color: #666;
+    padding: 5px 0;
+    text-decoration: none;
+}
+.annoucement a:hover{
+    background-color: #EEE7DA;
+}

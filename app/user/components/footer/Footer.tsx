@@ -6,7 +6,7 @@ import logo from "../../images/logo_New-01.png"; // Correct path to the image
 
 const Footer = () => {
     return (
-        <footer className="bg-slate-700 text-slate-200 text-sm mt-16">
+        <footer className="bg-slate-700 text-slate-200 text-sm ">
             <Container>
                 <div className="flex flex-col md:flex-row justify-between pt-2.5 pb-0.5">
                         <div className="flex items-center justify-center">

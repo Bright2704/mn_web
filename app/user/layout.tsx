@@ -6,6 +6,7 @@ import Footer from './components/footer/Footer'
 import SideBar from './components/side/SideBar'
 import SideBar2 from './components/side/SideBar2'
 import SideBar3 from './components/side/SideBar3'
+import SideBar4 from './components/side/SideBar4'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
