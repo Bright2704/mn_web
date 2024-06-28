@@ -1,7 +1,7 @@
 import Container from "../container";
 import FooterList from "./FooterList";
 import Link from "next/link";
-import Image from "next/image";
+import Image from "next/legacy/image";
 import logo from "../../images/logo_New-01.png"; // Correct path to the image
 
 const Footer = () => {
