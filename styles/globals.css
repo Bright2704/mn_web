@@ -45,13 +45,6 @@
 .sidebar ul li:hover .submenu {
     display: block; /* Show submenu on hover */
 }
-.dashboard {
-    padding: 20px;
-    margin: 20px 50px;
-    background-color: #FFFED3;
-    /* display: ; */
-    /* position:fixed; */
-}
 
 .content {
     display: grid;
@@ -64,14 +57,22 @@
     padding: 10px;
     border-radius: 8px;
 }
-.annoucement {
-    background-color: #666;
-    padding: 100px;
-    border-radius: 10px;
+.dashboard {
+    padding: 20px;
+    margin: 20px 50px;
+    background-color: #FFFED3;
+    display: block;
+    /* position:fixed; */
 }
-.annoucement h2{
-    display: flex;
-    color: #333;
+.dashboard annoucement {
+    background-color: #666;
+    /* padding: 100px; */
+    /* border-radius: 10px; */
+}
+.dashboard annoucement-sub{
+    border: #0e0101;
+    display: flexbox;
+    color: #c96969;
     height: 100px;
     width: 100%;
     padding: 5px 10px;
