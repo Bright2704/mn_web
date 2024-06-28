@@ -4,35 +4,76 @@
 
 .sidebar {
     width: 250px;
-    height: 100vh;
+    height: calc(100vh - 60px); /* Adjust the height as needed */
     background-color: #f4f4f4;
     padding: 20px;
-}
-
-.sidebar h1 {
-    color: #333;
+    overflow-y: auto; /* Add vertical scrollbar */
 }
 
 .sidebar ul {
     list-style-type: none;
     padding: 0;
+    margin: 0;
 }
 
-.sidebar ul li Link {
+.sidebar ul li {
+    position: relative;
+}
+
+.sidebar ul li a {
     display: block;
     color: #333;
-    /* background-color: aquamarine; */
     padding: 8px 16px;
     text-decoration: none;
+    position: relative;
+    z-index: 1;
 }
-.sidebar ul li Link:hover{
-    background-color: #EEE7DA;
+
+.sidebar ul li a:hover {
+    background-color: #FFA500;
+    color: white;
 }
-.submenu {
+
+.sidebar ul li.submenu-item > a::after {
+    content: '▼';
+    position: absolute;
+    right: 16px;
+    font-size: 12px;
+}
+
+.sidebar ul li:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: #FFA500;
+    z-index: 0;
+}
+
+.sidebar ul li:hover a {
+    color: white;
+}
+
+.sidebar ul li.submenu-item:hover::before,
+.sidebar ul li.submenu-item:hover a {
+    background-color: transparent;
+    color: #333;
+}
+
+.sidebar ul li.submenu-item .submenu {
     display: none;
     list-style: none;
     padding: 0;
-    margin: 0 0 0 20px; /* Indent sub-menu */
+    margin: 0;
+}
+
+.sidebar ul li.submenu-item:hover .submenu {
+    display: block;
+    position: relative; /* Adjust positioning as needed */
+    left: 0;
+    top: 0;
 }
 
 .submenu li a {
@@ -40,17 +81,18 @@
     color: #666;
     padding: 5px 0;
     text-decoration: none;
+    margin-left: 50px; /* Align submenu text */
 }
 
-.sidebar ul li:hover .submenu {
-    display: block; /* Show submenu on hover */
+.submenu li a:hover {
+    background-color: #FFA500;
+    color: white;
 }
+
 .dashboard {
     padding: 20px;
     margin: 20px 50px;
     background-color: #FFFED3;
-    /* display: ; */
-    /* position:fixed; */
 }
 
 .content {
@@ -64,12 +106,14 @@
     padding: 10px;
     border-radius: 8px;
 }
+
 .annoucement {
     background-color: #666;
     padding: 100px;
     border-radius: 10px;
 }
-.annoucement h2{
+
+.annoucement h2 {
     display: flex;
     color: #333;
     height: 100px;
@@ -78,3 +122,30 @@
     margin-top: 10px;
     background-color: rgb(238, 141, 14);
 }
+
+.menu-item {
+    padding-top: 15px; /* Adjust the value as needed */
+    padding-bottom: 15px; /* Adjust the value as needed */
+    margin: 0 -20px; /* Ensure the hover effect spans the full width */
+}
+
+.announcement-bar {
+    padding: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-right: 20px;
+    margin-left: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .green-bar {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .red-bar {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
