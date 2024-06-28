@@ -1,7 +1,7 @@
 import Container from "../container";
 import FooterList from "./FooterList";
 import Link from "next/link";
-import Image from "next/legacy/image";
+import Image from "next/image";
 import logo from "../../images/logo_New-01.png"; // Correct path to the image
 
 const Footer = () => {
@@ -11,12 +11,15 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row justify-between pt-2.5 pb-0.5">
                         <div className="flex items-center justify-center">
                             <Link href="/" passHref>
-                                    <Image 
-                                        src={logo} 
-                                        alt="MN-Shop Logo" 
-                                        width={150} 
-                                        height={100} 
-                                    />
+                                    <Image
+                                        src={logo}
+                                        alt="MN-Shop Logo"
+                                        width={150}
+                                        height={100}
+                                        style={{
+                                            maxWidth: "100%",
+                                            height: "auto"
+                                        }} />
                             </Link>
                         </div>
                     <FooterList>

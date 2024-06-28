@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/legacy/image";
+import Image from "next/image";
 import Container from "../container";
 import logo from "../../images/logo_MN1688_rmb.png"; // Correct path to the image
 
@@ -20,12 +20,14 @@ const NavBar = () => {
           <div className="flex justify-between items-center">
             <Link href="/" passHref>
               <div style={{ position: 'relative', height: '100px', width: '150px' }}>
-                <Image 
-                  src={logo} 
-                  alt="MN-Shop Logo" 
-                  layout="fill" 
-                  objectFit="contain" 
-                />
+                <Image
+                  src={logo}
+                  alt="MN-Shop Logo"
+                  fill
+                  sizes="100vw"
+                  style={{
+                    objectFit: "contain"
+                  }} />
               </div>
             </Link>
             <div
