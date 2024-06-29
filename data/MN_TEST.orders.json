@@ -1,0 +1,33 @@
+[{
+  "_id": {
+    "$oid": "667f8bfe5b98d354be9fa28c"
+  },
+  "order_id": "MN_0001",
+  "cus_id": "cus_001",
+  "product": "product_1",
+  "note": "test",
+  "trans_type": "ทางรถ",
+  "status": "รอตรวจสอบ"
+},
+{
+  "_id": {
+    "$oid": "667fff4ebfddc49ac56535cd"
+  },
+  "order_id": "MN_0002",
+  "cus_id": "cus_001",
+  "product": "product_2",
+  "note": "test",
+  "trans_type": "ทางรถ",
+  "status": "เข้าโกดังไทยครบ"
+},
+{
+  "_id": {
+    "$oid": "667fff60bfddc49ac56535ce"
+  },
+  "order_id": "MN_0003",
+  "cus_id": "cus_001",
+  "product": "product_3",
+  "note": "test",
+  "trans_type": "ทางรถ",
+  "status": "รอตรวจสอบ"
+}]
