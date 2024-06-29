@@ -1,13 +1,12 @@
 // components/LineNotification.tsx
 "use client"
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 
 export default function FormPage() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [email, setEmail] = useState('');
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event : FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         // Add form submission logic here
         console.log('Form Submitted:', { phoneNumber, email });
