@@ -153,7 +153,8 @@
   /* BuylistPage.module.css */
 table {
     width: 100%;
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
+    /* border-radius: 5px; */
   }
   
   th, td {
@@ -178,7 +179,7 @@ table {
     border: none;
     border-radius: 5px;
   }
-  
+
   button:hover {
     background-color: darkgreen;
   }

@@ -14,57 +14,57 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/announcement">
+                    <Link href="./announcement">
                         ประกาศ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/BuyList">
+                    <Link href="./buylist">
                         รายการสั่งซื้อ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Import">
+                    <Link href="./Import">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Export">
+                    <Link href="./Export">
                         รายการนำสินค้าออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Code">
+                    <Link href="./Code">
                         รหัสพัสดุ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Service">
+                    <Link href="./Service">
                         บริการขนส่งไปจีน
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Money">
+                    <Link href="./Money">
                         กระเป๋าเงิน
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Point">
+                    <Link href="./Point">
                         สะสมแต้ม
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/ImportExport">
+                    <Link href="./ImportExport">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/ListNoOwner">
+                    <Link href="./ListNoOwner">
                         รายการสินค้าไม่มีเจ้าของ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/Setting">
+                    <Link href="./Setting">
                         ตั้งค่าบัญชีผู้ใช้งาน
                     </Link>
                 </li>
