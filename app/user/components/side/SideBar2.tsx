@@ -8,91 +8,97 @@ const SideBar2 = () => {
         <div className="sidebar">
             {/* <h1 className="text-2xl font-bold">Menu</h1> */}
             <ul>
-                <li>
+                <li className="menu-item">
                     <Link href="/dashboard">
                         แดชบอร์ด
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/announcement">
                         ประกาศ
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/BuyList">
                         รายการสั่งซื้อ
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Import">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Export">
                         รายการนำสินค้าออก
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Code">
                         รหัสพัสดุ
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Service">
                         บริการขนส่งไปจีน
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Money">
                         กระเป๋าเงิน
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Point">
                         สะสมแต้ม
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/ImportExport">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/ListNoOwner">
                         รายการสินค้าไม่มีเจ้าของ
                     </Link>
                 </li>
-                <li>
+                <li className="menu-item">
                     <Link href="/Setting">
                         ตั้งค่าบัญชีผู้ใช้งาน
                     </Link>
                 </li>
-                <li>
-                    <Link href="/GuideBook">
-                        คู่มือการใช้งาน
-                            <div className="submenu">
-                                <li>
-                                    <a>
-                                        วิธีแก้ไขข้อมูลส่วนตัว
-                                    </a>
-                                    <a>
-                                        วิธีการสั่งซื้อและชำระเงิน
-                                    </a>
-                                    <a>
-                                        วิธีเติมเงิน/ถอนเงินในระบบ
-                                    </a>
-                                    <a>
-                                        วิธีแสดงความเป็นเจ้าของฯ
-                                    </a>
-                                </li>
-                            </div>
-                    </Link>
-                </li>
-                <li>
-                    <a href="/LineNotification">
-                        เชื่อมต่อ LINE NOTIFY
+                <li className="menu-item submenu-item">
+                    <a href="#">
+                    คู่มือการใช้งาน
                     </a>
+                    <ul className="submenu">
+                        <li className="menu-item">
+                            <Link href="/user/private">
+                                วิธีแก้ไขข้อมูลส่วนตัว
+                            </Link>
+                        </li>
+                        <li className="menu-item">
+                            <Link href="/user/private">
+                                วิธีการสั่งซื้อและชำระเงิน
+                            </Link>
+                        </li>
+                        <li className="menu-item">
+                            <Link href="/user/private">
+                                วิธีเติมเงิน/ถอนเงินในระบบ
+                            </Link>
+                        </li>
+                        <li className="menu-item">
+                            <Link href="/user/private">
+                                วิธีแสดงความเป็นเจ้าของฯ
+                            </Link>
+                        </li>
+                    </ul>
+                </li>
+                <li className="menu-item">
+                    <Link href="/user/LineNotification">
+                        เชื่อมต่อ LINE NOTIFY
+                    </Link>
                 </li>
             </ul>
         </div>
