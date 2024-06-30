@@ -38,7 +38,7 @@ const SideBar2 = () => {
         </li>
         <li className="menu-item submenu-item">
           <a href="#">
-            กระเป๋าเงิน <span style={{ float: 'right' }}>▼</span>
+            กระเป๋าเงิน <span style={{ float: 'right' }}></span>
           </a>
           <ul className="submenu">
             <li className="menu-item">

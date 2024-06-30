@@ -1,202 +1,208 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
-// import './OrdersPage.css';
+import ModalComponent, { Product as ImportedProduct } from '../components/code_detail/ModalComponent';
+import ImportModal from '../components/code_detail/ImportModal'; // Import the new modal component
+
+type LocalProduct = {
+  order_id: string;
+  cus_id: string;
+  product: string;
+  note: string;
+  status: string;
+  trans_type: string;
+};
 
 const statuses = [
   { label: 'สถานะทั้งหมด', value: 'all' },
   { label: 'รอพัสดุเข้าโกดัง', value: 'รอพัสดุเข้าโกดัง' },
+  { label: 'ปิดตู้', value: 'ปิดตู้' },
   { label: 'รอพัสดุถึงไทย', value: 'รอพัสดุถึงไทย' },
   { label: 'รอชำระเงิน', value: 'รอชำระเงิน' },
   { label: 'เตรียมส่ง', value: 'เตรียมส่ง' },
   { label: 'ส่งแล้ว', value: 'ส่งแล้ว' },
 ];
 
-const OrdersPage: React.FC = () => {
-  const [items, setItems] = useState<any[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(1);
+const defaultProduct: ImportedProduct = {
+  order_id: '',
+  cus_id: '',
+  product: '',
+  note: '',
+  trans_type: '',
+  status: '',
+};
 
-  const fetchItems = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://localhost:5000/items`, {
-        params: {
-          status: selectedStatus,
-          page: currentPage,
-          term: searchTerm,
-        },
-      });
-      console.log('Fetched items:', response.data.items); // Debug: Log the fetched data
-      setItems(response.data.items);
-      setTotalPages(response.data.totalPages);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching items:', error);
-      setError('Failed to fetch item data');
-      setLoading(false);
-    }
-  }, [selectedStatus, currentPage, searchTerm]);
+const BuylistPage: React.FC = () => {
+  const [products, setProducts] = useState<LocalProduct[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showImportModal, setShowImportModal] = useState<boolean>(false); // State for the new modal
+  const [selectedProduct, setSelectedProduct] = useState<ImportedProduct | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTopic, setSearchTopic] = useState<keyof LocalProduct>('order_id');
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        let response;
+        if (selectedStatus === 'all') {
+          // Fetch all statuses separately and combine the results
+          const requests = statuses.filter(status => status.value == 'all').map(status =>
+            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+          );
+          const results = await Promise.all(requests);
+          const allProducts = results.flatMap(result => result.data);
+          response = { data: allProducts };
+        } else {
+          response = await axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+        }
+        setProducts(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setError('Failed to fetch order data');
+        setLoading(false);
+      }
+    };
 
-  const handleStatusChange = (status: string) => {
-    setSelectedStatus(status);
-    setCurrentPage(1); // Reset to first page when status changes
+    fetchProducts();
+  }, [selectedStatus]);
+
+  const handleShowModal = (product: ImportedProduct) => {
+    setSelectedProduct(product);
+    setShowModal(true);
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProduct(null);
   };
 
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleShowImportModal = () => {
+    setShowImportModal(true);
+  };
+
+  const handleCloseImportModal = () => {
+    setShowImportModal(false);
+  };
+
+  const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
-    fetchItems();
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
   };
 
   return (
     <div className="card-body">
-      <form className="_mgbt-16 form-row align-items-center" onSubmit={handleSearchSubmit}>
-        <div className="col">
-          <ul className="nav nav-pills nav-secondary tab-status">
-            {statuses.map((status) => (
-              <li className="nav-item" key={status.value}>
-                <a
-                  href="#"
-                  className={`nav-link ${selectedStatus === status.value ? 'active' : ''}`}
-                  onClick={() => handleStatusChange(status.value)}
-                >
-                  {status.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+      <div className="d-flex justify-content-between mb-4 ml-0 mr-1">
+        <div>
+          {statuses.map(status => (
+            <button
+              key={status.value}
+              onClick={() => setSelectedStatus(status.value)}
+              className="btn mr-2 mb-2"
+              style={{
+                borderRadius: '9999px',
+                backgroundColor: selectedStatus === status.value ? '#dc3545' : '#e9e9e9',
+                color: selectedStatus === status.value ? 'white' : 'black'
+              }}
+            >
+              {status.label}
+            </button>
+          ))}
         </div>
-        <div className="col-auto">
+        <button
+          type="button"
+          onClick={handleShowImportModal}
+          className="btn btn-warning ml-1" // Added margin-left for spacing
+        >
+          นำเข้าเลขพัสดุ
+        </button>
+      </div>
+      <form className="form-inline mb-4" onSubmit={handleSearch}>
+        <div className="input-group" style={{ width: '50%' }}>
           <input
             type="text"
-            name="term"
-            placeholder="แทร็คกิ้ง, รหัสผู้ใช้"
+            className="form-control col-md-6"
+            placeholder="แทร็คกิ้ง, เลขออเดอร์"
             value={searchTerm}
-            className="form-control"
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
-        <div className="col-auto">
-          <button type="submit" className="btn btn-outline-secondary _mgr-10">ค้นหา</button>
-        </div>
-        <div className="col-auto">
-          <button type="button" data-toggle="modal" data-target="#modal-update-item-to-th" className="btn btn-secondary">อัพเดทสถานะ</button>
+          <div className="input-group-append col-md-3">
+            <button type="submit" className="btn btn-outline-secondary w-10">
+              <i className="fa fa-search"></i>
+            </button>
+          </div>
+          <div className="input-group-append col-md-2">
+            <button
+              type="button"
+              onClick={() => handleShowModal(defaultProduct)}
+              className="btn btn-primary ml-2"
+            >
+              อัพเดทสถานะ
+            </button>
+          </div>
         </div>
       </form>
       <div className="table-responsive _mgbt-30 _pdbt-50">
         <table className="table table-borderless table-forwarder-show">
           <thead>
             <tr>
-              <th>รหัสผู้ใช้</th>
-              <th>เลขพัสดุ</th>
-              <th>ล็อต</th>
-              <th className="_tal-ct">ประเภท/ขนส่ง</th>
-              <th className="_tal-ct">คิดตาม</th>
-              <th className="_tal-ct">ค่าส่งจีน</th>
-              <th className="_tal-ct">ตีลัง</th>
-              <th className="_tal-ct">เช็คสินค้า</th>
-              <th className="_tal-ct">เข้าโกดัง</th>
-              <th className="_tal-ct">ออกจากจีน</th>
-              <th className="_tal-ct">ถึงไทย</th>
+              <th>หมายเลข</th>
+              <th>ลูกค้า</th>
+              <th>สินค้า</th>
+              <th>วลีช่วยจำ(ผู้ดูแล)</th>
               <th>สถานะ</th>
-              <th className="_tal-ct">จัดการ</th>
+              <th>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={13} style={{ textAlign: 'center', padding: '8px' }}>Loading...</td>
+                <td colSpan={6} className="text-center p-3">Loading...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={13} style={{ textAlign: 'center', padding: '8px' }}>Error: {error}</td>
+                <td colSpan={6} className="text-center p-3">Error: {error}</td>
               </tr>
-            ) : items.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr>
-                <td colSpan={13} style={{ textAlign: 'center', padding: '8px' }}>No items found.</td>
+                <td colSpan={6} className="text-center p-3">No orders found.</td>
               </tr>
             ) : (
-              items.map((item) => (
-                <tr key={item._id}>
-                  <td><a href={`#`}>{item.user_id}</a></td>
-                  <td><a href={`#`}>{item.tracking_number}</a></td>
-                  <td>{item.lot}</td>
-                  <td className="_tal-ct">{item.type_transport}</td>
-                  <td className="_tal-ct">{item.follow_by}</td>
-                  <td className="_tal-ct">{item.china_shipping_cost}</td>
-                  <td className="_tal-ct"><i className={`fas fa-${item.packaging === 'x' ? 'times _cl-grey' : 'check _cl-success'}`}></i></td>
-                  <td className="_tal-ct"><i className={`fas fa-${item.check_product === 'x' ? 'times _cl-grey' : 'check _cl-success'}`}></i></td>
-                  <td className="_tal-ct">{item.warehouse_entry}</td>
-                  <td className="_tal-ct">{item.departure_from_china}</td>
-                  <td className="_tal-ct">{item.arrival_in_thailand}</td>
-                  <td>{item.status}</td>
-                  <td className="_tal-ct">
-                    <div className="dropdown">
+              products
+                .filter(product =>
+                  product[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map(product => (
+                  <tr key={product.order_id}>
+                    <td>{product.order_id}</td>
+                    <td>{product.cus_id}</td>
+                    <td>{product.product}</td>
+                    <td>{product.note}</td>
+                    <td>{product.status}</td>
+                    <td>
                       <button
-                        className="btn btn-secondary dropdown-toggle"
-                        type="button"
-                        id="dropdownMenuButton"
-                        data-toggle="dropdown"
-                        aria-haspopup="true"
-                        aria-expanded="false"
+                        onClick={() => handleShowModal(product as ImportedProduct)}
+                        className="btn btn-success"
                       >
                         จัดการ
                       </button>
-                      <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <a className="dropdown-item" href="#">
-                          อัพเดท รอพัสดุถึงไทย
-                        </a>
-                        <a className="dropdown-item" href="#">
-                          วัดพัสดุ
-                        </a>
-                        <a className="dropdown-item" href="#">
-                          ดูรายละเอียด
-                        </a>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                  </tr>
+                ))
             )}
           </tbody>
         </table>
+        <ModalComponent show={showModal} onClose={handleCloseModal} product={selectedProduct} />
+        <ImportModal show={showImportModal} onClose={handleCloseImportModal} /> 
       </div>
-      <nav>
-        <ul className="pagination">
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>‹</button>
-          </li>
-          {[...Array(totalPages)].map((_, index) => (
-            <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-              <button className="page-link" onClick={() => handlePageChange(index + 1)}>{index + 1}</button>
-            </li>
-          ))}
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>›</button>
-          </li>
-        </ul>
-      </nav>
     </div>
   );
 };
 
-export default OrdersPage;
+export default BuylistPage;

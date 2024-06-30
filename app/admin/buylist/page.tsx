@@ -138,6 +138,8 @@ const BuylistPage: React.FC = () => {
               <th>ลูกค้า</th>
               <th>สินค้า</th>
               <th>วลีช่วยจำ(ผู้ดูแล)</th>
+              <th>...</th>
+              <th>จัดส่งโดย</th>
               <th>สถานะ</th>
               <th>จัดการ</th>
             </tr>
@@ -165,6 +167,8 @@ const BuylistPage: React.FC = () => {
                     <td>{product.order_id}</td>
                     <td>{product.cus_id}</td>
                     <td>{product.product}</td>
+                    <td>{product.note}</td>
+                    <td>{product.note}</td>
                     <td>{product.note}</td>
                     <td>{product.status}</td>
                     <td>
