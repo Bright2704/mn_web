@@ -2,33 +2,63 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ModalComponent, { Product } from '../components/buylist_detail/ModalComponent';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'font-awesome/css/font-awesome.min.css';
+import ModalComponent, { Product as ImportedProduct } from '../components/buylist_detail/ModalComponent';
+
+type LocalProduct = {
+  order_id: string;
+  cus_id: string;
+  product: string;
+  note: string;
+  status: string;
+  // Add other fields if necessary
+};
 
 const statuses = [
-  "รอตรวจสอบ",
-  "รอชำระเงิน",
-  "จ่ายเงินแล้ว",
-  "สั่งซื้อสำเร็จ",
-  "มีแทรคครบ",
-  "เข้าโกดังจีนครบ",
-  "ออกโกดังจีนครบ",
-  "เข้าโกดังไทยครบ",
-  "ยกเลิก",
+  { label: 'สถานะทั้งหมด', value: 'all' },
+  { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
+  { label: 'รอชำระเงิน', value: 'รอชำระเงิน' },
+  { label: 'จ่ายเงินแล้ว', value: 'จ่ายเงินแล้ว' },
+  { label: 'สั่งซื้อสำเร็จ', value: 'สั่งซื้อสำเร็จ' },
+  { label: 'มีแทรคครบ', value: 'มีแทรคครบ' },
+  { label: 'เข้าโกดังจีนครบ', value: 'เข้าโกดังจีนครบ' },
+  { label: 'ออกโกดังจีนครบ', value: 'ออกโกดังจีนครบ' },
+  { label: 'เข้าโกดังไทยครบ', value: 'เข้าโกดังไทยครบ' },
+  { label: 'ยกเลิก', value: 'ยกเลิกการสั่งซื้อ' },
+];
+
+const searchTopics = [
+  { label: 'หมายเลข', value: 'order_id' },
+  { label: 'ลูกค้า', value: 'cus_id' },
 ];
 
 const BuylistPage: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<LocalProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>("รอตรวจสอบ");
+  const [selectedProduct, setSelectedProduct] = useState<ImportedProduct | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTopic, setSearchTopic] = useState<keyof LocalProduct>('order_id');
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await axios.get<Product[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+        let response;
+        if (selectedStatus === 'all') {
+          // Fetch all statuses separately and combine the results
+          const requests = statuses.filter(status => status.value !== 'all').map(status =>
+            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+          );
+          const results = await Promise.all(requests);
+          const allProducts = results.flatMap(result => result.data);
+          response = { data: allProducts };
+        } else {
+          response = await axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+        }
         setProducts(response.data);
         setLoading(false);
       } catch (error) {
@@ -41,7 +71,7 @@ const BuylistPage: React.FC = () => {
     fetchProducts();
   }, [selectedStatus]);
 
-  const handleShowModal = (product: Product) => {
+  const handleShowModal = (product: ImportedProduct) => {
     setSelectedProduct(product);
     setShowModal(true);
   };
@@ -51,68 +81,107 @@ const BuylistPage: React.FC = () => {
     setSelectedProduct(null);
   };
 
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+  };
+
   return (
-    <div>
-      <h1>รายการสั่งซื้อ - {selectedStatus}</h1>
-      <div style={{ marginBottom: '20px' }}>
+    <div className="card-body">
+      <div className="mb-4">
         {statuses.map(status => (
           <button
-            key={status}
-            onClick={() => setSelectedStatus(status)}
+            key={status.value}
+            onClick={() => setSelectedStatus(status.value)}
+            className="btn mr-2 mb-2"
             style={{
-              padding: '10px 20px',
-              margin: '5px',
-              backgroundColor: selectedStatus === status ? 'blue' : 'grey',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
+              borderRadius: '9999px',
+              backgroundColor: selectedStatus === status.value ? '#dc3545' : '#e9e9e9',
+              color: selectedStatus === status.value ? 'white' : 'black'
             }}
           >
-            {status}
+            {status.label}
           </button>
         ))}
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid black', padding: '8px' }}>หมายเลข</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>ลูกค้า</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>สินค้า</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>วลีช่วยจำ(ผู้ดูแล)</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>สถานะ</th>
-            <th style={{ border: '1px solid black', padding: '8px' }}>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
+      <form className="form-inline mb-4" onSubmit={handleSearch}>
+        <div className="input-group" style={{ width: '40%' }}>
+          <input
+            type="text"
+            className="form-control col-md-6"
+            placeholder="ค้นหา"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="form-control col-md-2"
+            value={searchTopic}
+            onChange={(e) => setSearchTopic(e.target.value as keyof LocalProduct)}
+          >
+            {searchTopics.map(topic => (
+              <option key={topic.value} value={topic.value}>
+                {topic.label}
+              </option>
+            ))}
+          </select>
+          <div className="input-group-append col-md-3">
+            <button type="submit" className="btn btn-outline-secondary w-10">
+              <i className="fa fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+      <div className="table-responsive _mgbt-30 _pdbt-50">
+        <table className="table table-borderless table-forwarder-show">
+          <thead>
             <tr>
-              <td colSpan={6} style={{ textAlign: 'center', padding: '8px' }}>Loading...</td>
+              <th>หมายเลข</th>
+              <th>ลูกค้า</th>
+              <th>สินค้า</th>
+              <th>วลีช่วยจำ(ผู้ดูแล)</th>
+              <th>สถานะ</th>
+              <th>จัดการ</th>
             </tr>
-          ) : error ? (
-            <tr>
-              <td colSpan={6} style={{ textAlign: 'center', padding: '8px' }}>Error: {error}</td>
-            </tr>
-          ) : products.length === 0 ? (
-            <tr>
-              <td colSpan={6} style={{ textAlign: 'center', padding: '8px' }}>No orders found.</td>
-            </tr>
-          ) : (
-            products.map(product => (
-              <tr key={product.order_id}>
-                <td style={{ border: '1px solid black', padding: '8px' }}>{product.order_id}</td>
-                <td style={{ border: '1px solid black', padding: '8px' }}>{product.cus_id}</td>
-                <td style={{ border: '1px solid black', padding: '8px' }}>{product.product}</td>
-                <td style={{ border: '1px solid black', padding: '8px' }}>{product.note}</td>
-                <td style={{ border: '1px solid black', padding: '8px' }}>{product.status}</td>
-                <td style={{ border: '1px solid black', padding: '8px' }}>
-                  <button onClick={() => handleShowModal(product)} style={{ padding: '5px 10px', backgroundColor: 'green', color: 'white', border: 'none', borderRadius: '5px' }}>จัดการ</button>
-                </td>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center p-3">Loading...</td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      <ModalComponent show={showModal} onClose={handleCloseModal} product={selectedProduct} />
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="text-center p-3">Error: {error}</td>
+              </tr>
+            ) : products.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center p-3">No orders found.</td>
+              </tr>
+            ) : (
+              products
+                .filter(product =>
+                  product[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .map(product => (
+                  <tr key={product.order_id}>
+                    <td>{product.order_id}</td>
+                    <td>{product.cus_id}</td>
+                    <td>{product.product}</td>
+                    <td>{product.note}</td>
+                    <td>{product.status}</td>
+                    <td>
+                      <button
+                        onClick={() => handleShowModal(product as ImportedProduct)}
+                        className="btn btn-success"
+                      >
+                        จัดการ
+                      </button>
+                    </td>
+                  </tr>
+                ))
+            )}
+          </tbody>
+        </table>
+        <ModalComponent show={showModal} onClose={handleCloseModal} product={selectedProduct} />
+      </div>
     </div>
   );
 };
