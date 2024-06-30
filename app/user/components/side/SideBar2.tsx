@@ -14,17 +14,17 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="user/announcement">
+                    <Link href="/user/announcement">
                         ประกาศ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="user/buylist">
+                    <Link href="/user/buylist">
                         รายการสั่งซื้อ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="user/Import">
+                    <Link href="/user/import">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
@@ -49,22 +49,22 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Point">
+                    <Link href="/user/points">
                         สะสมแต้ม
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./ImportExport">
+                    <Link href="/user/importexport">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./ListNoOwner">
+                    <Link href="listnoowner">
                         รายการสินค้าไม่มีเจ้าของ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Setting">
+                    <Link href="/user/setting">
                         ตั้งค่าบัญชีผู้ใช้งาน
                     </Link>
                 </li>
