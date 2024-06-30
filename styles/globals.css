@@ -182,3 +182,57 @@ table {
   button:hover {
     background-color: darkgreen;
   }
+
+  .nav-pills .nav-link {
+    color: #007bff;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+  }
+  
+  .nav-pills .nav-link.active {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .table-forwarder-show th,
+  .table-forwarder-show td {
+    border-top: 1px solid #dee2e6;
+    vertical-align: middle;
+    text-align: center;
+  }
+  
+  .table-forwarder-show th {
+    background-color: #f8f9fa;
+  }
+  
+  .badge-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ffc107;
+  }
+  
+  .badge-circle-fwd-item-status-1 {
+    background-color: #ffc107;
+  }
+  
+  .page-item.disabled .page-link {
+    color: #6c757d;
+  }
+  
+  .page-item .page-link {
+    color: #007bff;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+  }
+  
+  .page-item.active .page-link {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  

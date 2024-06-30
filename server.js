@@ -65,6 +65,7 @@ app.get('/files/:id', (req, res) => {
   });
 });
 
+// Define Order schema and model
 const OrderSchema = new mongoose.Schema({
   order_id: String,
   cus_id: String,
@@ -74,6 +75,24 @@ const OrderSchema = new mongoose.Schema({
   status: String
 });
 const Order = mongoose.model('Order', OrderSchema, 'orders');
+
+// Define Item schema and model
+const ItemSchema = new mongoose.Schema({
+  user_id: String,
+  tracking_number: String,
+  lot: String,
+  type_transport: String,
+  follow_by: String,
+  china_shipping_cost: Number,
+  china_shipping_cost_baht: Number,
+  packaging: String,
+  check_product: String,
+  warehouse_entry: String,
+  departure_from_china: String,
+  arrival_in_thailand: String,
+  status: String
+});
+const Item = mongoose.model('Item', ItemSchema, 'items');
 
 app.get('/orders/status/:status', async (req, res) => {
   try {
@@ -98,6 +117,44 @@ app.put('/orders/:id/status', async (req, res) => {
     res.json(order);
   } catch (err) {
     console.error('Error updating order status:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// New route to fetch items based on status, search term, and pagination
+app.get('/items', async (req, res) => {
+  const { status, page = 1, term = '' } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const query = {
+    ...(status && status !== 'all' && { status }),
+    ...(term && { $or: [{ user_id: { $regex: term, $options: 'i' } }, { tracking_number: { $regex: term, $options: 'i' } }] })
+  };
+
+  try {
+    const items = await Item.find(query).skip(skip).limit(limit);
+    const totalItems = await Item.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({ items, totalPages });
+  } catch (err) {
+    console.error('Error fetching items:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/items/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const itemId = req.params.id;
+    const item = await Item.findByIdAndUpdate(itemId, { status }, { new: true });
+    if (!item) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    res.json(item);
+  } catch (err) {
+    console.error('Error updating item status:', err);
     res.status(500).json({ error: err.message });
   }
 });
