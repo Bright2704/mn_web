@@ -19,7 +19,7 @@ export default function RootLayout({
                   <NavBar/>
                       <div className="flex flex-grow">
                           <SideBar2/>
-                          <div className="flex-grow ml-4"> {/* Add margin-left to create space */}
+                          <div className="flex-grow"> {/* Add margin-left to create space */}
                               <Announcement /> {/* Add the AnnouncementBar */}
                                   <main className='flex-grow '>
                                       {children}
