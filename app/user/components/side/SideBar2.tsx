@@ -9,42 +9,42 @@ const SideBar2 = () => {
             {/* <h1 className="text-2xl font-bold">Menu</h1> */}
             <ul>
                 <li className="menu-item">
-                    <Link href="/dashboard">
+                    <Link href="/user/dashboard">
                         แดชบอร์ด
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./announcement">
+                    <Link href="user/announcement">
                         ประกาศ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./buylist">
+                    <Link href="user/buylist">
                         รายการสั่งซื้อ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Import">
+                    <Link href="user/Import">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Export">
+                    <Link href="/user/export">
                         รายการนำสินค้าออก
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Code">
+                    <Link href="/user/code">
                         รหัสพัสดุ
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Service">
+                    <Link href="/user/service">
                         บริการขนส่งไปจีน
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="./Money">
+                    <Link href="/user/money">
                         กระเป๋าเงิน
                     </Link>
                 </li>
