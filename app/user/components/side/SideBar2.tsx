@@ -24,7 +24,7 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/import">
+                    <Link href="/user/status">
                         เช็คสถานะสินค้าและแจ้งนำออก
                     </Link>
                 </li>
