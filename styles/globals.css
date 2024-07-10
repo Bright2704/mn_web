@@ -296,4 +296,53 @@ table {
     background: transparent;
     border: 0;
   }
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Adjust this based on the number of items */
+    gap: 20px; /* Adjust the gap between items as needed */
+  }
+  @media (max-width: 1250px) {
+    .grid-container {
+      grid-template-columns: repeat(3, 1fr); /* Layout for screen widths <= 250px: 3 columns */
+    }
+  }
+  @media (max-width: 500px) {
+    .grid-container {
+      grid-template-columns: repeat(1, 1fr); /* Layout for screen widths <= 500px: 1 column */
+    }
+  }
+
+  .main-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* width: 350px; */
+    /* height: 250px; */
+  }
+  
+  .sub-text,
+  .sub-text-item3,
+  .sub-text-item4,
+  .sub-text-item5 {
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+  .row-btn-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Adjust the gap between buttons as needed */
+  }
+  
+  .btn-dashboard {
+    padding: 10px 20px;
+    text-decoration: none;
+    color: white;
+    border-radius: 5px;
+  }
+  
+  .text-dashboard {
+    text-align: center;
+  }
   
