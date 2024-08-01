@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
-import ModalComponent, { Product as ImportedProduct } from '../components/buylist_detail/ModalComponent';
+import '../../../styles/globals.css';
+import ModalWait from '../components/buylist_detail/ModalWait'; // Import the modal component
 
 type LocalProduct = {
   order_id: string;
@@ -12,7 +13,7 @@ type LocalProduct = {
   product: string;
   note: string;
   status: string;
-  // Add other fields if necessary
+  trans_type: string;
 };
 
 const statuses = [
@@ -37,11 +38,10 @@ const BuylistPage: React.FC = () => {
   const [products, setProducts] = useState<LocalProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedProduct, setSelectedProduct] = useState<ImportedProduct | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchTopic, setSearchTopic] = useState<keyof LocalProduct>('order_id');
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -49,7 +49,6 @@ const BuylistPage: React.FC = () => {
       try {
         let response;
         if (selectedStatus === 'all') {
-          // Fetch all statuses separately and combine the results
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
             axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
           );
@@ -71,69 +70,66 @@ const BuylistPage: React.FC = () => {
     fetchProducts();
   }, [selectedStatus]);
 
-  const handleShowModal = (product: ImportedProduct) => {
-    setSelectedProduct(product);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedProduct(null);
-  };
-
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
   };
 
+  const handleManageClick = (status: string) => {
+    if (status === 'รอตรวจสอบ') {
+      setShowModal(true);
+    } else {
+      // Handle other statuses if needed
+    }
+  };
+
   return (
-    <div className="card-body">
-      <div className="mb-4">
-        {statuses.map(status => (
-          <button
-            key={status.value}
-            onClick={() => setSelectedStatus(status.value)}
-            className="btn mr-2 mb-2"
-            style={{
-              borderRadius: '9999px',
-              backgroundColor: selectedStatus === status.value ? '#dc3545' : '#e9e9e9',
-              color: selectedStatus === status.value ? 'white' : 'black'
-            }}
-          >
-            {status.label}
-          </button>
-        ))}
+    <div className="card">
+      <div className="nav-panel">
+        <div className="anan-tabs__nav">
+          <div className="anan-tabs__nav-warp px-2 table-container" style={{ marginTop: '5px' }}>
+            <div className="anan-tabs__nav-tabs">
+              {statuses.map(status => (
+                <div 
+                  key={status.value} 
+                  className={`anan-tabs__nav-tab ${selectedStatus === status.value ? 'active' : ''}`}
+                  onClick={() => setSelectedStatus(status.value)}
+                >
+                  <span>{status.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-      <form className="form-inline mb-4" onSubmit={handleSearch}>
-        <div className="input-group" style={{ width: '40%' }}>
-          <input
-            type="text"
-            className="form-control col-md-6"
-            placeholder="ค้นหา"
+
+      <div className="d-lg-flex justify-content-between align-items-center px-2">
+        <h3 className="font-weight-bolder">การสั่งซื้อ</h3>
+        <div className="d-flex align-items-center">
+          <input 
+            type="text" 
+            placeholder="ค้นหา" 
+            className="anan-input__input" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <select
-            className="form-control col-md-2"
+          <select 
+            className="w-50 ml-1 custom-select custom-select-sm"
             value={searchTopic}
             onChange={(e) => setSearchTopic(e.target.value as keyof LocalProduct)}
           >
-            {searchTopics.map(topic => (
-              <option key={topic.value} value={topic.value}>
-                {topic.label}
-              </option>
-            ))}
+            <option value="order_id">หมายเลข</option>
+            <option value="cus_id">ลูกค้า</option>
           </select>
-          <div className="input-group-append col-md-3">
-            <button type="submit" className="btn btn-outline-secondary w-10">
-              <i className="fa fa-search"></i>
-            </button>
-          </div>
+          <button type="submit" className="btn btn-outline-secondary ml-2 w-15">
+            <i className="fa fa-search"></i>
+          </button>
         </div>
-      </form>
-      <div className="table-responsive _mgbt-30 _pdbt-50">
-        <table className="table table-borderless table-forwarder-show">
+      </div>
+
+      <div className="p-2 table-container">
+        <table className="table table-width-1">
           <thead>
-            <tr>
+            <tr className="text-center">
               <th>หมายเลข</th>
               <th>ลูกค้า</th>
               <th>สินค้า</th>
@@ -147,15 +143,15 @@ const BuylistPage: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Loading...</td>
+                <td colSpan={8} className="text-center p-3">Loading...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Error: {error}</td>
+                <td colSpan={8} className="text-center p-3">Error: {error}</td>
               </tr>
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">No orders found.</td>
+                <td colSpan={8} className="text-center p-3">No orders found.</td>
               </tr>
             ) : (
               products
@@ -167,15 +163,12 @@ const BuylistPage: React.FC = () => {
                     <td>{product.order_id}</td>
                     <td>{product.cus_id}</td>
                     <td>{product.product}</td>
+                    <td>...</td>
                     <td>{product.note}</td>
-                    <td>{product.note}</td>
-                    <td>{product.note}</td>
+                    <td>{product.trans_type}</td>
                     <td>{product.status}</td>
                     <td>
-                      <button
-                        onClick={() => handleShowModal(product as ImportedProduct)}
-                        className="btn btn-success"
-                      >
+                      <button className="btn btn-success" onClick={() => handleManageClick(product.status)}>
                         จัดการ
                       </button>
                     </td>
@@ -184,8 +177,14 @@ const BuylistPage: React.FC = () => {
             )}
           </tbody>
         </table>
-        <ModalComponent show={showModal} onClose={handleCloseModal} product={selectedProduct} />
+        <div className="demo-spacing-0 d-flex justify-content-end">
+          <ul className="pagination mb-0">
+            {/* Add pagination controls here */}
+          </ul>
+        </div>
       </div>
+
+      <ModalWait show={showModal} onClose={() => setShowModal(false)} />
     </div>
   );
 };
