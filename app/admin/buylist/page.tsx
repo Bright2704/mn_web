@@ -84,26 +84,8 @@ const BuylistPage: React.FC = () => {
 
   return (
     <div className="card">
-      <div className="nav-panel">
-        <div className="anan-tabs__nav">
-          <div className="anan-tabs__nav-warp px-2 table-container" style={{ marginTop: '5px' }}>
-            <div className="anan-tabs__nav-tabs">
-              {statuses.map(status => (
-                <div 
-                  key={status.value} 
-                  className={`anan-tabs__nav-tab ${selectedStatus === status.value ? 'active' : ''}`}
-                  onClick={() => setSelectedStatus(status.value)}
-                >
-                  <span>{status.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="d-lg-flex justify-content-between align-items-center px-2">
-        <h3 className="font-weight-bolder">การสั่งซื้อ</h3>
+      <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
+        <h3 className="font-weight-bolder text-lg font-semibold">รายการสั่งซื้อ</h3>
         <div className="d-flex align-items-center">
           <input 
             type="text" 
@@ -126,6 +108,24 @@ const BuylistPage: React.FC = () => {
         </div>
       </div>
 
+      <div className="nav-panel">
+        <div className="anan-tabs__nav">
+          <div className="anan-tabs__nav-warp px-2 table-container" style={{ marginTop: '5px' }}>
+            <div className="anan-tabs__nav-tabs">
+              {statuses.map(status => (
+                <div 
+                  key={status.value} 
+                  className={`anan-tabs__nav-tab ${selectedStatus === status.value ? 'active' : ''}`}
+                  onClick={() => setSelectedStatus(status.value)}
+                >
+                  <span>{status.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="p-2 table-container">
         <table className="table table-width-1">
           <thead>
@@ -134,7 +134,7 @@ const BuylistPage: React.FC = () => {
               <th>ลูกค้า</th>
               <th>สินค้า</th>
               <th>วลีช่วยจำ(ผู้ดูแล)</th>
-              <th>...</th>
+              <th>รายละเอียด</th>
               <th>จัดส่งโดย</th>
               <th>สถานะ</th>
               <th>จัดการ</th>

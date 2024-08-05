@@ -94,6 +94,17 @@ const ItemSchema = new mongoose.Schema({
 });
 const Item = mongoose.model('Item', ItemSchema, 'items');
 
+
+// Define Deposit schema and model
+const DepositSchema = new mongoose.Schema({
+  deposit_id: String,
+  date: String,
+  user_id: String,
+  amount: mongoose.Schema.Types.Mixed, // Mixed to support both numbers and strings
+  status: String
+});
+const Deposit = mongoose.model('Deposit', DepositSchema, 'deposit');
+
 app.get('/orders/status/:status', async (req, res) => {
   try {
     const status = req.params.status;
@@ -158,6 +169,57 @@ app.put('/items/:id/status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Endpoint to fetch deposits based on status
+app.get('/deposits/status/:status', async (req, res) => {
+  try {
+    const status = req.params.status;
+
+    // If the status is 'all', return all deposits
+    let deposits;
+    if (status === 'all') {
+      deposits = await Deposit.find();
+    } else {
+      deposits = await Deposit.find({ status });
+    }
+
+    console.log('Fetched deposits:', deposits);
+    res.json(deposits);
+  } catch (err) {
+    console.error('Error fetching deposits:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Corrected endpoint for updating deposit status
+app.put('/deposits/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const depositId = req.params.id;
+
+    // Validate the status
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    // Find and update the deposit
+    const deposit = await Deposit.findOneAndUpdate(
+      { deposit_id: depositId },
+      { status },
+      { new: true, runValidators: true } // 'runValidators' ensures that schema validations are applied
+    );
+
+    if (!deposit) {
+      return res.status(404).json({ error: 'Deposit not found' });
+    }
+
+    res.json(deposit);
+  } catch (err) {
+    console.error('Error updating deposit status:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 const port = 5000;
 app.listen(port, () => console.log(`Server started on port ${port}`));
