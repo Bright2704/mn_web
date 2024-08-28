@@ -43,10 +43,15 @@ const SideBar2 = () => {
                         บริการขนส่งไปจีน
                     </Link>
                 </li>
-                <li className="menu-item">
-                    <Link href="/user/money">
-                        กระเป๋าเงิน
-                    </Link>
+                <li className="menu-item submenu-item">
+                    <a href="#">
+                        กระเป๋าเงิน <span style={{ float: 'right' }}></span>
+                    </a>
+                    <ul className="submenu">
+                        <li className="menu-item">
+                        <Link href="/user/wallet/deposit">เติมเงินเข้าระบบ</Link>
+                        </li>
+                    </ul>
                 </li>
                 <li className="menu-item">
                     <Link href="/user/points">
