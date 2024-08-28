@@ -105,6 +105,21 @@ const DepositSchema = new mongoose.Schema({
 });
 const Deposit = mongoose.model('Deposit', DepositSchema, 'deposit');
 
+// Define DepositNew schema and model
+const DepositNewSchema = new mongoose.Schema({
+  deposit_id: String,
+  date_deposit: String,
+  date_success: String,
+  user_id: String,
+  amount: mongoose.Schema.Types.Mixed, // Mixed to support both numbers and strings
+  bank: String,
+  status: String,
+  slip: String
+});
+const DepositNew = mongoose.model('DepositNew', DepositNewSchema, 'deposit_new');
+
+
+
 app.get('/orders/status/:status', async (req, res) => {
   try {
     const status = req.params.status;
@@ -219,6 +234,57 @@ app.put('/deposits/:id/status', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Endpoint to fetch deposits from deposit_new collection based on status
+app.get('/deposits_new/status/:status', async (req, res) => {
+  try {
+    const status = req.params.status;
+
+    // If the status is 'all', return all deposits
+    let deposits;
+    if (status === 'all') {
+      deposits = await DepositNew.find();
+    } else {
+      deposits = await DepositNew.find({ status });
+    }
+
+    console.log('Fetched deposits from deposit_new:', deposits);
+    res.json(deposits);
+  } catch (err) {
+    console.error('Error fetching deposits from deposit_new:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Endpoint to update deposit status in deposit_new collection
+app.put('/deposits_new/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const depositId = req.params.id;
+
+    // Validate the status
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    // Find and update the deposit in deposit_new collection
+    const deposit = await DepositNew.findOneAndUpdate(
+      { deposit_id: depositId },
+      { status },
+      { new: true, runValidators: true } // 'runValidators' ensures that schema validations are applied
+    );
+
+    if (!deposit) {
+      return res.status(404).json({ error: 'Deposit not found' });
+    }
+
+    res.json(deposit);
+  } catch (err) {
+    console.error('Error updating deposit status in deposit_new:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 
 const port = 5000;

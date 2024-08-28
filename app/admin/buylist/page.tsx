@@ -190,3 +190,4 @@ const BuylistPage: React.FC = () => {
 };
 
 export default BuylistPage;
+

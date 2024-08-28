@@ -7,12 +7,15 @@ import 'font-awesome/css/font-awesome.min.css';
 import '../../../../styles/globals.css';
 import ModalDeposit from '../../components/wallet/deposit/ModalDeposit'; // Import the modal component
 
-type Deposit = {
+type DepositNew = {
   deposit_id: string;
-  date: string;
+  date_deposit: string;
+  date_success: string;
   user_id: string;
   amount: number | string;
+  bank: string;
   status: string;
+  slip: string;
 };
 
 const statuses = [
@@ -20,7 +23,6 @@ const statuses = [
   { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
   { label: 'สำเร็จ', value: 'สำเร็จ' },
   { label: 'ไม่สำเร็จ', value: 'ไม่สำเร็จ' },
-  // Add other statuses if needed
 ];
 
 const searchTopics = [
@@ -29,14 +31,13 @@ const searchTopics = [
 ];
 
 const DepositPage: React.FC = () => {
-  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [deposits, setDeposits] = useState<DepositNew[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [searchTopic, setSearchTopic] = useState<keyof Deposit>('deposit_id');
+  const [searchTopic, setSearchTopic] = useState<keyof DepositNew>('deposit_id');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null); // State to store selected deposit
 
   useEffect(() => {
     const fetchDeposits = async () => {
@@ -45,13 +46,13 @@ const DepositPage: React.FC = () => {
         let response;
         if (selectedStatus === 'all') {
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<Deposit[]>(`http://localhost:5000/deposits/status/${status.value}`)
+            axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${status.value}`)
           );
           const results = await Promise.all(requests);
           const allDeposits = results.flatMap(result => result.data);
           response = { data: allDeposits };
         } else {
-          response = await axios.get<Deposit[]>(`http://localhost:5000/deposits/status/${selectedStatus}`);
+          response = await axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${selectedStatus}`);
         }
         setDeposits(response.data);
         setLoading(false);
@@ -65,30 +66,25 @@ const DepositPage: React.FC = () => {
     fetchDeposits();
   }, [selectedStatus]);
 
-  const handleSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    // Implement search functionality here if needed
+  const handleManageClick = () => {
+    setShowModal(true);
   };
 
-  // const handleManageClick = (deposit: Deposit) => {
-  //   if (deposit.status === 'รอตรวจสอบ') {
-  //     setSelectedDeposit(deposit); // Set the selected deposit data
-  //     setShowModal(true);
-  //   } else {
-  //     // Handle other statuses if needed
-  //   }
-  // };
-
-  const handleManageClick = (deposit: Deposit) => {
-      setSelectedDeposit(deposit); // Set the selected deposit data
-      setShowModal(true);
-
+  const handleCloseModal = () => {
+    setShowModal(false);
   };
 
   return (
     <div className="card">
       <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
         <h3 className="font-weight-bolder text-lg font-semibold">รายการฝากเงิน</h3>
+        <button
+          className="btn btn-success px-4 py-2.5 ml-2 mr-10"
+          style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
+          onClick={handleManageClick}
+        >
+          เติมเงินเข้าระบบ
+        </button>
       </div>
 
       <div className="nav-panel">
@@ -114,25 +110,28 @@ const DepositPage: React.FC = () => {
           <thead>
             <tr className="text-center">
               <th>หมายเลขการฝาก</th>
-              <th>ผู้ใช้</th>
-              <th>วันที่</th>
+              <th>ลูกค้า</th>
+              <th>วันที่ฝาก</th>
+              <th>วันที่สำเร็จ</th>
               <th>จำนวนเงิน</th>
+              <th>ธนาคาร</th>
               <th>สถานะ</th>
+              <th>สลิป</th>
               <th>จัดการ</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Loading...</td>
+                <td colSpan={9} className="text-center p-3">Loading...</td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Error: {error}</td>
+                <td colSpan={9} className="text-center p-3">Error: {error}</td>
               </tr>
             ) : deposits.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">No deposits found.</td>
+                <td colSpan={9} className="text-center p-3">No deposits found.</td>
               </tr>
             ) : (
               deposits
@@ -143,11 +142,14 @@ const DepositPage: React.FC = () => {
                   <tr key={deposit.deposit_id}>
                     <td>{deposit.deposit_id}</td>
                     <td>{deposit.user_id}</td>
-                    <td>{deposit.date}</td>
+                    <td>{deposit.date_deposit}</td>
+                    <td>{deposit.date_success}</td>
                     <td>{deposit.amount}</td>
+                    <td>{deposit.bank}</td>
                     <td>{deposit.status}</td>
+                    <td>{deposit.slip ? <a href={deposit.slip} target="_blank" rel="noopener noreferrer">View</a> : 'N/A'}</td>
                     <td>
-                      <button className="btn btn-success" onClick={() => handleManageClick(deposit)}>
+                      <button className="btn btn-success" onClick={handleManageClick}>
                         จัดการ
                       </button>
                     </td>
@@ -163,10 +165,10 @@ const DepositPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Pass the selected deposit to the ModalDeposit component */}
-      {selectedDeposit && (
-        <ModalDeposit show={showModal} onHide={() => setShowModal(false)} deposit={selectedDeposit} />
-      )}
+      {/* Modal Component */}
+      {showModal && (
+      <ModalDeposit show={showModal} onClose={handleCloseModal} />
+    )}
     </div>
   );
 };
