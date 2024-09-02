@@ -1,3 +1,5 @@
+// pages/deposit/DepositPage.tsx
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -5,7 +7,8 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import '../../../../styles/globals.css';
-import ModalDeposit from '../../components/wallet/deposit/ModalDeposit'; // Import the modal component
+import ModalDeposit from '../../components/wallet/deposit/ModalDeposit'; // Import the existing modal component
+import ModalDepositDetails from '../../components/wallet/deposit/ModalDepositDetails'; // Import the new modal component
 
 type DepositNew = {
   deposit_id: string;
@@ -38,6 +41,8 @@ const DepositPage: React.FC = () => {
   const [searchTopic, setSearchTopic] = useState<keyof DepositNew>('deposit_id');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDeposits = async () => {
@@ -66,12 +71,18 @@ const DepositPage: React.FC = () => {
     fetchDeposits();
   }, [selectedStatus]);
 
-  const handleManageClick = () => {
-    setShowModal(true);
+  const handleManageClick = (depositId: string) => {
+    setSelectedDepositId(depositId);
+    setShowDetailsModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedDepositId(null);
   };
 
   return (
@@ -81,7 +92,7 @@ const DepositPage: React.FC = () => {
         <button
           className="btn btn-success px-4 py-2.5 ml-2 mr-10"
           style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
-          onClick={handleManageClick}
+          onClick={() => setShowModal(true)}
         >
           เติมเงินเข้าระบบ
         </button>
@@ -109,15 +120,14 @@ const DepositPage: React.FC = () => {
         <table className="table table-width-1">
           <thead>
             <tr className="text-center">
-              <th>หมายเลขการฝาก</th>
-              <th>ลูกค้า</th>
-              <th>วันที่ฝาก</th>
-              <th>วันที่สำเร็จ</th>
-              <th>จำนวนเงิน</th>
+              <th>No.</th>
+              <th>วันที่ทำรายการ</th>
+              <th>วันที่อนุมัติ</th>
+              <th>จำนวน</th>
               <th>ธนาคาร</th>
+              <th>หลักฐาน</th>
               <th>สถานะ</th>
-              <th>สลิป</th>
-              <th>จัดการ</th>
+              <th>ตรวจสอบ</th>
             </tr>
           </thead>
           <tbody>
@@ -141,16 +151,38 @@ const DepositPage: React.FC = () => {
                 .map(deposit => (
                   <tr key={deposit.deposit_id}>
                     <td>{deposit.deposit_id}</td>
-                    <td>{deposit.user_id}</td>
                     <td>{deposit.date_deposit}</td>
                     <td>{deposit.date_success}</td>
                     <td>{deposit.amount}</td>
-                    <td>{deposit.bank}</td>
+                    <td className="text-center">
+                      {deposit.bank === 'kbank' ? (
+                        <img 
+                          src="/storage/icon/bank/kbank.jpg" 
+                          alt="ธนาคารกสิกรไทย"
+                          className="centered-img_icon_bank"
+                          style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        deposit.bank
+                      )}
+                    </td>
+                    <td className="text-center">
+                      {deposit.slip ? (
+                        <img 
+                          src={deposit.slip} 
+                          alt="Slip" 
+                          className="centered-img_icon_bank"
+                          style={{ width: '70px', height: '70px', objectFit: 'contain', cursor: 'pointer' }}
+                          onClick={() => window.open(deposit.slip, '_blank')}
+                        />
+                      ) : (
+                        'N/A'
+                      )}
+                    </td>
                     <td>{deposit.status}</td>
-                    <td>{deposit.slip ? <a href={deposit.slip} target="_blank" rel="noopener noreferrer">View</a> : 'N/A'}</td>
                     <td>
-                      <button className="btn btn-success" onClick={handleManageClick}>
-                        จัดการ
+                      <button className="btn btn-success" onClick={() => handleManageClick(deposit.deposit_id)} style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}>
+                        รายละเอียด
                       </button>
                     </td>
                   </tr>
@@ -165,10 +197,15 @@ const DepositPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal Component */}
+      {/* Existing Modal for Deposit */}
       {showModal && (
-      <ModalDeposit show={showModal} onClose={handleCloseModal} />
-    )}
+        <ModalDeposit show={showModal} onClose={handleCloseModal} />
+      )}
+
+      {/* New Modal for Deposit Details */}
+      {showDetailsModal && selectedDepositId && (
+        <ModalDepositDetails show={showDetailsModal} depositId={selectedDepositId} onClose={handleCloseDetailsModal} />
+      )}
     </div>
   );
 };
