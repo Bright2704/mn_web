@@ -13,7 +13,9 @@ app.use(express.json());
 
 const mongoURI = 'mongodb://127.0.0.1:27017/MN_TEST';
 
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+// mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongoURI)
+// mongoose.connect('mongodb://yourMongoDBUrl');
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -66,6 +68,60 @@ const DepositNewSchema = new mongoose.Schema({
   note: String // Note field added for rejection reasons
 });
 const DepositNew = mongoose.model('DepositNew', DepositNewSchema, 'deposit_new');
+
+//#TODO: This will fetch all orders
+// app.get('/orders', async (req, res) => {
+//   try {
+//     const orders = await Order.find({}); // This will fetch all orders
+//     console.log('Fetched all orders:', orders);
+//     res.json(orders);
+//   } catch (err) {
+//     console.error('Error fetching orders:', err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+//#TODO: This will fetch filter orders status
+app.get('/orders/status/:status', async (req, res) => {
+  try {
+    const status = req.params.status;
+    const orders = await Order.find({ status });
+    console.log('Fetched orders:', orders);
+    res.json(orders);
+  } catch (err) {
+    console.error('Error fetching orders:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/orders/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    const orderId = req.params.id;
+    const order = await Order.findOneAndUpdate({ order_id: orderId }, { status }, { new: true });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    res.json(order);
+  } catch (err) {
+    console.error('Error updating order status:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/payment', async (req, res) => {
+  console.log("Received orders to save:", req.body);  // Log the received orders
+  try {
+    const orderData = req.body;
+    const order = new Order(orderData);
+    const savedOrder = await order.save();  // Save and capture the result
+    console.log("Saved order details:", savedOrder);  // Log the saved order details
+    res.status(201).send({ message: 'Order saved successfully!', data: savedOrder });
+  } catch (error) {
+    console.error('Error saving order:', error);  // Log errors
+    res.status(500).send({ message: 'Failed to save the order', error: error.message });
+  }
+});
 
 // Configure storage for multer
 const storage = multer.diskStorage({
