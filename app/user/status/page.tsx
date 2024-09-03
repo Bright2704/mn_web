@@ -32,7 +32,8 @@ const columns = [
     { title: 'Customer ID', dataIndex: 'cus_id', key: 'cus_id' },
     { title: 'Product', dataIndex: 'product', key: 'product' },
     { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Date', dataIndex: 'date', key: 'date' }
+    { title: 'Price', dataIndex: 'note', key: 'note'},
+    { title: 'Date', dataIndex: 'date', key: 'date'},
     // other columns...
     
 ];
@@ -46,13 +47,21 @@ const columns = [
 
 const ServicePage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // const { data } = await axios.get('http://localhost:5000/orders/status/มีแทรคครบ'); // Change the URL according to your API endpoint
-        const { data } = await axios.get('http://localhost:5000/orders');
-        setOrders(data); // Assuming the response data is the array of orders
+        const { data } = await axios.get('http://localhost:5000/orders/status/เข้าโกดังไทยครบ'); // Change the URL according to your API endpoint
+        // const { data } = await axios.get('http://localhost:5000/orders');
+        const formattedData = data.map((order: any) => ({
+          ...order,
+          price: extractPrice(order.note)
+        }));
+        
+        setOrders(formattedData);
+        console.log(orders)
       } catch (error) {
         console.error('Failed to fetch data:', error);
       }
@@ -60,18 +69,45 @@ const ServicePage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const extractPrice = (note: string) => {
+    const priceMatch = note.match(/รวม\s?:\s?(\d+,\d+\.\d+)/); // Adjust regex as per your actual note format
+    return priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
+  };
+  
+  const onSelectChange = (selectedKeys: React.Key[], selectedRows: Order[]) => {
+    setSelectedRowKeys(selectedKeys);
+    const total = selectedRows.reduce((sum, record) => {
+      const price = extractPrice(record.note);
+      return sum + price;
+    }, 0);
+  
+    setTotalAmount(total);
+    // console.log("Total Amount:", total); // This will log the total each time the selection changes
+  };
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+
   const cards: CardInfo[] = [
     {
       title: 'จำนวนรายการ',
-      count: orders.length,
+      count: selectedRowKeys.length,
       color: 'rgb(84, 209, 174)', // Teal color
     },
     {
       title: 'ยอดที่ต้องชำระ',
-      count: '0.00 ฿',
+      count: `${totalAmount.toFixed(2)} ฿`,
       color: 'rgb(255, 153, 177)', // Pink color
     }
   ];
+  const navigateToCreatePayment = () => {
+    const selectedOrders = orders.filter(order => selectedRowKeys.includes(order._id));
+    localStorage.setItem('selectedOrders', JSON.stringify(selectedOrders));
+    window.location.href = '/createpayment'; // Navigate to CreatePayment page
+  };
   
   return (
     <div className="container">
@@ -104,13 +140,19 @@ const ServicePage: React.FC = () => {
             </Col>
           ))}
           <Col xs={12} sm={8} lg={10} xl={8} xxl={6} offset={6} style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', padding: '8px' }}>
-            <Button type="primary" href='/user/createpayment' icon={<PlusOutlined />} style={{ width: '50%', height: '40%' }}>
+            <Button onClick={navigateToCreatePayment} type="primary" href='/user/createpayment' icon={<PlusOutlined />} style={{ width: '50%', height: '40%' }}>
               สร้างใบชำระค่าสินค้า
             </Button>
           </Col>
         </Row>
 
-        <Table columns={columns} dataSource={orders} pagination={false} />
+        <Table 
+          rowSelection={rowSelection} 
+          columns={columns} 
+          dataSource={orders} 
+          pagination={false} 
+          rowKey={record => record._id}
+        />
         <ColorStatus/>
       </main>
     </div>
