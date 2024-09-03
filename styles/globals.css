@@ -466,4 +466,10 @@ max-width: 600px; /* ปรับขนาดโมดาลตามควา�
     padding: 10px;
     font-size: 16px;
   }
-  
+.centered-img_icon_bank {
+display: block;
+margin: 0 auto;
+width: 50px;
+height: 50px;
+object-fit: contain;
+}
