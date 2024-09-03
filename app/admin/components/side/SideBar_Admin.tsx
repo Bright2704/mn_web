@@ -31,7 +31,7 @@ const SideBar2 = () => {
           <Link href="/admin/code">รหัสพัสดุ</Link>
         </li>
         <li className="menu-item">
-          <Link href="/admin/batch">ล็อตสินค้า</Link>
+          <Link href="/admin/lot">ล็อตสินค้า</Link>
         </li>
         <li className="menu-item">
           <Link href="/admin/transport">บริการขนส่งไปจีน</Link>
