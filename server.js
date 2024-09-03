@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const { GridFsStorage } = require('multer-gridfs-storage');
 const path = require('path');
 const crypto = require('crypto');
 const cors = require('cors');
@@ -13,9 +14,7 @@ app.use(express.json());
 
 const mongoURI = 'mongodb://127.0.0.1:27017/MN_TEST';
 
-// mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-mongoose.connect(mongoURI)
-// mongoose.connect('mongodb://yourMongoDBUrl');
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -81,7 +80,6 @@ const DepositNew = mongoose.model('DepositNew', DepositNewSchema, 'deposit_new')
 //   }
 // });
 
-//#TODO: This will fetch filter orders status
 app.get('/orders/status/:status', async (req, res) => {
   try {
     const status = req.params.status;
