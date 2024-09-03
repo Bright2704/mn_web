@@ -45,7 +45,7 @@ const CreatePayment:React.FC = () => {
             <div className='flex flex-row gap-5 bg-blue-100 m-3'>
                 <div>
                     <AddressForm/>
-                    <TermsAndPayment/>
+                    {/* <TermsAndPayment/> */}
                 </div>                
             </div>
 

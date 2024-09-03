@@ -1,7 +1,8 @@
 "use client"
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import Head from 'next/head';
+import axios from 'axios';
 import { Breadcrumb, Card, Row, Col, Table, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import BasketIcon from '../components/BasketIcon';
@@ -10,35 +11,59 @@ import ColorStatus from '../components/StatusStyle';
 import DataCard from '../components/DataCard';
 
 // Define interfaces for your data
-interface TableData {
-    key: string;
-    lot: string;
-    code: string;
+interface Order {
+    _id: string;
+    order_id: string;
+    cus_id: string;
+    product: string;
+    note: string;
+    trans_type: string;
+    status: string;
+    date: string;
     // other fields...
 }
 interface CardInfo {
-  title: string;
-  count: number | string;
-  color: string; // for icon color
+    title: string;
+    count: number | string;
+    color: string; // for icon color
 }
 const columns = [
-    { title: 'Lot/Sequence', dataIndex: 'lot', key: 'lot' },
-    { title: 'code', dataIndex: 'code', key: 'code' },
+    { title: 'Order ID', dataIndex: 'order_id', key: 'order_id' },
+    { title: 'Customer ID', dataIndex: 'cus_id', key: 'cus_id' },
+    { title: 'Product', dataIndex: 'product', key: 'product' },
+    { title: 'Status', dataIndex: 'status', key: 'status' },
+    { title: 'Date', dataIndex: 'date', key: 'date' }
     // other columns...
+    
 ];
 
-const data: TableData[] = [
-    { key: '1', lot: 'LOT1663/71', code : '1231456' },
-    { key: '2', lot: 'LOT1663/72', code : '1231546' },
-    // other data...
-];
+// const data: TableData[] = [
+//     { key: '1', lot: 'LOT1663/71', code : '1231456' },
+//     { key: '2', lot: 'LOT1663/72', code : '1231546' },
+//     // other data...
+// ];
 
 
-const ServicePage : React.FC = () => {
+const ServicePage: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // const { data } = await axios.get('http://localhost:5000/orders/status/มีแทรคครบ'); // Change the URL according to your API endpoint
+        const { data } = await axios.get('http://localhost:5000/orders');
+        setOrders(data); // Assuming the response data is the array of orders
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
   const cards: CardInfo[] = [
     {
       title: 'จำนวนรายการ',
-      count: 0,
+      count: orders.length,
       color: 'rgb(84, 209, 174)', // Teal color
     },
     {
@@ -47,6 +72,7 @@ const ServicePage : React.FC = () => {
       color: 'rgb(255, 153, 177)', // Pink color
     }
   ];
+  
   return (
     <div className="container">
       <Head>
@@ -84,7 +110,7 @@ const ServicePage : React.FC = () => {
           </Col>
         </Row>
 
-        <Table columns={columns} dataSource={data} />
+        <Table columns={columns} dataSource={orders} pagination={false} />
         <ColorStatus/>
       </main>
     </div>
