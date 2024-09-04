@@ -139,13 +139,32 @@ app.get('/check-slip/:filename', (req, res) => {
 
 // Generate next deposit ID
 async function generateNextDepositId() {
-  const lastDeposit = await DepositNew.findOne().sort({ deposit_id: -1 });
-  if (!lastDeposit) {
-    return 'DEP_0001';
+  try {
+      const lastDeposit = await DepositNew.findOne().sort({ deposit_id: -1 });
+
+      if (!lastDeposit || !lastDeposit.deposit_id) {
+          return 'DEP_0001';
+      }
+
+      const match = lastDeposit.deposit_id.match(/DEP_(\d+)/);
+      if (!match) {
+          console.error('Unexpected deposit_id format:', lastDeposit.deposit_id);
+          return 'DEP_0001';
+      }
+
+      const lastId = parseInt(match[1], 10);
+      if (isNaN(lastId)) {
+          console.error('Failed to parse last deposit_id:', lastDeposit.deposit_id);
+          return 'DEP_0001';
+      }
+
+      const nextId = lastId + 1;
+      return `DEP_${nextId.toString().padStart(4, '0')}`;
+
+  } catch (err) {
+      console.error('Error generating next deposit_id:', err);
+      return 'DEP_0001';
   }
-  const lastId = parseInt(lastDeposit.deposit_id.split('_')[1]);
-  const nextId = lastId + 1;
-  return `DEP_${nextId.toString().padStart(4, '0')}`;
 }
 
 // Endpoint for creating new deposits with file upload
@@ -315,6 +334,17 @@ app.get('/deposits_new/status/:status', async (req, res) => {
   }
 });
 
+// Endpoint to generate the next deposit_id
+app.get('/deposits_new/next-id', async (req, res) => {
+  try {
+      const nextDepositId = await generateNextDepositId();
+      res.json({ next_deposit_id: nextDepositId });
+  } catch (err) {
+      console.error('Error in /deposits_new/next-id:', err);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Fetch a specific deposit based on deposit_id
 app.get('/deposits_new/:deposit_id', async (req, res) => {
   try {
@@ -328,15 +358,6 @@ app.get('/deposits_new/:deposit_id', async (req, res) => {
   }
 });
 
-// Endpoint to generate the next deposit_id
-app.get('/deposits_new/next-id', async (req, res) => {
-  try {
-    const nextDepositId = await generateNextDepositId();
-    res.json({ next_deposit_id: nextDepositId });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // Catch-all route for unhandled requests
 app.use((req, res) => {
