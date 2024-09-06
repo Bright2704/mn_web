@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
-const crypto = require('crypto');
 const cors = require('cors');
 const fs = require('fs');
 
@@ -80,6 +79,7 @@ const LotSchema = new mongoose.Schema({
 });
 const Lot = mongoose.model('Lot', LotSchema, 'lot');
 
+// Define schema and models
 const TrackingSchema = new mongoose.Schema({
   user_id: String,
   not_owner: Boolean,
@@ -105,23 +105,40 @@ const TrackingSchema = new mongoose.Schema({
   transport: Number,
   price_crate: Number,
   other: Number,
-  status: String
+  status: String,
+  bill_id: String,
+  cal_price: Number,
+  transport_file_path: String,
+  image_item_paths: [String] // Array to store multiple image paths
 });
 
 const Tracking = mongoose.model('Tracking', TrackingSchema, 'tracking');
 
 // Configure storage for multer
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
+  destination: function (req, file, cb) {
+    const { tracking_id } = req.body;
+
     if (file.fieldname === 'slip') {
       cb(null, './public/storage/wait/slips/');
     } else if (file.fieldname === 'lotFile') {
       cb(null, './public/storage/lot/lot_file/');
     } else if (file.fieldname === 'lotImage') {
       cb(null, './public/storage/lot/lot_image/');
+    } else if (file.fieldname === 'trackingFile') {
+      cb(null, './public/storage/tracking/tracking_file/'); // Path for the tracking file
+    } else if (file.fieldname === 'trackingImages') {
+      cb(null, './public/storage/tracking/tracking_image/'); // Path for the tracking images
+    } else {
+      cb(new Error('Invalid file fieldname!'));
     }
   },
-  filename: function(req, file, cb) {
+  filename: function (req, file, cb) {
+    const { tracking_id } = req.body;
+    // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+
+    // cb(null, uniqueSuffix + path.extname(file.originalname));
+
     if (file.fieldname === 'slip') {
       const deposit_id = req.body.deposit_id || 'default';
       cb(null, `${deposit_id}${path.extname(file.originalname)}`);
@@ -129,6 +146,18 @@ const storage = multer.diskStorage({
       const lotId = req.params.lotId || 'default';
       cb(null, `${lotId}${path.extname(file.originalname)}`);
     }
+
+
+    if (file.fieldname === 'trackingFile') {
+      // Rename the tracking file to tracking_id.pdf or tracking_id.extension
+      cb(null, `${tracking_id}${path.extname(file.originalname)}`);
+    } 
+    // For tracking images
+    else if (file.fieldname === 'trackingImages') {
+      const imageIndex = req.imageIndex || 1; // Initialize index for images
+      cb(null, `${tracking_id}_${String(imageIndex).padStart(2, '0')}${path.extname(file.originalname)}`);
+      req.imageIndex = (req.imageIndex || 1) + 1; // Increment image index
+    } 
   }
 });
 
@@ -141,7 +170,7 @@ function checkFileType(file, cb) {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb('Error: Invalid file type!');
+    cb(new Error('Error: Invalid file type!'));
   }
 }
 
@@ -149,7 +178,7 @@ function checkFileType(file, cb) {
 const upload = multer({
   storage: storage,
   limits: { fileSize: 5000000 }, // Increased limit to 5MB
-  fileFilter: function(req, file, cb) {
+  fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   }
 });
@@ -161,7 +190,29 @@ const uploadLotFiles = upload.fields([
   { name: 'lotImage', maxCount: 1 }
 ]);
 
+
+const uploadTrackingFiles = upload.fields([
+  { name: 'trackingFile', maxCount: 1 },
+  { name: 'trackingImages', maxCount: 10 }  // Update this to match 'trackingImages'
+]);
+
 // New endpoint to copy and rename slip
+app.post('/copy-slip', (req, res) => {
+  let { originalPath, newFilename } = req.body;
+  const baseDir = path.join(__dirname, 'public', 'storage', 'slips', 'wait');
+  originalPath = path.join(baseDir, path.basename(originalPath));
+  const destinationPath = path.join(__dirname, 'public/storage/slips/approve', newFilename);
+
+  fs.copyFile(originalPath, destinationPath, (err) => {
+    if (err) {
+      console.error('Error copying file:', err);
+      return res.status(500).json({ error: 'Error copying file' });
+    }
+    res.status(200).json({ message: 'File copied and renamed successfully' });
+  });
+});
+
+// Updated route to check if the slip exists with either .jpg or .png extension
 app.post('/copy-slip', (req, res) => {
   let { originalPath, newFilename } = req.body;
   const baseDir = path.join(__dirname, 'public', 'storage', 'slips', 'wait');
@@ -438,6 +489,7 @@ app.get('/deposits_new/:deposit_id', async (req, res) => {
   }
 });
 
+
 // Fetch all lots from MongoDB
 app.get('/lots', async (req, res) => {
   try {
@@ -552,6 +604,7 @@ app.get('/lots/:lotId/attachments', async (req, res) => {
   }
 });
 
+
 app.get('/tracking', async (req, res) => {
   try {
     const trackingData = await Tracking.find();
@@ -562,8 +615,13 @@ app.get('/tracking', async (req, res) => {
   }
 });
 
-app.post('/tracking', async (req, res) => {
-  try {
+app.post('/tracking', (req, res) => {
+  uploadTrackingFiles(req, res, async function (err) {
+    if (err) {
+      console.error('Error uploading files:', err);
+      return res.status(500).json({ error: 'Error uploading files' });
+    }
+
     const {
       user_id,
       not_owner,
@@ -588,45 +646,183 @@ app.post('/tracking', async (req, res) => {
       new_wrap,
       transport,
       price_crate,
-      other
+      other,
+      cal_price,
+      bill_id
     } = req.body;
 
-    // Create a new tracking object
-    const newTracking = new Tracking({
+    // Prepare variables for file paths
+    let transport_file_path = '';
+    let image_item_paths = [];
+
+    // If tracking file is uploaded, get its renamed path
+    if (req.files['trackingFile'] && req.files['trackingFile'][0]) {
+      transport_file_path = `/storage/tracking/tracking_file/${req.files['trackingFile'][0].filename}`;
+    }
+
+    // If tracking images are uploaded, get their renamed paths
+    if (req.files['trackingImages']) {
+      image_item_paths = req.files['trackingImages'].map(file => `/storage/tracking/tracking_image/${file.filename}`);
+    }
+
+    try {
+      // Create a new tracking entry in the database
+      const newTracking = new Tracking({
+        user_id,
+        not_owner: not_owner === 'true',
+        tracking_id,
+        buylist_id,
+        mnemonics,
+        lot_type,
+        type_item,
+        crate: crate === 'true' ? 'ตี' : 'ไม่ตี',
+        check_product: check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
+        weight: parseFloat(weight) || 0,
+        wide: parseFloat(wide) || 0,
+        high: parseFloat(high) || 0,
+        long: parseFloat(long) || 0,
+        number: parseInt(number) || 0,
+        pricing,
+        user_rate,
+        in_cn,
+        out_cn,
+        in_th,
+        check_product_price: parseFloat(check_product_price) || 0,
+        new_wrap: parseFloat(new_wrap) || 0,
+        transport: parseFloat(transport) || 0,
+        price_crate: parseFloat(price_crate) || 0,
+        other: parseFloat(other) || 0,
+        cal_price: parseFloat(cal_price) || 0,
+        bill_id,
+        transport_file_path, // Path of the uploaded and renamed tracking file
+        image_item_paths // Paths of the uploaded and renamed images
+      });
+
+      // Save the tracking entry to the database
+      const savedTracking = await newTracking.save();
+      res.status(201).json(savedTracking);
+    } catch (err) {
+      console.error('Error creating tracking:', err);
+      res.status(500).json({ error: 'Failed to create tracking' });
+    }
+  });
+});
+
+// Endpoint to update a tracking entry by tracking_id
+app.put('/tracking/:trackingId', (req, res) => {
+  uploadTrackingFiles(req, res, async function (err) {
+    if (err) {
+      console.error('Error uploading files:', err);
+      return res.status(500).json({ error: 'Error uploading files' });
+    }
+
+    const { trackingId } = req.params;
+    const {
       user_id,
-      not_owner: not_owner === 'ใช่',
-      tracking_id,
+      not_owner,
       buylist_id,
       mnemonics,
       lot_type,
       type_item,
-      crate: crate ? 'ตี' : 'ไม่ตี',
-      check_product: check_product ? 'เช็ค' : 'ไม่เช็ค',
-      weight: parseFloat(weight) || 0,
-      wide: parseFloat(wide) || 0,
-      high: parseFloat(high) || 0,
-      long: parseFloat(long) || 0,
-      number: parseInt(number) || 0,
+      crate,
+      check_product,
+      weight,
+      wide,
+      high,
+      long,
+      number,
       pricing,
       user_rate,
       in_cn,
       out_cn,
       in_th,
-      check_product_price: parseFloat(check_product_price) || 0,
-      new_wrap: parseFloat(new_wrap) || 0,
-      transport: parseFloat(transport) || 0,
-      price_crate: parseFloat(price_crate) || 0,
-      other: parseFloat(other) || 0,
-      status: 'เข้าโกดังจีน' // Setting a default status
-    });
+      check_product_price,
+      new_wrap,
+      transport,
+      price_crate,
+      other,
+      cal_price,
+      bill_id
+    } = req.body;
 
-    const savedTracking = await newTracking.save();
-    res.status(201).json(savedTracking);
+    // Prepare variables for file paths
+    let transport_file_path = '';
+    let image_item_paths = [];
+
+    // If tracking file is uploaded, get its renamed path
+    if (req.files['trackingFile'] && req.files['trackingFile'][0]) {
+      transport_file_path = `/storage/tracking/tracking_file/${req.files['trackingFile'][0].filename}`;
+    }
+
+    // If tracking images are uploaded, get their renamed paths
+    if (req.files['trackingImages']) {
+      image_item_paths = req.files['trackingImages'].map(file => `/storage/tracking/tracking_image/${file.filename}`);
+    }
+
+    try {
+      // Find and update the tracking entry in the database
+      const updatedTracking = await Tracking.findOneAndUpdate(
+        { tracking_id: trackingId },
+        {
+          user_id,
+          not_owner: not_owner === 'true',
+          buylist_id,
+          mnemonics,
+          lot_type,
+          type_item,
+          crate: crate === 'true' ? 'ตี' : 'ไม่ตี',
+          check_product: check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
+          weight: parseFloat(weight) || 0,
+          wide: parseFloat(wide) || 0,
+          high: parseFloat(high) || 0,
+          long: parseFloat(long) || 0,
+          number: parseInt(number) || 0,
+          pricing,
+          user_rate,
+          in_cn,
+          out_cn,
+          in_th,
+          check_product_price: parseFloat(check_product_price) || 0,
+          new_wrap: parseFloat(new_wrap) || 0,
+          transport: parseFloat(transport) || 0,
+          price_crate: parseFloat(price_crate) || 0,
+          other: parseFloat(other) || 0,
+          cal_price: parseFloat(cal_price) || 0,
+          bill_id,
+          transport_file_path, // Path of the uploaded and renamed tracking file
+          image_item_paths // Paths of the uploaded and renamed images
+        },
+        { new: true } // Return the updated document
+      );
+
+      if (!updatedTracking) {
+        return res.status(404).json({ error: 'Tracking not found' });
+      }
+
+      res.json(updatedTracking); // Send back the updated tracking entry
+    } catch (err) {
+      console.error('Error updating tracking:', err);
+      res.status(500).json({ error: 'Failed to update tracking' });
+    }
+  });
+});
+
+// Fetch tracking details by tracking_id
+app.get('/tracking/:trackingId', async (req, res) => {
+  try {
+    const { trackingId } = req.params;
+    const tracking = await Tracking.findOne({ tracking_id: trackingId });
+
+    if (!tracking) {
+      return res.status(404).json({ error: 'Tracking not found' });
+    }
+
+    res.json(tracking);
   } catch (err) {
-    console.error('Error creating new tracking:', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error fetching tracking details:', err);
+    res.status(500).json({ error: 'Failed to fetch tracking details' });
   }
-})
+});
 
 // Serve static files from the public directory
 app.use('/storage', express.static(path.join(__dirname, 'public/storage')));

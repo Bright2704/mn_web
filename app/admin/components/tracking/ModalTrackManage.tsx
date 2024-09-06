@@ -1,47 +1,51 @@
 import React, { useState } from 'react';
 
-interface ModalAddTrackProps {
-  show: boolean;
-  onClose: () => void;
+interface TrackingItem {
+  user_id: string;
+  tracking_id: string;
+  buylist_id: string;
+  mnemonics: string;
+  lot_type: string;
+  type_item: string;
+  crate: string;
+  check_product: string;
+  weight: number;
+  wide: number;
+  high: number;
+  long: number;
+  number: number;
+  pricing: string;
+  cal_price: number;
+  user_rate: string;
+  in_cn: string;
+  out_cn: string;
+  in_th: string;
+  check_product_price: number;
+  new_wrap: number;
+  transport: number;
+  price_crate: number;
+  other: number;
+  not_owner:string,
 }
 
-const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
-  const [formData, setFormData] = useState({
-    user_id: '',
-    not_owner: false,
-    tracking_id: '',
-    buylist_id: '',
-    mnemonics: '',
-    lot_type: 'รถ',
-    type_item: 'ทั่วไป',
-    crate: false,
-    check_product: false,
-    weight: '',
-    wide: '',
-    high: '',
-    long: '',
-    number: '',
-    pricing: 'อัตโนมัติ',
-    cal_price: '',
-    user_rate: 'A',
-    in_cn: '',
-    out_cn: '',
-    in_th: '',
-    check_product_price: '',
-    new_wrap: '',
-    transport: '',
-    price_crate: '',
-    other: ''
-  });
+interface ModalTrackManageProps {
+  show: boolean;
+  onClose: () => void;
+  trackingData: TrackingItem; // Pass in trackingData with type TrackingItem
+}
 
+const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trackingData }) => {
+  // Pre-fill the formData state with the existing trackingData
+  const [formData, setFormData] = useState<TrackingItem>(trackingData);
   const [file, setFile] = useState<File | null>(null); // Single file
   const [images, setImages] = useState<File[]>([]); // Multiple images
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
-    setFormData(prev => ({
+
+    setFormData((prev: TrackingItem) => ({
       ...prev,
-      [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
@@ -77,20 +81,20 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     });
 
     try {
-      const response = await fetch('http://localhost:5000/tracking', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:5000/tracking/${formData.tracking_id}`, {
+        method: 'PUT', // Use PUT to update existing data
         body: form, // Send FormData instead of JSON
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add tracking data');
+        throw new Error('Failed to update tracking data');
       }
 
       const result = await response.json();
-      console.log('Tracking data added:', result);
-      onClose();
+      console.log('Tracking data updated:', result);
+      onClose(); // Close the modal after submitting
     } catch (error) {
-      console.error('Error adding tracking data:', error);
+      console.error('Error updating tracking data:', error);
     }
   };
 
@@ -102,7 +106,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg w-12/13 md:w-7/8 lg:w-5/6 xl:w-3/4 max-h-screen overflow-y-auto">
         <header className="modal-header p-4 border-b">
-          <h5 className="modal-title text-xl font-bold">เพิ่มรหัสพัสดุ</h5>
+          <h5 className="modal-title text-xl font-bold">แก้ไขพัสดุ</h5>
           <button type="button" className="close text-2xl" onClick={onClose}>&times;</button>
         </header>
         <form onSubmit={handleSubmit}>
@@ -120,17 +124,11 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     value={formData.user_id}
                     onChange={handleInputChange}
                     required
+                    readOnly // Disable editing for user_id, as it's unique
                   />
                 </div>
                 <div className="mb-3">
                   <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="not_owner"
-                      checked={formData.not_owner}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
                     สินค้าไม่มีเจ้าของ
                   </label>
                 </div>
@@ -148,6 +146,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     value={formData.tracking_id}
                     onChange={handleInputChange}
                     required
+                    readOnly // Disable editing for tracking_id, as it's unique
                   />
                 </div>
                 <div className="mb-3">
@@ -286,29 +285,32 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="crate"
-                      checked={formData.crate}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    ตีลังไม้
-                  </label>
+                  <label htmlFor="user_rate" className="block mb-1">ตีลังไม้:</label>
+                  <select
+                    id="user_rate"
+                    className="w-full p-2 border rounded"
+                    value={formData.crate}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่ตี">ไม่ตี</option>
+                    <option value="ตี">ตี</option>
+
+                  </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="check_product"
-                      checked={formData.check_product}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    เช็คสินค้า
-                  </label>
+                  <label htmlFor="user_rate" className="block mb-1">เช็คสินค้า:</label>
+                  <select
+                    id="user_rate"
+                    className="w-full p-2 border rounded"
+                    value={formData.check_product}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่เช็ค">ไม่เช็ค</option>
+                    <option value="เช็ค">เช็ค</option>
+
+                  </select>
                 </div>
+        
               </div>
 
               {/* Dates */}
@@ -452,4 +454,4 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
   );
 };
 
-export default ModalAddTrack;
+export default ModalTrackManage;
