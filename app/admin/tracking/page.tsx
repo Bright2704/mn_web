@@ -44,6 +44,7 @@ type TrackingItem = {
   price_crate: number;
   other: number;
   not_owner: string;
+  transport_file_path:string;
 };
 
 const statuses = [
@@ -235,20 +236,20 @@ const TrackPage: React.FC = () => {
           <tbody>
             {trackingItems.map((item) => {
               const events = [];
-
-              if (item.in_cn) {
-                events.push({ date: item.in_cn, title: "เข้าโกดังจีน" });
-              }
-              if (item.out_cn) {
-                events.push({ date: item.out_cn, title: "ออกจากจีน" });
+              
+              if (item.bill_id) {
+                events.push({ date: item.bill_id, title: "นำออกแล้ว" });
               }
               if (item.in_th) {
                 events.push({ date: item.in_th, title: "ถึงไทย" });
               }
-              if (item.bill_id) {
-                events.push({ date: item.bill_id, title: "นำออกแล้ว" });
+              if (item.out_cn) {
+                events.push({ date: item.out_cn, title: "ออกจากจีน" });
               }
-
+              if (item.in_cn) {
+                events.push({ date: item.in_cn, title: "เข้าโกดังจีน" });
+              }
+            
               return (
                 <tr key={item.tracking_id} className="ant-table-row ant-table-row-level-0 table-row-dark">
                   <td className="ant-table-cell header-center f-small line-height-item">
@@ -257,7 +258,7 @@ const TrackPage: React.FC = () => {
                         <div><span className="label">รหัสผู้ใช้</span><span className="colon">:</span><span className="value">{item.user_id}</span></div>
                         <div><span className="label">หมายเลขใบสั่งซื้อ</span><span className="colon">:</span><span className="value">{item.buylist_id}</span></div>
                         <div><span className="label">รหัสพัสดุ</span><span className="colon">:</span><span className="value">{item.tracking_id}</span></div>
-                        <div><span className="label">ล็อต/ลำดับ</span><span className="colon">:</span><span className="value">{item.lot_type} {item.order_lot}</span></div>
+                        <div><span className="label">ล็อต/ลำดับ</span><span className="colon">:</span><span className="value">{item.lot_type} {item.lot_id}</span></div>
                         <div><span className="label">ประเภท</span><span className="colon">:</span><span className="value">{item.type_item}</span></div>
                         <div><span className="label">วลีช่วยจำ</span><span className="colon">:</span><span className="value">{item.mnemonics}</span></div>
                         <div><span className="label">หมายเหตุ</span><span className="colon">:</span><span className="value">{item.note}</span></div>
@@ -275,17 +276,17 @@ const TrackPage: React.FC = () => {
                         
                         <div className="ant-form-item-control mt-2">
                           <div className="ant-col ant-form-item-control-input-content">
-                            <div className="image-gallery" style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', justifyItems: 'center' }}>
+                            <div className="image-gallery" style={{ display: 'flex', gap: '2px', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', justifyItems: 'center' }}>
                               {Array.isArray(item.image_item_paths) && item.image_item_paths.length > 0 ? (
                                 item.image_item_paths.map((imagePath: string, index: number) => (
                                   <div
                                     className="image-wrapper"
                                     key={index}
                                     style={{
-                                      width: '100px',
-                                      height: '100px',
+                                      width: '50px',
+                                      height: '50px',
                                       position: 'relative',
-                                      overflow: 'hidden',
+                                      // overflow: 'hidden',
                                       borderRadius: '8px',
                                       boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                       cursor: 'pointer',
@@ -306,7 +307,7 @@ const TrackPage: React.FC = () => {
                                   </div>
                                 ))
                               ) : (
-                                <span>No images available</span>
+                                <span></span>
                               )}
                             </div>
                           </div>

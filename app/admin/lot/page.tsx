@@ -84,7 +84,7 @@ const LotPage: React.FC = () => {
     <div className="card">
       <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
         <h3 className="font-weight-bolder text-lg font-semibold">
-          รายการฝากเงิน
+          ล๊อตสินค้า
         </h3>
 
         {/* Search and Filter Container */}

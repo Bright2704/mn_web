@@ -1,23 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { Modal } from "antd";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Navigation } from 'swiper/modules';
+import 'swiper/swiper-bundle.css';
 
 interface ModalTrackDetailsProps {
   show: boolean;
   onClose: () => void;
-  trackingId: string; // Pass the tracking ID to fetch details
+  trackingId: string;
 }
 
 const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, trackingId }) => {
-  const [trackingDetails, setTrackingDetails] = useState<any>(null); // State to store the tracking data
+  const [trackingDetails, setTrackingDetails] = useState<any>(null); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [previewIndex, setPreviewIndex] = useState<number>(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const swiperRef = useRef<any>(null);
 
-  // Fetch the tracking data whenever the modal is shown and trackingId changes
   useEffect(() => {
     if (show && trackingId) {
       setLoading(true);
       axios
-        .get(`http://localhost:5000/tracking/${trackingId}`) // API call to fetch tracking data
+        .get(`http://localhost:5000/tracking/${trackingId}`)
         .then((response) => {
           setTrackingDetails(response.data);
           setLoading(false);
@@ -32,6 +40,21 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
   if (!show) {
     return null;
   }
+
+  const openImagePreview = (images: string[], index: number) => {
+    setPreviewImages(images);
+    setPreviewIndex(index);
+    setModalOpen(true);
+    setTimeout(() => {
+      if (swiperRef.current && swiperRef.current.swiper) {
+        swiperRef.current.swiper.slideTo(index); 
+      }
+    }, 0);
+  };
+
+  const handlePreviewClose = () => {
+    setModalOpen(false);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -48,7 +71,6 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
           </button>
         </div>
         <div className="p-4 grid grid-cols-2 gap-4">
-          {/* Loading and error handling */}
           {loading ? (
             <p>Loading...</p>
           ) : error ? (
@@ -56,11 +78,11 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
           ) : (
             trackingDetails && (
               <>
-                {/* Column 1 */}
-                <div>
+                {/* Column 1 - Parcel Information */}
+                <div >
                   <h6 className="text-lg text-center font-semibold mb-2">ข้อมูลพัสดุ</h6>
-                  <div className="tracking-details">
-                    <div><span className="label">รหัสพัสดุ</span><span className="colon"> : </span><span className="value">{trackingDetails.tracking_id}</span></div>
+                  <div className="tracking-details" >
+                    <div><span className="label" >รหัสพัสดุ</span><span className="colon" > : </span><span className="value">{trackingDetails.tracking_id}</span></div>
                     <div><span className="label">จำนวน</span><span className="colon"> : </span><span className="value">{trackingDetails.number}</span></div>
                     <div><span className="label">หมายเลขใบสั่งซื้อ</span><span className="colon"> : </span><span className="value">{trackingDetails.buylist_id}</span></div>
                     <div><span className="label">วลีช่วยจำ</span><span className="colon"> : </span><span className="value">{trackingDetails.mnemonics}</span></div>
@@ -69,7 +91,42 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
                     <div><span className="label">ตีลังไม้</span><span className="colon"> : </span><span className="value">{trackingDetails.crate}</span></div>
                     <div><span className="label">เช็คสินค้า</span><span className="colon"> : </span><span className="value">{trackingDetails.check_product}</span></div>
                     <div><span className="label">หมายเหตุ</span><span className="colon"> : </span><span className="value">{trackingDetails.note}</span></div>
-                    <div><span className="label">รูปสินค้า</span><span className="colon"> : </span><span className="value">{trackingDetails.image_item_path}</span></div>
+                    <div className="ant-form-item-control mt-2">
+                      <div className="ant-col ant-form-item-control-input-content"></div>
+                        <div className="image-gallery" style={{ display: 'flex', gap: '2px', justifyItems: 'center' }}>
+                        {Array.isArray(trackingDetails.image_item_paths) && trackingDetails.image_item_paths.length > 0 ? (
+                          trackingDetails.image_item_paths.map((imagePath: string, index: number) => (
+                            <div
+                              className="image-wrapper"
+                              key={index}
+                              style={{
+                                width: '50px',
+                                height: '50px',
+                                position: 'relative',
+                                borderRadius: '8px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => openImagePreview(trackingDetails.image_item_paths, index)}
+                            >
+                              <img
+                                className="image"
+                                src={imagePath}
+                                alt={`Product Image ${index + 1}`}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  transition: 'transform 0.3s ease',
+                                }}
+                              />
+                            </div>
+                          ))
+                        ) : (
+                          <span></span>
+                        )}
+                      </div>
+                      </div>
                   </div>
                 </div>
 
@@ -112,7 +169,7 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
           )}
         </div>
 
-        {/* Footer with Close Button */}
+
         <div className="p-4 flex justify-center border-t">
           <button
             type="button"
@@ -122,6 +179,126 @@ const ModalTrackDetails: React.FC<ModalTrackDetailsProps> = ({ show, onClose, tr
             ปิดหน้าต่าง
           </button>
         </div>
+
+        {/* Image Preview Modal */}
+        <Modal
+          open={modalOpen}
+          footer={null}
+          onCancel={handlePreviewClose}
+          centered
+          width="100%"
+          style={{ top: 0, padding: 0 }}
+          wrapClassName="custom-full-screen-modal"
+          closable={false}
+        >
+          <div className="modal-mask" style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            width: "100vw",
+            position: "fixed",
+            top: 0,
+            left: 0,
+          }}>
+            <div className="modal-container" style={{
+              width: "60%",
+              background: "#fff",
+              borderRadius: "8px",
+              padding: "20px",
+              position: "relative",
+            }}>
+              <button
+                className="close-button"
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                  background: "rgba(0, 0, 0, 0.5)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  padding: "10px",
+                  cursor: "pointer",
+                }}
+                onClick={handlePreviewClose}
+              >
+                <span style={{ fontSize: "20px", fontWeight: "bold" }}>×</span>
+              </button>
+
+              <Swiper
+                ref={swiperRef}
+                initialSlide={previewIndex}
+                onSlideChange={(swiper) => setPreviewIndex(swiper.activeIndex)}
+                navigation={false}
+                modules={[Navigation]}
+              >
+                {previewImages.map((image, index) => (
+                  <SwiperSlide key={index}>
+                    <img
+                      src={image}
+                      alt={`Product Image ${index + 1}`}
+                      className="vue-lightbox-modal-image"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "calc(100vh - 100px)",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+
+              {/* Left Arrow */}
+              <button
+                className="swiper-button-prev"
+                style={{
+                  position: "absolute",
+                  left: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "rgba(0, 0, 0, 0.5)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  padding: "10px",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (swiperRef.current && swiperRef.current.swiper) {
+                    swiperRef.current.swiper.slidePrev();
+                  }
+                }}
+              >
+                <LeftOutlined style={{ fontSize: "20px" }} />
+              </button>
+
+              {/* Right Arrow */}
+              <button
+                className="swiper-button-next"
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "rgba(0, 0, 0, 0.5)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "50%",
+                  padding: "10px",
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  if (swiperRef.current && swiperRef.current.swiper) {
+                    swiperRef.current.swiper.slideNext();
+                  }
+                }}
+              >
+                <RightOutlined style={{ fontSize: "20px" }} />
+              </button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );

@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { Modal } from "antd";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Navigation } from 'swiper/modules';
+import 'swiper/swiper-bundle.css';
 
 interface TrackingItem {
   user_id: string;
@@ -25,24 +30,28 @@ interface TrackingItem {
   transport: number;
   price_crate: number;
   other: number;
-  not_owner:string,
+  not_owner: string;
+  transport_file_path: string;
+  image_item_paths: string[];
 }
 
 interface ModalTrackManageProps {
   show: boolean;
   onClose: () => void;
-  trackingData: TrackingItem; // Pass in trackingData with type TrackingItem
+  trackingData: TrackingItem;
 }
 
 const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trackingData }) => {
-  // Pre-fill the formData state with the existing trackingData
   const [formData, setFormData] = useState<TrackingItem>(trackingData);
-  const [file, setFile] = useState<File | null>(null); // Single file
-  const [images, setImages] = useState<File[]>([]); // Multiple images
+  const [file, setFile] = useState<File | null>(null);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [previewImages, setPreviewImages] = useState<string[]>(formData.image_item_paths || []);
+  const [previewIndex, setPreviewIndex] = useState<number>(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const swiperRef = useRef<any>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
-
     setFormData((prev: TrackingItem) => ({
       ...prev,
       [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
@@ -51,48 +60,74 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]); // Set the file
+      setFile(e.target.files[0]);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setImages(Array.from(e.target.files)); // Set multiple images
+      const newImageFiles = Array.from(e.target.files);
+      setNewImages(prevImages => [...prevImages, ...newImageFiles]);
+      setPreviewImages(prevPreviews => [
+        ...prevPreviews,
+        ...newImageFiles.map(file => URL.createObjectURL(file))
+      ]);
     }
+  };
+
+  const openImagePreview = (images: string[], index: number) => {
+    setPreviewIndex(index);
+    setModalOpen(true);
+  };
+
+  const handlePreviewClose = () => {
+    setModalOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = new FormData();
-
-    // Append form data fields
+  
+    // Append all other form data fields
     Object.entries(formData).forEach(([key, value]) => {
-      form.append(key, value.toString());
+      if (key !== 'image_item_paths' && key !== 'transport_file_path') {
+        form.append(key, value.toString());
+      }
     });
-
-    // Append file if present
-    if (file) {
-      form.append('trackingFile', file); // Append the file
+  
+    // If no new file is uploaded, retain the existing transport file path
+    if (!file && formData.transport_file_path) {
+      form.append('transport_file_path', formData.transport_file_path);
+    } else if (file) {
+      // If a new file is uploaded, append it
+      form.append('trackingFile', file);
     }
-
-    // Append multiple images
-    images.forEach((image, index) => {
-      form.append('trackingImages', image); // Multiple images with the same key
-    });
-
+  
+    // If no new images are uploaded, retain the existing image paths
+    if (newImages.length === 0 && formData.image_item_paths.length > 0) {
+      form.append('existing_image_paths', JSON.stringify(formData.image_item_paths));
+    }
+  
+    // Append new images if uploaded
+    if (newImages.length > 0) {
+      newImages.forEach((image, index) => {
+        form.append('trackingImages', image);
+      });
+    }
+  
     try {
       const response = await fetch(`http://localhost:5000/tracking/${formData.tracking_id}`, {
-        method: 'PUT', // Use PUT to update existing data
-        body: form, // Send FormData instead of JSON
+        method: 'PUT',
+        body: form,
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to update tracking data');
       }
-
+  
       const result = await response.json();
       console.log('Tracking data updated:', result);
-      onClose(); // Close the modal after submitting
+      onClose();
     } catch (error) {
       console.error('Error updating tracking data:', error);
     }
@@ -124,12 +159,18 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     value={formData.user_id}
                     onChange={handleInputChange}
                     required
-                    readOnly // Disable editing for user_id, as it's unique
+                    readOnly
                   />
                 </div>
                 <div className="mb-3">
                   <label className="flex items-center">
                     สินค้าไม่มีเจ้าของ
+                    <input
+                      type="checkbox"
+                      checked={formData.not_owner === 'true'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, not_owner: e.target.checked ? 'true' : 'false' }))}
+                      className="ml-2"
+                    />
                   </label>
                 </div>
               </div>
@@ -351,6 +392,8 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
               {/* File and Images */}
               <div>
                 <h6 className="text-lg font-semibold mb-2">รูปภาพสินค้า/ไฟล์แนบขนส่ง</h6>
+
+                {/* File Input */}
                 <div className="mb-3">
                   <label htmlFor="trackingFile" className="block mb-1">แนบไฟล์:</label>
                   <input
@@ -359,7 +402,26 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     className="w-full"
                     onChange={handleFileChange}
                   />
+                  {file && (
+                    <div>
+                      <span className="label">ตัวอย่างไฟล์: </span>
+                      <a href={URL.createObjectURL(file)} target="_blank" rel="noopener noreferrer">
+                        {file.name}
+                      </a>
+                    </div>
+                  )}
+                  {/* Show existing transport file */}
+                  {formData.transport_file_path && (
+                    <div>
+                      <span className="label">ไฟล์แนบขนส่งที่มีอยู่: </span>
+                      <a href={formData.transport_file_path} target="_blank" rel="noopener noreferrer">
+                        {formData.transport_file_path.split('/').pop()}
+                      </a>
+                    </div>
+                  )}
                 </div>
+
+                {/* Image Input */}
                 <div className="mb-3">
                   <label htmlFor="trackingImages" className="block mb-1">แนบรูปภาพ:</label>
                   <input
@@ -369,9 +431,53 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     multiple
                     onChange={handleImageChange}
                   />
+                  
+                  {/* Show image previews (only for new uploads) */}
+                  {newImages.length > 0 && (
+                    <div>
+                      <h6>ตัวอย่างรูปภาพที่เลือกใหม่:</h6>
+                      <div className="image-gallery mt-2" style={{ display: 'flex', gap: '10px' }}>
+                        {newImages.map((imageFile, index) => (
+                          <div
+                            key={index}
+                            className="image-wrapper"
+                            style={{ width: '50px', height: '50px', cursor: 'pointer' }}
+                            onClick={() => openImagePreview(previewImages, index)}
+                          >
+                            <img
+                              src={URL.createObjectURL(imageFile)}
+                              alt={`Uploaded Image ${index + 1}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Show existing images */}
+                {formData.image_item_paths.length > 0 && (
+                  <div>
+                    <h6>รูปภาพที่มีอยู่:</h6>
+                    <div className="image-gallery" style={{ display: 'flex', gap: '10px' }}>
+                      {formData.image_item_paths.map((imagePath, index) => (
+                        <div
+                          key={index}
+                          className="image-wrapper"
+                          style={{ width: '50px', height: '50px', cursor: 'pointer' }}
+                          onClick={() => openImagePreview(formData.image_item_paths, index)}
+                        >
+                          <img
+                            src={imagePath}
+                            alt={`Existing Image ${index + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 </div>
-              </div>
-
+                </div>
               {/* Additional Costs */}
               <div>
                 <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายเพิ่มเติม</h6>
@@ -450,6 +556,122 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
           </footer>
         </form>
       </div>
+
+      {/* Image Preview Modal */}
+      <Modal
+        open={modalOpen}
+        footer={null}
+        onCancel={handlePreviewClose}
+        centered
+        width="100%"
+        style={{ top: 0, padding: 0 }}
+        wrapClassName="custom-full-screen-modal"
+        closable={false}
+      >
+        <div className="modal-mask" style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          width: "100vw",
+          position: "fixed",
+          top: 0,
+          left: 0,
+        }}>
+          <div className="modal-container" style={{
+            width: "60%",
+            background: "#fff",
+            borderRadius: "8px",
+            padding: "20px",
+            position: "relative",
+          }}>
+            <button
+              className="close-button"
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "50%",
+                padding: "10px",
+                cursor: "pointer",
+              }}
+              onClick={handlePreviewClose}
+            >
+              <span style={{ fontSize: "20px", fontWeight: "bold" }}>×</span>
+            </button>
+
+            <Swiper
+              ref={swiperRef}
+              initialSlide={previewIndex}
+              onSlideChange={(swiper) => setPreviewIndex(swiper.activeIndex)}
+              navigation={false}
+              modules={[Navigation]}
+            >
+              {previewImages.map((image, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={image}
+                    alt={`Preview Image ${index + 1}`}
+                    className="vue-lightbox-modal-image"
+                    style={{ maxWidth: "100%", maxHeight: "calc(100vh - 100px)", objectFit: "contain" }}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            {/* Left Arrow */}
+            <button
+              className="swiper-button-prev"
+              style={{
+                position: "absolute",
+                left: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "50%",
+                padding: "10px",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                if (swiperRef.current && swiperRef.current.swiper) {
+                  swiperRef.current.swiper.slidePrev();
+                }
+              }}
+            >
+              <LeftOutlined style={{ fontSize: "20px" }} />
+            </button>
+
+            {/* Right Arrow */}
+            <button
+              className="swiper-button-next"
+              style={{
+                position: "absolute",
+                right: "10px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "50%",
+                padding: "10px",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                if (swiperRef.current && swiperRef.current.swiper) {
+                  swiperRef.current.swiper.slideNext();
+                }
+              }}
+            >
+              <RightOutlined style={{ fontSize: "20px" }} />
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

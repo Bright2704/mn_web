@@ -553,8 +553,8 @@ object-fit: contain;
   left: 0; /* Keep the marker aligned at the left edge */
   top: 50%; /* Vertically center the marker */
   transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
 }
 

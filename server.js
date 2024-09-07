@@ -82,6 +82,8 @@ const Lot = mongoose.model('Lot', LotSchema, 'lot');
 // Define schema and models
 const TrackingSchema = new mongoose.Schema({
   user_id: String,
+  lot_id: String,
+  lot_order: String,
   not_owner: Boolean,
   tracking_id: String,
   buylist_id: String,
@@ -519,7 +521,7 @@ app.post('/lots', async (req, res) => {
     in_cn: '',
     out_cn: '',
     in_th: '',
-    num_item: '',
+    num_item: 0,
     note: ''
   });
 
@@ -604,6 +606,29 @@ app.get('/lots/:lotId/attachments', async (req, res) => {
   }
 });
 
+app.get('/tracking/search', async (req, res) => {
+  const searchQuery = req.query.q;
+  const currentLotId = req.query.lotId;
+  
+  if (!searchQuery) {
+    return res.status(400).json({ message: 'Query is required' });
+  }
+
+  try {
+    const results = await Tracking.find({
+      tracking_id: { $regex: searchQuery, $options: 'i' },
+      $or: [
+        { lot_id: currentLotId },
+        { lot_id: { $in: [null, ''] } }
+      ]
+    });
+
+    return res.json(results.map(result => result.tracking_id));
+  } catch (error) {
+    console.error('Error fetching tracking IDs:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 app.get('/tracking', async (req, res) => {
   try {
@@ -648,7 +673,11 @@ app.post('/tracking', (req, res) => {
       price_crate,
       other,
       cal_price,
-      bill_id
+      bill_id,
+      status,
+      lot_id,
+      lot_order
+
     } = req.body;
 
     // Prepare variables for file paths
@@ -695,7 +724,10 @@ app.post('/tracking', (req, res) => {
         cal_price: parseFloat(cal_price) || 0,
         bill_id,
         transport_file_path, // Path of the uploaded and renamed tracking file
-        image_item_paths // Paths of the uploaded and renamed images
+        image_item_paths,// Paths of the uploaded and renamed images
+        status,
+        lot_id,
+        lot_order
       });
 
       // Save the tracking entry to the database
@@ -723,6 +755,8 @@ app.put('/tracking/:trackingId', (req, res) => {
       buylist_id,
       mnemonics,
       lot_type,
+      lot_id,
+      lot_order,
       type_item,
       crate,
       check_product,
@@ -745,22 +779,29 @@ app.put('/tracking/:trackingId', (req, res) => {
       bill_id
     } = req.body;
 
-    // Prepare variables for file paths
-    let transport_file_path = '';
-    let image_item_paths = [];
+    // Fetch existing tracking data
+    let existingTracking = await Tracking.findOne({ tracking_id: trackingId });
 
-    // If tracking file is uploaded, get its renamed path
+    if (!existingTracking) {
+      return res.status(404).json({ error: 'Tracking not found' });
+    }
+
+    // Use existing paths if no new file or image is uploaded
+    let transport_file_path = existingTracking.transport_file_path;
+    let image_item_paths = existingTracking.image_item_paths;
+
+    // If tracking file is uploaded, replace the existing path
     if (req.files['trackingFile'] && req.files['trackingFile'][0]) {
       transport_file_path = `/storage/tracking/tracking_file/${req.files['trackingFile'][0].filename}`;
     }
 
-    // If tracking images are uploaded, get their renamed paths
+    // If tracking images are uploaded, replace the existing paths
     if (req.files['trackingImages']) {
       image_item_paths = req.files['trackingImages'].map(file => `/storage/tracking/tracking_image/${file.filename}`);
     }
 
     try {
-      // Find and update the tracking entry in the database
+      // Update the tracking entry in the database
       const updatedTracking = await Tracking.findOneAndUpdate(
         { tracking_id: trackingId },
         {
@@ -769,6 +810,8 @@ app.put('/tracking/:trackingId', (req, res) => {
           buylist_id,
           mnemonics,
           lot_type,
+          lot_id,
+          lot_order,
           type_item,
           crate: crate === 'true' ? 'ตี' : 'ไม่ตี',
           check_product: check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
@@ -789,15 +832,11 @@ app.put('/tracking/:trackingId', (req, res) => {
           other: parseFloat(other) || 0,
           cal_price: parseFloat(cal_price) || 0,
           bill_id,
-          transport_file_path, // Path of the uploaded and renamed tracking file
-          image_item_paths // Paths of the uploaded and renamed images
+          transport_file_path, // Retain or update path of the tracking file
+          image_item_paths // Retain or update paths of the images
         },
         { new: true } // Return the updated document
       );
-
-      if (!updatedTracking) {
-        return res.status(404).json({ error: 'Tracking not found' });
-      }
 
       res.json(updatedTracking); // Send back the updated tracking entry
     } catch (err) {
@@ -823,6 +862,70 @@ app.get('/tracking/:trackingId', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch tracking details' });
   }
 });
+app.get('/tracking/lot/:lotId', async (req, res) => {
+  try {
+    const { lotId } = req.params;
+    const trackingData = await Tracking.find({ lot_id: lotId });
+    
+    if (trackingData.length === 0) {
+      return res.status(404).json({ message: 'No tracking data found for this lot_id' });
+    }
+
+    res.json(trackingData);
+  } catch (err) {
+    console.error('Error fetching tracking data:', err);
+    res.status(500).json({ error: 'Failed to fetch tracking data' });
+  }
+});
+
+// New endpoint to update tracking date fields only (no file uploads)
+app.put('/tracking/:trackingId/updateFields', async (req, res) => {
+  const { trackingId } = req.params;
+  const updateFields = req.body;  // Expect dynamic fields from the request body
+
+  try {
+    // Update only the fields provided in the request body (in_cn, out_cn, in_th, etc.)
+    const updatedTracking = await Tracking.findOneAndUpdate(
+      { tracking_id: trackingId },
+      { $set: updateFields },
+      { new: true }  // Return the updated document
+    );
+
+    if (!updatedTracking) {
+      return res.status(404).json({ error: 'Tracking not found' });
+    }
+
+    res.json(updatedTracking);  // Return the updated document
+  } catch (err) {
+    console.error('Error updating tracking:', err);
+    res.status(500).json({ error: 'Failed to update tracking' });
+  }
+});
+
+// New route to update only the lot_id of a tracking document
+app.put('/tracking/:trackingId/update-lot-id', async (req, res) => {
+  const { trackingId } = req.params;
+  const { newLotId } = req.body;  // Assuming the new lot_id is passed in the body
+
+  try {
+    // Find the tracking document by tracking_id and update the lot_id
+    const updatedTracking = await Tracking.findOneAndUpdate(
+      { tracking_id: trackingId },  // Find the document by tracking_id
+      { $set: { lot_id: newLotId } },  // Update the lot_id field
+      { new: true }  // Return the updated document
+    );
+
+    if (!updatedTracking) {
+      return res.status(404).json({ error: 'Tracking not found' });
+    }
+
+    res.json(updatedTracking);  // Return the updated tracking document
+  } catch (err) {
+    console.error('Error updating lot_id:', err);
+    res.status(500).json({ error: 'Failed to update lot_id' });
+  }
+});
+
 
 // Serve static files from the public directory
 app.use('/storage', express.static(path.join(__dirname, 'public/storage')));

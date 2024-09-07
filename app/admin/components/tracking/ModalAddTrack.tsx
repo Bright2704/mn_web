@@ -31,7 +31,10 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     new_wrap: '',
     transport: '',
     price_crate: '',
-    other: ''
+    other: '',
+    status:'รอเข้าโกดังจีน',
+    lot_id:'',
+    lot_order:''
   });
 
   const [file, setFile] = useState<File | null>(null); // Single file
@@ -342,30 +345,6 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     className="w-full p-2 border rounded"
                     value={formData.in_th}
                     onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              {/* File and Images */}
-              <div>
-                <h6 className="text-lg font-semibold mb-2">รูปภาพสินค้า/ไฟล์แนบขนส่ง</h6>
-                <div className="mb-3">
-                  <label htmlFor="trackingFile" className="block mb-1">แนบไฟล์:</label>
-                  <input
-                    id="trackingFile"
-                    type="file"
-                    className="w-full"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="trackingImages" className="block mb-1">แนบรูปภาพ:</label>
-                  <input
-                    id="trackingImages"
-                    type="file"
-                    className="w-full"
-                    multiple
-                    onChange={handleImageChange}
                   />
                 </div>
               </div>

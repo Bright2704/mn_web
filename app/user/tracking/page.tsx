@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "../../../styles/globals.css";
 import ModalAddTrack from "../components/tracking/ModalAddTrack";
-import ModalTrackDetails from "../components/tracking/ModalTrackDetails"; // Import ModalTrackDetails
+import ModalTrackDetails from "../components/tracking/ModalTrackDetails";
+import { Modal } from "antd";
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Swiper, SwiperSlide } from 'swiper/react'; 
+import { Navigation } from 'swiper/modules'; 
+import 'swiper/swiper-bundle.css';
 
 type TrackingItem = {
   user_id: string;
@@ -27,12 +32,18 @@ type TrackingItem = {
   note: string;
   bill_id: string;
   number: number;
-  image_item_path: string;
+  image_item_paths: string[];
   weight: number;
   wide: number;
   high: number;
   long: number;
   buylist_id: string;
+  user_rate: string;
+  check_product_price: number;
+  new_wrap: number;
+  price_crate: number;
+  other: number;
+  not_owner: string;
 };
 
 const statuses = [
@@ -50,6 +61,7 @@ const searchTopics = [
   { label: "เลขพัสดุ", value: "tracking_id" },
   { label: "รหัสผู้ใช้", value: "user_id" },
 ];
+
 const VerticalTimeline = ({ events }: { events: { title: string; date: string }[] }) => {
   return (
     <div className="flex justify-center">
@@ -79,10 +91,13 @@ const TrackPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchTopic, setSearchTopic] = useState<keyof TrackingItem>("tracking_id");
   const [showModalAddTrack, setShowModalAddTrack] = useState<boolean>(false);
-  const [showTrackDetails, setShowTrackDetails] = useState<boolean>(false);
-  const [selectedTrackingId, setSelectedTrackingId] = useState<string>("");
+  const [showModalManageTrack, setShowModalManageTrack] = useState<boolean>(false);
+  const [selectedTrackingItem, setSelectedTrackingItem] = useState<TrackingItem | null>(null);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [previewIndex, setPreviewIndex] = useState<number>(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const swiperRef = useRef<any>(null); // Ref for the Swiper instance
 
-  // Fetch data on component load
   useEffect(() => {
     const fetchTrackingItems = async () => {
       setLoading(true);
@@ -105,7 +120,6 @@ const TrackPage: React.FC = () => {
     fetchTrackingItems();
   }, []);
 
-  // Update trackingItems when selectedStatus changes
   useEffect(() => {
     if (selectedStatus === "all") {
       setTrackingItems(allTrackingItems);
@@ -130,13 +144,25 @@ const TrackPage: React.FC = () => {
     setTrackingItems(filteredItems);
   };
 
-  const handleManageClick = (trackingId: string) => {
-    setSelectedTrackingId(trackingId);
-    setShowTrackDetails(true); // Open modal when clicked
+  const handleManageClick = (item: TrackingItem) => {
+    setSelectedTrackingItem(item);
+    setShowModalManageTrack(true);
   };
 
-  const closeTrackDetailsModal = () => {
-    setShowTrackDetails(false);
+  const openImagePreview = (images: string[], index: number) => {
+    setPreviewImages(images);
+    setPreviewIndex(index);
+    setModalOpen(true);
+
+    setTimeout(() => {
+      if (swiperRef.current && swiperRef.current.swiper) {
+        swiperRef.current.swiper.slideTo(index); // Go to the clicked image
+      }
+    }, 0);
+  };
+
+  const handlePreviewClose = () => {
+    setModalOpen(false);
   };
 
   return (
@@ -199,7 +225,7 @@ const TrackPage: React.FC = () => {
         <table className="table table-width-1">
           <thead>
             <tr className="text-center">
-              <th>รายละะเอียด</th>
+              <th>รายละเอียด</th>
               <th>คำนวณราคา</th>
               <th>สถานะขนส่ง</th>
               <th>ออกบิล</th>
@@ -209,25 +235,26 @@ const TrackPage: React.FC = () => {
           <tbody>
             {trackingItems.map((item) => {
               const events = [];
-
-              if (item.in_cn) {
-                events.push({ date: item.in_cn, title: "เข้าโกดังจีน" });
-              }
-              if (item.out_cn) {
-                events.push({ date: item.out_cn, title: "ออกจากจีน" });
+              
+              if (item.bill_id) {
+                events.push({ date: item.bill_id, title: "นำออกแล้ว" });
               }
               if (item.in_th) {
                 events.push({ date: item.in_th, title: "ถึงไทย" });
               }
-              if (item.bill_id) {
-                events.push({ date: item.bill_id, title: "นำออกแล้ว" });
+              if (item.out_cn) {
+                events.push({ date: item.out_cn, title: "ออกจากจีน" });
               }
-
+              if (item.in_cn) {
+                events.push({ date: item.in_cn, title: "เข้าโกดังจีน" });
+              }
+            
               return (
                 <tr key={item.tracking_id} className="ant-table-row ant-table-row-level-0 table-row-dark">
                   <td className="ant-table-cell header-center f-small line-height-item">
                     <div className="tracking-details-container">
                       <div className="tracking-details">
+                        <div><span className="label">รหัสผู้ใช้</span><span className="colon">:</span><span className="value">{item.user_id}</span></div>
                         <div><span className="label">หมายเลขใบสั่งซื้อ</span><span className="colon">:</span><span className="value">{item.buylist_id}</span></div>
                         <div><span className="label">รหัสพัสดุ</span><span className="colon">:</span><span className="value">{item.tracking_id}</span></div>
                         <div><span className="label">ล็อต/ลำดับ</span><span className="colon">:</span><span className="value">{item.lot_type} {item.order_lot}</span></div>
@@ -245,10 +272,49 @@ const TrackPage: React.FC = () => {
                         <div><span className="label">น้ำหนัก (กิโล.)</span><span className="colon">:</span><span className="value">({item.weight} X {item.number})</span></div>
                         <div><span className="label">จำนวน</span><span className="colon">:</span><span className="value">{item.number}</span></div>
                         <div><span className="label">คิดราคาแบบ {item.pricing} </span><span className="colon">:</span><span className="value">{item.cal_price}</span></div>
-                        <div><span className="label">ภาพสินค้า</span><span className="colon">:</span><span className="value">{item.image_item_path}</span></div>
+                        
+                        <div className="ant-form-item-control mt-2">
+                          <div className="ant-col ant-form-item-control-input-content">
+                            <div className="image-gallery" style={{ display: 'flex', gap: '2px', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', justifyItems: 'center' }}>
+                              {Array.isArray(item.image_item_paths) && item.image_item_paths.length > 0 ? (
+                                item.image_item_paths.map((imagePath: string, index: number) => (
+                                  <div
+                                    className="image-wrapper"
+                                    key={index}
+                                    style={{
+                                      width: '50px',
+                                      height: '50px',
+                                      position: 'relative',
+                                      // overflow: 'hidden',
+                                      borderRadius: '8px',
+                                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => openImagePreview(item.image_item_paths, index)}
+                                  >
+                                    <img
+                                      className="image"
+                                      src={imagePath}
+                                      alt={`Product Image ${index + 1}`}
+                                      style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        transition: 'transform 0.3s ease',
+                                      }}
+                                    />
+                                  </div>
+                                ))
+                              ) : (
+                                <span></span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </td>
+
                   <td className="ant-table-cell header-center tracking small p-1">
                     <VerticalTimeline events={events} />
                   </td>
@@ -258,7 +324,7 @@ const TrackPage: React.FC = () => {
                   </td>
 
                   <td>
-                    <button className="btn btn-sm btn-primary" onClick={() => handleManageClick(item.tracking_id)}>
+                    <button className="btn btn-sm btn-primary" onClick={() => handleManageClick(item)}>
                       จัดการ
                     </button>
                   </td>
@@ -276,11 +342,138 @@ const TrackPage: React.FC = () => {
       <ModalAddTrack show={showModalAddTrack} onClose={() => setShowModalAddTrack(false)} />
 
       {/* Show ModalTrackDetails */}
-      <ModalTrackDetails
-        show={showTrackDetails}
-        onClose={closeTrackDetailsModal}
-        trackingId={selectedTrackingId} // Pass the tracking ID here
+      {selectedTrackingItem && (
+        <ModalTrackDetails
+        show={showModalManageTrack}
+        onClose={() => setShowModalManageTrack(false)}
+        trackingId={selectedTrackingItem?.tracking_id}  // Pass the tracking_id here
       />
+      )}
+
+      {/* Image Preview Modal */}
+      <Modal
+        open={modalOpen}
+        footer={null}
+        onCancel={handlePreviewClose} 
+        centered
+        width="100%"
+        style={{ top: 0, padding: 0 }} 
+        wrapClassName="custom-full-screen-modal"
+        closable={false}
+      >
+        <div className="modal-mask" style={{
+          display: "flex", 
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",  
+          width: "100vw",  
+          position: "fixed", 
+          top: 0,
+          left: 0,
+        }}>
+          <div className="modal-container" style={{
+            width: "60%", 
+            background: "#fff", 
+            borderRadius: "8px", 
+            padding: "20px",
+            position: "relative",
+          }}>
+            {/* Close Button */}
+            <button
+              className="close-button"
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "50%",
+                padding: "10px",
+                cursor: "pointer",
+              }}
+              onClick={handlePreviewClose}
+            >
+              <span style={{ fontSize: "20px", fontWeight: "bold" }}>×</span>
+            </button>
+
+            <div className="vue-lightbox-content">
+              <div className="vue-lightbox-figure">
+              <Swiper
+                ref={swiperRef}  // Ensure the ref is passed here
+                initialSlide={previewIndex}
+                onSlideChange={(swiper) => setPreviewIndex(swiper.activeIndex)}
+                navigation={false}
+                modules={[Navigation]}
+              >
+                {previewImages.map((image, index) => (
+                  <SwiperSlide key={index}>
+                    <img
+                      src={image}
+                      alt={`Product Image ${index + 1}`}
+                      className="vue-lightbox-modal-image"
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "calc(100vh - 100px)",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+
+                {/* Left Arrow */}
+                <button
+                  className="swiper-button-prev"
+                  style={{
+                    position: "absolute",
+                    left: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "rgba(0, 0, 0, 0.5)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "50%",
+                    padding: "10px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    if (swiperRef.current && swiperRef.current.swiper) {
+                      swiperRef.current.swiper.slidePrev();
+                    }
+                  }}
+                >
+                  <LeftOutlined style={{ fontSize: "20px" }} />
+                </button>
+
+                {/* Right Arrow */}
+                <button
+                  className="swiper-button-next"
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "rgba(0, 0, 0, 0.5)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "50%",
+                    padding: "10px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    if (swiperRef.current && swiperRef.current.swiper) {
+                      swiperRef.current.swiper.slideNext();
+                    }
+                  }}
+                >
+                  <RightOutlined style={{ fontSize: "20px" }} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
