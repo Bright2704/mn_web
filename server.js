@@ -122,7 +122,7 @@ const storage = multer.diskStorage({
     const { tracking_id } = req.body;
 
     if (file.fieldname === 'slip') {
-      cb(null, './public/storage/wait/slips/');
+      cb(null, './public/storage/slips/wait');
     } else if (file.fieldname === 'lotFile') {
       cb(null, './public/storage/lot/lot_file/');
     } else if (file.fieldname === 'lotImage') {
@@ -343,7 +343,7 @@ app.post('/deposits_new', (req, res) => {
         amount,
         bank,
         status,
-        slip: `/storage/wait/slips/${req.file.filename}`
+        slip: `/storage/slips/wait/${req.file.filename}`
       });
 
       const savedDeposit = await newDeposit.save();

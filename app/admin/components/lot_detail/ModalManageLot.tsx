@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { Empty, Modal } from 'antd';  // Import Modal from antd or use any other modal library
+import { Modal } from 'antd';  
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
-import 'swiper/swiper-bundle.css';  // Ensure you have Swiper CSS
-import { LeftOutlined, RightOutlined, SearchOutlined  } from '@ant-design/icons';
+import 'swiper/swiper-bundle.css';  
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
 
 interface ModalManageLotProps {
@@ -57,6 +57,10 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
   const [isDataUpdated, setIsDataUpdated] = useState(false);
   const [allSelected, setAllSelected] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+  // State for selected field and date
+  const [selectedField, setSelectedField] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
 
   // Image Preview Modal state
   const [previewImages, setPreviewImages] = useState<string[]>([]);
@@ -239,27 +243,26 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
     }
   };
 
+  const handleFieldChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedField(e.target.value);
+    console.log("Selected field:", e.target.value);
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(e.target.value);
+    console.log("Selected date:", e.target.value);
+  };
+
+
   const handleUpdateTracking = async () => {
-    const selectedFieldElement = document.getElementById("user_rate");
-    const selectedDateElement = document.getElementById("in_cn");
-  
-    if (!selectedFieldElement || !selectedDateElement) {
-      alert("Please ensure both the field and date inputs are present.");
-      return;
-    }
-  
-    const selectedField = (selectedFieldElement as HTMLSelectElement).value;
-    const selectedDate = (selectedDateElement as HTMLInputElement).value;
-  
-    if (!selectedDate || !selectedField) {
+    if (!selectedField || !selectedDate) {
       alert("Please select both a field and a date.");
       return;
     }
-  
+
     const selectedTrackings = selectedRows.map(index => trackingData[index].tracking_id);
-  
+
     try {
-      // Send request for each selected tracking ID
       await Promise.all(
         selectedTrackings.map(async (trackingId) => {
           const response = await fetch(
@@ -269,18 +272,17 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ [selectedField]: selectedDate }), // Update the selected field
+              body: JSON.stringify({ [selectedField]: selectedDate }), 
             }
           );
-  
+
           if (!response.ok) {
             throw new Error(`Failed to update tracking for ID: ${trackingId}`);
           }
         })
       );
-  
-      console.log("Tracking data updated successfully");
-      fetchTrackingData(); // Refresh tracking data after update
+
+      fetchTrackingData();
     } catch (error) {
       console.error("Error updating tracking data:", error);
     }
@@ -814,21 +816,23 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
               <div className="mb-3" style={{ display: 'flex', gap: '10px' }}>
                 <label htmlFor="in_cn" className="block mb-1"></label>
                 <input
-                  id="in_cn"
-                  type="date"
-                  className="w-full p-2 border rounded"
-                  onChange={handleInputChange}
-                />
+                    id="in_cn"
+                    type="date"
+                    className="w-full p-2 border rounded"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                  />
                 <label htmlFor="user_rate" className="block mb-1"></label>
                 <select
-                  id="user_rate"
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="in_cn">เข้าโกดังจีน</option>
-                  <option value="out_cn">ออกจากจีน</option>
-                  <option value="in_th">ถึงไทย</option>
-
-                </select>
+                    id="user_rate"
+                    className="w-full p-2 border rounded"
+                    value={selectedField}
+                    onChange={handleFieldChange}
+                  >
+                    <option value="in_cn">เข้าโกดังจีน</option>
+                    <option value="out_cn">ออกจากจีน</option>
+                    <option value="in_th">ถึงไทย</option>
+                  </select>
               </div>
               <div className="mb-3" style={{ display: 'flex', gap: '10px' }}>
               <button

@@ -1,0 +1,28 @@
+[{
+  "_id": {
+    "$oid": "66dd7039c7b2560bca78ef8c"
+  },
+  "lot_id": "LOT-00001",
+  "lot_type": "รถ",
+  "in_cn": "",
+  "out_cn": "",
+  "in_th": "",
+  "num_item": "0",
+  "note": "",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "66dd868dc7b2560bca78f00c"
+  },
+  "lot_id": "LOT-00002",
+  "lot_type": "เรือ",
+  "in_cn": "",
+  "out_cn": "",
+  "in_th": "",
+  "num_item": "0",
+  "note": "",
+  "__v": 0,
+  "file_path": "/storage/lot/lot_file/LOT-00002.pdf",
+  "image_path": "/storage/lot/lot_image/LOT-00002.jpg"
+}]

@@ -257,7 +257,7 @@ const TrackPage: React.FC = () => {
                         <div><span className="label">รหัสผู้ใช้</span><span className="colon">:</span><span className="value">{item.user_id}</span></div>
                         <div><span className="label">หมายเลขใบสั่งซื้อ</span><span className="colon">:</span><span className="value">{item.buylist_id}</span></div>
                         <div><span className="label">รหัสพัสดุ</span><span className="colon">:</span><span className="value">{item.tracking_id}</span></div>
-                        <div><span className="label">ล็อต/ลำดับ</span><span className="colon">:</span><span className="value">{item.lot_type} {item.order_lot}</span></div>
+                        <div><span className="label">ล็อต/ลำดับ</span><span className="colon">:</span><span className="value">{item.lot_type} {item.lot_id}</span></div>
                         <div><span className="label">ประเภท</span><span className="colon">:</span><span className="value">{item.type_item}</span></div>
                         <div><span className="label">วลีช่วยจำ</span><span className="colon">:</span><span className="value">{item.mnemonics}</span></div>
                         <div><span className="label">หมายเหตุ</span><span className="colon">:</span><span className="value">{item.note}</span></div>
