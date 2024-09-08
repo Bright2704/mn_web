@@ -34,7 +34,7 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/code">
+                    <Link href="/user/tracking">
                         รหัสพัสดุ
                     </Link>
                 </li>

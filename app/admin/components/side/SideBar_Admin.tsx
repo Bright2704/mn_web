@@ -28,7 +28,7 @@ const SideBar2 = () => {
           <Link href="/admin/export">รายการนำสินค้าออก</Link>
         </li>
         <li className="menu-item">
-          <Link href="/admin/code">รหัสพัสดุ</Link>
+          <Link href="/admin/tracking">รหัสพัสดุ</Link>
         </li>
         <li className="menu-item">
           <Link href="/admin/lot">ล็อตสินค้า</Link>
