@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "server": "nodemon server.js"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
@@ -45,7 +46,10 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
+    "@types/node": "22.5.2",
+    "@types/react": "18.3.5",
     "@types/react-bootstrap": "^0.32.37",
+    "nodemon": "^3.1.4",
     "prisma": "^5.16.1"
   }
 }
