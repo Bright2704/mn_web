@@ -86,7 +86,8 @@ const BuylistPage: React.FC = () => {
         if (selectedStatus === 'all') {
           // Fetch all statuses separately and combine the results
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            // axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            axios.get<LocalProduct[]>(`/api/orders`)
           );
           const results = await Promise.all(requests);
           const allProducts = results.flatMap(result => result.data);

@@ -1,103 +1,71 @@
 "use client"
-import React ,{useEffect, useState}from 'react';
-import ArrowLeftIcon from '../components/ArrowLeftIcon';
-import AddressForm from '../components/PaymentForm';
-import ColorStatus from '../components/StatusStyle';
-import TermsAndPayment from '../components/TermsAndPayment';
-import { Breadcrumb, Card, Form, Input, Button, Radio, Tag, Space, Table } from 'antd';
-import { ArrowLeftOutlined, EyeOutlined, SaveOutlined } from '@ant-design/icons';
-import li from 'react';
+import React, { useEffect, useState } from 'react';
+import { Breadcrumb, Card, Form, Input, Button, Radio, Table } from 'antd';
 import axios from 'axios';
+import ArrowLeftIcon from '../components/ArrowLeftIcon';
+import AddressForm from '../components/AddressForm';
+import ColorStatus from '../components/StatusStyle';
 
 const columns = [
     { title: 'Order ID', dataIndex: 'order_id', key: 'order_id' },
     { title: 'Customer ID', dataIndex: 'cus_id', key: 'cus_id' },
     { title: 'Product', dataIndex: 'product', key: 'product' },
     { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Price', dataIndex: 'note', key: 'note'},
+    { title: 'Price', dataIndex: 'price', key: 'price'},  // Assuming you have a price field in the order object
     { title: 'Date', dataIndex: 'date', key: 'date'},
-    // other columns...
-    
 ];
-const CreatePayment: React.FC = () => {
+
+const CreatePayment = () => {
     const [orders, setOrders] = useState([]);
-  
+
     useEffect(() => {
-      const loadOrders = () => {
-        const storedOrders = localStorage.getItem('selectedOrders');
-        if (storedOrders) {
-          setOrders(JSON.parse(storedOrders));
-        }
-      };
-      loadOrders();
+        // Load selected orders from local storage
+        const loadedOrders = JSON.parse(localStorage.getItem('selectedOrders') || '[]');
+        setOrders(loadedOrders);
     }, []);
 
     const handleSaveOrders = async () => {
         try {
-          console.log("Sending orders to save:", orders);  // Log the orders being sent
-          const response = await axios.post('http://localhost:5000/api/payment', orders);
-          console.log(response.data.message);
-          alert('Orders have been successfully saved!');
+            // Ensure that orders are sent in the correct format expected by the backend
+            const response = await axios.post('/api/payments', orders);
+            alert('Orders have been successfully saved!');
+            console.log(response.data); // Log the response data for debugging
         } catch (error) {
-          console.error('Failed to save orders:', error);
-          alert('Failed to save orders.');
+            console.error('Failed to save orders:', error);
+            alert('Failed to save orders.');
         }
-      };
+    };
 
     return (
-        <main className='flex flex-col space-y-4 m-3' >
+        <main className='flex flex-col space-y-4 m-3'>
             <div style={{ padding: '24px 16px', background: 'rgb(240, 242, 245)' }}>
                 <nav className='ant-breadcrumb'>
                     <ol>
                         <li className='mx-2'>
-                            <span className='px-1'>
-                                <a href='dashboard'>แดชบอร์ด</a>
-                            </span>
-                            <span className='px-1'>
-                               /
-                            </span>
-                            <span className='px-1'>
-                                <a href='status'>เช็คสถานะและแจ้งส่งของ</a>
-                            </span>
-                            <span className='px-1'>
-                               /
-                            </span>
-                            <span className='px-1'>
-                                <a>ชำระเงินค่าขนส่งสินค้า</a>
-                            </span>
+                            <a href='dashboard'>แดชบอร์ด</a> / 
+                            <a href='status'>เช็คสถานะและแจ้งส่งของ</a> /
+                            <span>ชำระเงินค่าขนส่งสินค้า</span>
                         </li>
                     </ol>
                 </nav>
-                <div className='flex ml-3 mt-3 gap-x-4 items-center' style={{ display: 'flex', marginLeft: '12px', marginTop: '12px' }}>
-                    <a href='/user/status'>
-                        <ArrowLeftIcon
-                            style={{ color: 'black', cursor: 'pointer', background:'transparent', padding:'0px', lineHeight: 'inherit', display:'inline-block' }}
-                            onClick={() => console.log('Icon clicked')}
-                        />
-                    </a>
-                    <span className = 'text-xl font-semibold' title='ชำระเงินค่าขนส่งสินค้า'> 
-                        ชำระเงินค่าขนส่งสินค้า
-                    </span>
+                <div className='flex ml-3 mt-3 gap-x-4 items-center'>
+                    <ArrowLeftIcon onClick={() => window.history.back()} style={{ cursor: 'pointer' }} />
+                    <h1 className='text-xl font-semibold'>ชำระเงินค่าขนส่งสินค้า</h1>
                 </div>
             </div>
             <div className='flex flex-row gap-5 bg-blue-100 m-3'>
-                <div>
-                    <AddressForm/>
-                    {/* <TermsAndPayment/> */}
-                </div> 
-         
+                <AddressForm/>
             </div>
             <Table 
                 columns={columns} 
                 dataSource={orders} 
                 pagination={false} 
-                // rowKey={record => record.id}
+                rowKey={record => record.order_id}
             />
             <Button onClick={handleSaveOrders} type="primary">Save Orders to Database</Button>
-            <ColorStatus/>  
-
+            <ColorStatus/>
         </main>
     );
-    
 };
+
 export default CreatePayment;
