@@ -9,15 +9,26 @@ import ColorStatus from '../components/StatusStyle';
 import '../../../node_modules/antd/dist/reset.css';
 
 // Define interfaces for your data
-interface Order {
+interface Parcel {
     _id: string;
-    order_id: string;
-    cus_id: string;
-    product: string;
-    note: string;
-    trans_type: string;
-    status: string;
-    date: string;
+    code: string;
+    lot: string;
+    number: string;
+    vehicle: String;
+    length: String;
+    mnemonic_phrases: String;
+    price: String;
+    width: String;
+    height: String;
+    weight: String;
+    amount: String;
+    pay: String;
+    customer: String;
+    create_date: Date;
+    in_cn: Date;
+    out_cn: Date;
+    in_th: Date;
+    pay_date: Date;
     // other fields...
 }
 interface CardInfo {
@@ -27,18 +38,18 @@ interface CardInfo {
 }
 
 const columns = [
-    { title: 'Order ID', dataIndex: 'order_id', key: 'order_id' },
-    { title: 'Customer ID', dataIndex: 'cus_id', key: 'cus_id' },
-    { title: 'Product', dataIndex: 'product', key: 'product' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Price', dataIndex: 'note', key: 'note'},
-    { title: 'Date', dataIndex: 'date', key: 'date'},
+    { title: 'Code ID', dataIndex: 'code', key: 'code' },
+    { title: 'Customer ID', dataIndex: 'customer', key: 'customer' },
+    { title: 'Lot number', dataIndex: 'lot', key: 'lot' },
+    { title: 'create_date', dataIndex: 'create_date', key: 'create_date' },
+    { title: 'Price', dataIndex: 'price', key: 'price',render: price => `${price} ฿` },  // Add currency symbol to each price
+    // { title: 'Date', dataIndex: 'date', key: 'date'},
     // other columns...
     
 ];
 
 const StatusPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [parcels, setParcels] = useState<Parcel[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,15 +59,16 @@ const StatusPage: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get('/api/orders');
-        const formattedData = data.map((order: any) => ({
-          ...order,
-          price: extractPrice(order.note)
+        const { data } = await axios.get('/api/parcels');
+        const formattedData = data.map((parcel: any) => ({
+          ...parcel,
+          // price: extractPrice(order.note)
+          // price: parcel.price
         }));
-        setOrders(formattedData);
+        setParcels(formattedData);
       } catch (error) {
         console.error('Failed to fetch data:', error);
-        setError('Failed to fetch orders');
+        setError('Failed to fetch parcels');
       } finally {
         setIsLoading(false);
       }
@@ -65,16 +77,16 @@ const StatusPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const extractPrice = (note: string) => {
-    const priceMatch = note.match(/รวม\s?:\s?(\d+,\d+\.\d+)/);
-    return priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
-  };
+  // const extractPrice = (note: string) => {
+  //   const priceMatch = note.match(/รวม\s?:\s?(\d+,\d+\.\d+)/);
+  //   return priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
+  // };
   
-  const onSelectChange = (selectedKeys: React.Key[], selectedRows: Order[]) => {
+  const onSelectChange = (selectedKeys: React.Key[], selectedRows: Parcel[]) => {
     console.log("Selected Keys:", selectedKeys);  // Debugging output
     console.log("Selected Rows:", selectedRows);  // More debugging output
     setSelectedRowKeys(selectedKeys);  // Update state with the selected keys
-    const total = selectedRows.reduce((sum, record) => sum + extractPrice(record.note), 0);
+    const total = selectedRows.reduce((sum, record) => sum + parseFloat(record.price), 0);
     console.log("Total Amount Calculated:", total);  // Debugging total calculation
     setTotalAmount(total);  // Update the total amount state
   };
@@ -82,7 +94,7 @@ const StatusPage: React.FC = () => {
   const rowSelection = {
     selectedRowKeys,
     onChange: onSelectChange,
-    getCheckboxProps: (record: Order) => ({
+    getCheckboxProps: (record: Parcel) => ({
       disabled: record.status === 'Disabled', // Disable selection based on status if needed
     }),
   };
@@ -102,8 +114,8 @@ const StatusPage: React.FC = () => {
   ];
 
   const navigateToCreatePayment = () => {
-    const selectedOrders = orders.filter(order => selectedRowKeys.includes(order._id));
-    localStorage.setItem('selectedOrders', JSON.stringify(selectedOrders));
+    const selectedParcels = parcels.filter(parcel => selectedRowKeys.includes(parcel._id));
+    localStorage.setItem('selectedParcels', JSON.stringify(selectedParcels));
     window.location.href = '/user/createpayment';  // Ensure this navigates correctly
   };
   
@@ -135,7 +147,7 @@ const StatusPage: React.FC = () => {
         <Table 
           rowSelection={rowSelection} 
           columns={columns} 
-          dataSource={orders} 
+          dataSource={parcels} 
           pagination={false} 
           rowKey={record => record._id}  // This ensures each row can be uniquely identified
         />
