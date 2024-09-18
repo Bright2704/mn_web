@@ -59,11 +59,6 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/importexport">
-                        เช็คสถานะสินค้าและแจ้งนำออก
-                    </Link>
-                </li>
-                <li className="menu-item">
                     <Link href="listnoowner">
                         รายการสินค้าไม่มีเจ้าของ
                     </Link>
