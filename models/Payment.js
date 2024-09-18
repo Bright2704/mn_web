@@ -1,18 +1,44 @@
 // models/Payment.js
 import mongoose from 'mongoose';
 
-const paymentSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  order_id: { type: String, required: true },
-  cus_id: { type: String, required: true },
-  product: { type: String, required: true },
-  note: { type: String, required: false },
-  trans_type: { type: String, required: true },
-  status: { type: String, required: true },
-  date: { type: String, required: true },
-  // Add other fields as needed
+const PaymentSchema = new mongoose.Schema({
+    customerID: {
+        type: String,
+        required: true,
+    },
+    parcels: [
+    {
+        codeID: String,
+        lotNumber: String,
+        create_date: { type: Date, required: true },
+        price: Number,
+    },
+    ],
+    totalPrice: {
+        type: Number,
+        required: true,
+    },
+    paymentNumber: {
+        type: String,
+        required: true,
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+    address: {
+        province: String,
+        district: String,
+        subdistrict: String,
+        postalCode: String,
+        transport: String,
+    },
+    transport :{
+        type: String,
+        required: true,
+    },
 });
 
-const Payment = mongoose.models.Payment || mongoose.model('Payment', paymentSchema);
+const Payment = mongoose.models.Payment || mongoose.model('Payment', PaymentSchema);
 
 export default Payment;
