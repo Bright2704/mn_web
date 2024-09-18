@@ -20,7 +20,7 @@ const columns = [
 const CreatePayment = () => {
     const router = useRouter(); // Initialize the router
     const [parcels, setParcels] = useState([]);
-    const [address, setAddress] = useState({ province: '', district: '', subdistrict: '', postalCode: '' });
+    const [address, setAddress] = useState({ province: '', district: '', subdistrict: '', postalCode: '' ,transport: '',});
 
     useEffect(() => {
         // Load selected parcels from local storage
