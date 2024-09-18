@@ -1,4 +1,6 @@
-"use client"
+"use client"; // Mark this as a client component
+
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { Breadcrumb, Card, Form, Input, Button, Radio, Table } from 'antd';
 import axios from 'axios';
@@ -7,32 +9,63 @@ import AddressForm from '../components/AddressForm';
 import ColorStatus from '../components/StatusStyle';
 
 const columns = [
-    { title: 'Order ID', dataIndex: 'order_id', key: 'order_id' },
-    { title: 'Customer ID', dataIndex: 'cus_id', key: 'cus_id' },
-    { title: 'Product', dataIndex: 'product', key: 'product' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
-    { title: 'Price', dataIndex: 'price', key: 'price'},  // Assuming you have a price field in the order object
-    { title: 'Date', dataIndex: 'date', key: 'date'},
+    { title: 'Code ID', dataIndex: 'code', key: 'code' },
+    { title: 'Customer ID', dataIndex: 'customer', key: 'customer' },
+    { title: 'Lot number', dataIndex: 'lot', key: 'lot' },
+    { title: 'create_date', dataIndex: 'create_date', key: 'create_date' },
+    { title: 'Price', dataIndex: 'price', key: 'price',render: price => `${price} ฿` },  // Add currency symbol to each price
+    // { title: 'Date', dataIndex: 'date', key: 'date'},
 ];
 
 const CreatePayment = () => {
-    const [orders, setOrders] = useState([]);
+    const router = useRouter(); // Initialize the router
+    const [parcels, setParcels] = useState([]);
+    const [address, setAddress] = useState({ province: '', district: '', subdistrict: '', postalCode: '' });
 
     useEffect(() => {
-        // Load selected orders from local storage
-        const loadedOrders = JSON.parse(localStorage.getItem('selectedOrders') || '[]');
-        setOrders(loadedOrders);
+        // Load selected parcels from local storage
+        const loadedParcels = JSON.parse(localStorage.getItem('selectedParcels') || '[]');
+        setParcels(loadedParcels);
     }, []);
 
-    const handleSaveOrders = async () => {
+    const handleSavePayments = async () => {
         try {
-            // Ensure that orders are sent in the correct format expected by the backend
-            const response = await axios.post('/api/payments', orders);
-            alert('Orders have been successfully saved!');
-            console.log(response.data); // Log the response data for debugging
+            // Fetch the current length of the payment collection
+            const responseCount = await axios.get('/api/payments');
+            const paymentCount = responseCount.data.length; // Get the number of existing payments
+
+            // Generate the new payment number
+            const paymentNumber = `PAY-${(paymentCount + 1).toString().padStart(4, '0')}`;
+            
+            const newPayment = {
+                customerID: "cus01", // Replace with dynamic value if needed
+                parcels: parcels.map(parcel => ({
+                    codeID: parcel.code,
+                    lotNumber: parcel.lot,
+                    create_date: parcel.create_date,
+                    price: parcel.price,
+                })),
+                totalPrice: parcels.reduce((acc, parcel) => acc + parcel.price, 0), // Summing prices
+                paymentNumber: paymentNumber, // Add the generated payment number here
+                date: new Date().toISOString(), // Current date/time
+                address: {
+                    province: address.province,
+                    district: address.district,
+                    subdistrict: address.subdistrict,
+                    postalCode: address.postalCode,
+                }, // Include address information
+                transport: address.transport
+            };
+        
+            // Send the new payment object to the backend
+            const response = await axios.post('/api/payments', newPayment);
+            alert('Payment has been successfully processed!');
+            console.log(response.data);
+            // Redirect to the "user/status" page after successful payment
+            router.push('/user/status');
         } catch (error) {
-            console.error('Failed to save orders:', error);
-            alert('Failed to save orders.');
+            console.error('Failed to process payment:', error.response?.data || error.message);
+            alert('Failed to process payment.');
         }
     };
 
@@ -54,15 +87,15 @@ const CreatePayment = () => {
                 </div>
             </div>
             <div className='flex flex-row gap-5 bg-blue-100 m-3'>
-                <AddressForm/>
+                <AddressForm onAddressChange={setAddress} /> {/* Pass callback to update address */}
             </div>
             <Table 
                 columns={columns} 
-                dataSource={orders} 
+                dataSource={parcels} 
                 pagination={false} 
-                rowKey={record => record.order_id}
+                rowKey={record => record.parcel_id}
             />
-            <Button onClick={handleSaveOrders} type="primary">Save Orders to Database</Button>
+            <Button onClick={handleSavePayments} type="primary">Save Payment to Database</Button>
             <ColorStatus/>
         </main>
     );
