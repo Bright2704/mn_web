@@ -38,7 +38,7 @@ const CreatePayment = () => {
             const paymentNumber = `PAY-${(paymentCount + 1).toString().padStart(4, '0')}`;
             
             const newPayment = {
-                customerID: "cus01", // Replace with dynamic value if needed
+                customerID: parcels.length > 0 ? parcels[0].customer : "แปลกจังไม่มีชื่อลูกค้า",
                 parcels: parcels.map(parcel => ({
                     codeID: parcel.code,
                     lotNumber: parcel.lot,

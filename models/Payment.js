@@ -26,6 +26,14 @@ const PaymentSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    export_date: {
+        type: Date,
+        default: null,
+    },
+    status: {
+        type: String,
+        default: 'รอการอนุมัติ',
+    },
     address: {
         province: String,
         district: String,
