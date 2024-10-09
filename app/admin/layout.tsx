@@ -13,21 +13,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} text-slate-700`}>
-        <div className="flex flex-col min-h-screen">
-          <NavBar />
-          <div className="flex flex-grow">
-            <SideBar2 />
-            <div className="flex-grow ml-4"> {/* Add margin-left to create space */}
-              <AnnouncementBar /> {/* Add the AnnouncementBar */}
-              <main className="flex-grow">
-                {children}
-              </main>
-            </div>
-          </div>
+    <>
+        <SideBar2 />
+        <div className="flex-grow ml-4"> {/* Add margin-left to create space */}
+          <AnnouncementBar /> {/* Add the AnnouncementBar */}
+          <main className="flex-grow">
+            {children}
+          </main>
         </div>
-      </body>
-    </html>
+    </>
   )
 }
