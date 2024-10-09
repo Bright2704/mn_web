@@ -7,10 +7,11 @@ import "../../../styles/globals.css";
 import ModalAddTrack from "../components/tracking/ModalAddTrack";
 import ModalTrackDetails from "../components/tracking/ModalTrackDetails";
 import { Modal } from "antd";
-import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-import { Swiper, SwiperSlide } from 'swiper/react'; 
-import { Navigation } from 'swiper/modules'; 
-import 'swiper/swiper-bundle.css';
+import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/swiper-bundle.css";
+import { getSession } from "next-auth/react"; // Import getSession
 
 type TrackingItem = {
   user_id: string;
@@ -96,8 +97,28 @@ const TrackPage: React.FC = () => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [previewIndex, setPreviewIndex] = useState<number>(0);
   const [modalOpen, setModalOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null); // Store the user_id
   const swiperRef = useRef<any>(null); // Ref for the Swiper instance
 
+
+   // Fetch the session and extract user_id on component mount
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await getSession();
+      if (session?.user) {
+        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        if (userId) {
+          setUserId(userId); // Set the user_id from session
+        } else {
+          console.error("User ID not found in session");
+        }
+      }
+    };
+
+    fetchSession();
+  }, []);
+
+  // Fetch tracking items and filter by user_id
   useEffect(() => {
     const fetchTrackingItems = async () => {
       setLoading(true);
@@ -107,8 +128,14 @@ const TrackPage: React.FC = () => {
           throw new Error("Failed to fetch tracking data");
         }
         const data = await response.json();
-        setAllTrackingItems(data);
-        setTrackingItems(data);
+
+        // Filter items by user_id (if userId is set)
+        const filteredItems = userId
+          ? data.filter((item: TrackingItem) => item.user_id === userId)
+          : data;
+
+        setAllTrackingItems(filteredItems);
+        setTrackingItems(filteredItems);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching tracking items:", error);
@@ -117,9 +144,11 @@ const TrackPage: React.FC = () => {
       }
     };
 
-    fetchTrackingItems();
-  }, []);
-
+    if (userId) {
+      // Fetch tracking items only when userId is available
+      fetchTrackingItems();
+    }
+  }, [userId]);
   useEffect(() => {
     if (selectedStatus === "all") {
       setTrackingItems(allTrackingItems);

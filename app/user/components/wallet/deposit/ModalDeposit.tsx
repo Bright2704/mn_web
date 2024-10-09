@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
+import { getSession } from 'next-auth/react'; // Import getSession
 
 interface ModalDepositProps {
   show: boolean;
@@ -19,6 +20,25 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [selectedHour, setSelectedHour] = useState<string>('00');
   const [selectedMinute, setSelectedMinute] = useState<string>('00');
+  const [userId, setUserId] = useState<string | null>(null); // State to store user_id
+
+  // Fetch the session and extract user_id on component mount
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await getSession();
+      if (session?.user) {
+        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        if (userId) {
+          setUserId(userId); // Set the user_id from session
+        } else {
+          console.error('User ID not found in session');
+        }
+      }
+    };
+  
+    fetchSession();
+  }, []);
+  
 
   if (!show) {
     return null;
@@ -52,16 +72,16 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
         ? selectedDate.toLocaleString('en-GB', {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
           }).replace(',', '') + ` ${selectedHour}:${selectedMinute}`
         : '';
 
       // Prepare the deposit data
       const depositData = new FormData();
-      depositData.append('', nextDepositId);
+      depositData.append('deposit_id', nextDepositId);
       depositData.append('date_deposit', formattedDate);
       depositData.append('date_success', '');
-      depositData.append('user_id', 'MN270');
+      depositData.append('user_id', userId || ''); // Use the user_id from session
       depositData.append('amount', amount || '0'); // Default to '0' if amount is not set
       depositData.append('bank', bank || ''); // Default to empty string if not set
       depositData.append('status', 'รอตรวจสอบ'); // Fixed status
@@ -222,7 +242,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
               {error && <p className="text-danger">{error}</p>}
             </form>
           </div>
-
+          
           <div className="w-full md:w-1/2 md:pl-3 mt-8 md:mt-0">
             <div className="card-body">
               <div className="table-responsive">
@@ -246,7 +266,6 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
               </div>             
             </div>           
           </div>
-
         </div>
 
         {showSuccessModal && (

@@ -21,8 +21,14 @@ export async function POST(req) {
             newUserId = `MN_${(userNumber + 1).toString().padStart(4, '0')}`; // Increment and pad with zeros
         }
 
-        // Create new user with the new user_id
-        await User.create({ name, email, password: hashedPassword, user_id: newUserId });
+        // Create new user with user_type set to "normal"
+        await User.create({ 
+            name, 
+            email, 
+            password: hashedPassword, 
+            user_id: newUserId,
+            user_type: "normal"  // Default value for user_type
+        });
 
         return NextResponse.json({ message: "ลงทะเบียนผู้ใช้งานสำเร็จ" }, { status: 201 });
     } catch (error) {

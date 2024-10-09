@@ -1,14 +1,14 @@
-// pages/deposit/DepositPage.tsx
-
 "use client";
+
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getSession } from 'next-auth/react'; // Import getSession
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import '../../../../styles/globals.css';
-import ModalDeposit from '../../components/wallet/deposit/ModalDeposit'; // Import the existing modal component
-import ModalDepositDetails from '../../components/wallet/deposit/ModalDepositDetails'; // Import the new modal component
+import ModalDeposit from '../../components/wallet/deposit/ModalDeposit';
+import ModalDepositDetails from '../../components/wallet/deposit/ModalDepositDetails';
 
 type DepositNew = {
   deposit_id: string;
@@ -28,38 +28,45 @@ const statuses = [
   { label: 'ไม่สำเร็จ', value: 'ไม่สำเร็จ' },
 ];
 
-const searchTopics = [
-  { label: 'หมายเลข', value: 'deposit_id' },
-  { label: 'ลูกค้า', value: 'user_id' },
-];
-
-const DepositPage: React.FC = () => {
-  const [deposits, setDeposits] = useState<DepositNew[]>([]);
+  const DepositPage: React.FC = () => {
+  const [allDeposits, setAllDeposits] = useState<DepositNew[]>([]);  // Store all deposits initially
+  const [deposits, setDeposits] = useState<DepositNew[]>([]);        // Store filtered deposits
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [searchTopic, setSearchTopic] = useState<keyof DepositNew>('deposit_id');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');  // Store selected status
+  const [userId, setUserId] = useState<string | null>(null);           // Store the user_id
+  const [showModal, setShowModal] = useState<boolean>(false);           // Store modal visibility
+  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);  // Store details modal visibility
   const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
 
+  // Fetch the session and extract user_id on component mount
   useEffect(() => {
-    const fetchDeposits = async () => {
-      setLoading(true);
-      try {
-        let response;
-        if (selectedStatus === 'all') {
-          const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${status.value}`)
-          );
-          const results = await Promise.all(requests);
-          const allDeposits = results.flatMap(result => result.data);
-          response = { data: allDeposits };
+    const fetchSession = async () => {
+      const session = await getSession();
+      if (session?.user) {
+        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        if (userId) {
+          setUserId(userId); // Set the user_id from session
         } else {
-          response = await axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${selectedStatus}`);
+          console.error('User ID not found in session');
         }
-        setDeposits(response.data);
+      }
+    };
+
+    fetchSession();
+  }, []);
+
+  // Fetch all deposits for the user
+  useEffect(() => {
+    const fetchAllDeposits = async () => {
+      setLoading(true);
+      setError(null);  // Reset error state before fetching
+
+      try {
+        if (userId) {
+          const response = await axios.get(`http://localhost:5000/deposits_new/user_id/${userId}/status/all`);
+          setAllDeposits(response.data);  // Store all deposits
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching deposits:', error);
@@ -68,8 +75,21 @@ const DepositPage: React.FC = () => {
       }
     };
 
-    fetchDeposits();
-  }, [selectedStatus]);
+    if (userId) {
+      fetchAllDeposits();  // Fetch all deposits for the user
+    }
+  }, [userId]);  // Only run when userId is available
+
+  // Filter deposits based on selectedStatus
+  useEffect(() => {
+    if (selectedStatus === 'all') {
+      setDeposits(allDeposits);  // Show all deposits if status is "all"
+    } else {
+      const filteredDeposits = allDeposits.filter(deposit => deposit.status === selectedStatus);
+      setDeposits(filteredDeposits);  // Filter deposits by status
+    }
+  }, [selectedStatus, allDeposits]);
+  
 
   const handleManageClick = (depositId: string) => {
     setSelectedDepositId(depositId);
@@ -120,7 +140,7 @@ const DepositPage: React.FC = () => {
         <table className="table table-width-1">
           <thead>
             <tr className="text-center">
-              <th>No.</th>
+              {/* <th>No.</th> */}
               <th>วันที่ทำรายการ</th>
               <th>วันที่อนุมัติ</th>
               <th>จำนวน</th>
@@ -144,49 +164,45 @@ const DepositPage: React.FC = () => {
                 <td colSpan={9} className="text-center p-3">No deposits found.</td>
               </tr>
             ) : (
-              deposits
-                .filter(deposit =>
-                  deposit[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map(deposit => (
-                  <tr key={deposit.deposit_id}>
-                    <td>{deposit.deposit_id}</td>
-                    <td>{deposit.date_deposit}</td>
-                    <td>{deposit.date_success}</td>
-                    <td>{deposit.amount}</td>
-                    <td className="text-center">
-                      {deposit.bank === 'kbank' ? (
-                        <img 
-                          src="/storage/icon/bank/kbank.jpg" 
-                          alt="ธนาคารกสิกรไทย"
-                          className="centered-img_icon_bank"
-                          style={{ width: '50px', height: '50px', objectFit: 'contain' }}
-                        />
-                      ) : (
-                        deposit.bank
-                      )}
-                    </td>
-                    <td className="text-center">
-                      {deposit.slip ? (
-                        <img 
-                          src={deposit.slip} 
-                          alt="Slip" 
-                          className="centered-img_icon_bank"
-                          style={{ width: '70px', height: '70px', objectFit: 'contain', cursor: 'pointer' }}
-                          onClick={() => window.open(deposit.slip, '_blank')}
-                        />
-                      ) : (
-                        'N/A'
-                      )}
-                    </td>
-                    <td>{deposit.status}</td>
-                    <td>
-                      <button className="btn btn-success" onClick={() => handleManageClick(deposit.deposit_id)} style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}>
-                        รายละเอียด
-                      </button>
-                    </td>
-                  </tr>
-                ))
+              deposits.map(deposit => (
+                <tr key={deposit.deposit_id}>
+                  {/* <td>{deposit.deposit_id}</td> */}
+                  <td>{deposit.date_deposit}</td>
+                  <td>{deposit.date_success}</td>
+                  <td>{deposit.amount}</td>
+                  <td className="text-center">
+                    {deposit.bank === 'kbank' ? (
+                      <img 
+                        src="/storage/icon/bank/kbank.jpg" 
+                        alt="ธนาคารกสิกรไทย"
+                        className="centered-img_icon_bank"
+                        style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                      />
+                    ) : (
+                      deposit.bank
+                    )}
+                  </td>
+                  <td className="text-center">
+                    {deposit.slip ? (
+                      <img 
+                        src={deposit.slip} 
+                        alt="Slip" 
+                        className="centered-img_icon_bank"
+                        style={{ width: '70px', height: '70px', objectFit: 'contain', cursor: 'pointer' }}
+                        onClick={() => window.open(deposit.slip, '_blank')}
+                      />
+                    ) : (
+                      'N/A'
+                    )}
+                  </td>
+                  <td>{deposit.status}</td>
+                  <td>
+                    <button className="btn btn-success" onClick={() => handleManageClick(deposit.deposit_id)} style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}>
+                      รายละเอียด
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>

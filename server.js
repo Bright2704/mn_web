@@ -195,7 +195,7 @@ const uploadLotFiles = upload.fields([
 
 const uploadTrackingFiles = upload.fields([
   { name: 'trackingFile', maxCount: 1 },
-  { name: 'trackingImages', maxCount: 10 }  // Update this to match 'trackingImages'
+  { name: 'trackingImages', maxCount: 10 }
 ]);
 
 // New endpoint to copy and rename slip
@@ -467,6 +467,31 @@ app.get('/deposits_new/status/:status', async (req, res) => {
   }
 });
 
+// Fetch deposits from deposit_new collection based on user_id and status
+app.get('/deposits_new/user_id/:user_id/status/:status', async (req, res) => {
+  try {
+    const { user_id, status } = req.params;
+
+    // If status is 'all', fetch all deposits for the user
+    let deposits;
+    if (status === 'all') {
+      deposits = await DepositNew.find({ user_id });
+    } else {
+      deposits = await DepositNew.find({ user_id, status });
+    }
+
+    if (deposits.length === 0) {
+      return res.status(404).json({ message: 'No deposits found for this user.' });
+    }
+
+    res.json(deposits);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 // Endpoint to generate the next deposit_id
 app.get('/deposits_new/next-id', async (req, res) => {
   try {
@@ -640,6 +665,7 @@ app.get('/tracking', async (req, res) => {
   }
 });
 
+// POST tracking data
 app.post('/tracking', (req, res) => {
   uploadTrackingFiles(req, res, async function (err) {
     if (err) {
@@ -647,6 +673,7 @@ app.post('/tracking', (req, res) => {
       return res.status(500).json({ error: 'Error uploading files' });
     }
 
+    // Extract relevant fields from the request body
     const {
       user_id,
       not_owner,
@@ -654,42 +681,40 @@ app.post('/tracking', (req, res) => {
       buylist_id,
       mnemonics,
       lot_type,
-      type_item,
       crate,
       check_product,
-      weight,
-      wide,
-      high,
-      long,
       number,
-      pricing,
-      user_rate,
-      in_cn,
-      out_cn,
-      in_th,
-      check_product_price,
-      new_wrap,
-      transport,
-      price_crate,
-      other,
-      cal_price,
-      bill_id,
-      status,
-      lot_id,
-      lot_order
-
     } = req.body;
 
-    // Prepare variables for file paths
+    // Fields to set to empty or default values if not provided
+    const type_item = req.body.type_item || '';
+    const weight = parseFloat(req.body.weight) || 0;
+    const wide = parseFloat(req.body.wide) || 0;
+    const high = parseFloat(req.body.high) || 0;
+    const long = parseFloat(req.body.long) || 0;
+    const pricing = req.body.pricing || '';
+    const cal_price = parseFloat(req.body.cal_price) || 0;
+    const user_rate = req.body.user_rate || 'A';
+    const in_cn = req.body.in_cn || '';
+    const out_cn = req.body.out_cn || '';
+    const in_th = req.body.in_th || '';
+    const check_product_price = parseFloat(req.body.check_product_price) || 0;
+    const new_wrap = parseFloat(req.body.new_wrap) || 0;
+    const transport = parseFloat(req.body.transport) || 0;
+    const price_crate = parseFloat(req.body.price_crate) || 0;
+    const other = req.body.other || '';
+    const status = req.body.status || 'รอเข้าโกดังจีน';
+    const lot_id = req.body.lot_id || '';
+    const lot_order = req.body.lot_order || '';
+
+    // Prepare file paths for any uploaded files
     let transport_file_path = '';
     let image_item_paths = [];
 
-    // If tracking file is uploaded, get its renamed path
     if (req.files['trackingFile'] && req.files['trackingFile'][0]) {
       transport_file_path = `/storage/tracking/tracking_file/${req.files['trackingFile'][0].filename}`;
     }
 
-    // If tracking images are uploaded, get their renamed paths
     if (req.files['trackingImages']) {
       image_item_paths = req.files['trackingImages'].map(file => `/storage/tracking/tracking_image/${file.filename}`);
     }
@@ -706,28 +731,27 @@ app.post('/tracking', (req, res) => {
         type_item,
         crate: crate === 'true' ? 'ตี' : 'ไม่ตี',
         check_product: check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
-        weight: parseFloat(weight) || 0,
-        wide: parseFloat(wide) || 0,
-        high: parseFloat(high) || 0,
-        long: parseFloat(long) || 0,
-        number: parseInt(number) || 0,
+        weight,
+        wide,
+        high,
+        long,
+        number: parseInt(number, 10) || 0,
         pricing,
+        cal_price,
         user_rate,
         in_cn,
         out_cn,
         in_th,
-        check_product_price: parseFloat(check_product_price) || 0,
-        new_wrap: parseFloat(new_wrap) || 0,
-        transport: parseFloat(transport) || 0,
-        price_crate: parseFloat(price_crate) || 0,
-        other: parseFloat(other) || 0,
-        cal_price: parseFloat(cal_price) || 0,
-        bill_id,
-        transport_file_path, // Path of the uploaded and renamed tracking file
-        image_item_paths,// Paths of the uploaded and renamed images
+        check_product_price,
+        new_wrap,
+        transport,
+        price_crate,
+        other,
         status,
         lot_id,
-        lot_order
+        lot_order,
+        transport_file_path, // Path of the uploaded and renamed tracking file
+        image_item_paths // Paths of the uploaded and renamed images
       });
 
       // Save the tracking entry to the database

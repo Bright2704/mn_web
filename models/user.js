@@ -21,14 +21,18 @@ const userSchema = new Schema(
             default: "user",
         },
         user_id: {
-            type: String, // Format "MN_xxxx"
+            type: String,
             required: true,
-            unique: true, // Ensure unique user_id
+            unique: true,
+        },
+        user_type: {
+            type: String,
+            required: true,
+            default: "normal", // New field with default value "normal"
         },
     },
     { timestamps: true }
 );
-
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 export default User;
