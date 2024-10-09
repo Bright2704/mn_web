@@ -7,11 +7,24 @@ import 'font-awesome/css/font-awesome.min.css';
 import ModalComponent, { Product as ImportedProduct } from '../components/export_detail/ModalComponent';
 
 type LocalProduct = {
-  order_id: string;
-  cus_id: string;
-  product: string;
-  note: string;
-  status: string;
+    order_id: string;
+    cus_id: string;
+    product: string;
+    note: string;
+    status: string;
+    parcels: string;
+};
+
+type LocalPayment = {
+    customerID: string;
+    parcels: string;
+    totalPrice: string;
+    paymentNumber: string;
+    date: string;
+    export_product: string;
+    address: string;
+    transport: string; 
+
   // Add other fields if necessary
 };
 
@@ -69,14 +82,14 @@ const searchTopics= [
 
 
 const BuylistPage: React.FC = () => {
-  const [products, setProducts] = useState<LocalProduct[]>([]);
+  const [products, setProducts] = useState<LocalPayment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ImportedProduct | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [searchTopic, setSearchTopic] = useState<keyof LocalProduct>('order_id');
+  const [searchTopic, setSearchTopic] = useState<keyof LocalPayment>('paymentNumber');
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -86,13 +99,15 @@ const BuylistPage: React.FC = () => {
         if (selectedStatus === 'all') {
           // Fetch all statuses separately and combine the results
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            // axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            // axios.get<LocalProduct[]>(`/api/orders`)
+            axios.get<LocalPayment[]>(`/api/payments`)
           );
           const results = await Promise.all(requests);
           const allProducts = results.flatMap(result => result.data);
           response = { data: allProducts };
         } else {
-          response = await axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+          response = await axios.get<LocalPayment[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
         }
         setProducts(response.data);
         setLoading(false);
@@ -150,7 +165,7 @@ const BuylistPage: React.FC = () => {
           <select
             className="form-control col-md-2"
             value={searchTopic}
-            onChange={(e) => setSearchTopic(e.target.value as keyof LocalProduct)}
+            onChange={(e) => setSearchTopic(e.target.value as keyof LocalPayment)}
           >
             {searchTopics.map(topic => (
               <option key={topic.value} value={topic.value}>
@@ -181,15 +196,15 @@ const BuylistPage: React.FC = () => {
         <table className="table table-borderless table-forwarder-show">
           <thead>
             <tr>
+              <th>เลขที่ PAY</th>
+              <th>customer</th>
               <th>วันที่สร้าง</th>
-              <th>เลขที่ออเดอร์</th>
-              <th>ขนส่งไทย</th>
-              <th>ค่าขนส่งจีน</th>
-              <th>ค่าขนส่งไทย</th>
-              <th>ตีลัง</th>
-              <th>เช็คสินค้า</th>
-              <th>รวม</th>
+              <th>วันที่ส่งออก</th>
+              <th>ประเภทการจัดส่ง</th>
+              <th>ราคา</th>
               <th>สถานะ</th>
+              {/* <th>รวม</th> */}
+              {/* <th>สถานะ</th> */}
             </tr>
           </thead>
           <tbody>
@@ -207,15 +222,17 @@ const BuylistPage: React.FC = () => {
               </tr>
             ) : (
               products
-                .filter(product =>
-                  product[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
-                )
+                // .filter(product =>
+                //   product[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
+                // )
                 .map(product => (
-                  <tr key={product.order_id}>
-                    <td>{product.order_id}</td>
-                    <td>{product.cus_id}</td>
-                    <td>{product.product}</td>
-                    <td>{product.note}</td>
+                  <tr key={product.paymentNumber}>
+                    <td>{product.paymentNumber}</td>
+                    <td>{product.customerID}</td>
+                    <td>{product.date}</td>
+                    <td>{product.export_product}</td>
+                    <td>{product.transport}</td>
+                    <td>{product.totalPrice}</td>
                     <td>{product.status}</td>
                     <td>
                       <button
