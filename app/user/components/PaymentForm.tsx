@@ -13,7 +13,7 @@ const AddressForm: React.FC = () => {
       postalCode: ""
     });
 
-    const handleAddressChange = (value, field) => {
+    const handleAddressChange = (value: string | number, field: keyof typeof address) => {
       setAddress(prev => ({ ...prev, [field]: value }));
     };
     return (

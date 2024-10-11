@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/swiper-bundle.css';  
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
-
+import Image from 'next/image';
 
 interface ModalManageLotProps {
   show: boolean;
@@ -470,7 +470,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
                           className="form-control-file"
                         />
                         {lotData.image_path && (
-                          <img src={`http://localhost:5000${lotData.image_path}`} alt="Lot" className="mt-2" style={{ maxWidth: '200px' }} />
+                          <Image src={`http://localhost:5000${lotData.image_path}`} alt="Lot" className="mt-2" width={200} height={200} />
                         )}
                       </div>
                     </div>
@@ -597,10 +597,13 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
                                   style={{ width: "50px", height: "50px", cursor: "pointer" }}
                                   onClick={() => openImagePreview(selectedTracking.image_item_paths, index)}
                                 >
-                                  <img
+                                  <Image
                                     src={imagePath}
                                     alt={`Image ${index + 1}`}
-                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    layout="responsive"
+                                    width={100}
+                                    height={100}
+                                    objectFit="cover"
                                   />
                                 </div>
                               ))}
@@ -973,10 +976,13 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
                                         onClick={() => openImagePreview(tracking.image_item_paths, i)}
                                         style={{ width: '50px', height: '50px', cursor: 'pointer' }}
                                     >
-                                        <img
+                                        <Image
                                             src={imagePath}
                                             alt={`Image ${i + 1}`}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            layout="responsive"
+                                            width={100}
+                                            height={100}
+                                            objectFit="cover"
                                         />
                                     </div>
                                 ))
@@ -1070,10 +1076,14 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
                 >
                     {previewImages.map((image, index) => (
                         <SwiperSlide key={index}>
-                            <img
+                            <Image
                                 src={image}
                                 alt={`Preview ${index + 1}`}
-                                style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+                                layout="responsive" // Ensure responsive layout
+                                width={100} // Percentage width
+                                height={80} // Adjust height based on "vh" equivalent or use a pixel value
+                                objectFit="contain" // Maintain the "contain" behavior
+                                style={{ maxHeight: '80vh' }} // For limiting max height
                             />
                         </SwiperSlide>
                     ))}
