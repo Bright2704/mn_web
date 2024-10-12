@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 interface ImportModalProps {
   show: boolean;
@@ -41,7 +42,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ show, onClose }) => {
                   *กรณีอัพโหลดไฟล์ไม่สำเร็จ อาจเกิดจากข้อมูลไม่ถูกต้อง ให้ทำการตรวจสอบข้อมูลที่กรอกใหม่อีกครั้ง
                 </div>
                 <a className="inline-flex items-center text-blue-500" href="https://member.mn1688express.com/cms/forwarders/items/import/template" target="_blank">
-                  <img className="icon-img mr-2" width="40px" src="https://member.mn1688express.com/assets/icons/020-xls.png" alt="template file" />
+                  <Image className="icon-img mr-2" width={`${40}`} src="https://member.mn1688express.com/assets/icons/020-xls.png" alt="template file" />
                   ดาวน์โหลด Template
                 </a>
               </div>

@@ -5,25 +5,27 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import ModalComponent, { Product as ImportedProduct } from '../components/export_detail/ModalComponent';
+import Link from 'next/link';
 
-type LocalProduct = {
-    order_id: string;
-    cus_id: string;
-    product: string;
-    note: string;
-    status: string;
-    parcels: string;
-};
+// type LocalProduct = {
+//     order_id: string;
+//     cus_id: string;
+//     product: string;
+//     note: string;
+//     status: string;
+//     parcels: string;
+// };
 
 type LocalPayment = {
-    customerID: string;
+    user_id: string;
     parcels: string;
-    totalPrice: string;
+    totalPrice: number;
     paymentNumber: string;
     date: string;
     export_product: string;
     address: string;
     transport: string; 
+    status: string;
 
   // Add other fields if necessary
 };
@@ -178,7 +180,7 @@ const BuylistPage: React.FC = () => {
               <i className="fa fa-search"></i>
             </button>
           </div>
-          <input
+          {/* <input
             type="text"
             className="form-control col-md-6"
             placeholder="แทร็คกิ้ง, เลขออเดอร์"
@@ -189,21 +191,21 @@ const BuylistPage: React.FC = () => {
             <button type="submit" className="btn btn-outline-secondary w-10">
               <i className="fa fa-search"></i>
             </button>
-          </div>
+          </div> */}
         </div>
       </form>
       <div className="table-responsive _mgbt-30 _pdbt-50">
-        <table className="table table-borderless table-forwarder-show">
+        <table className="table table-width-1 table-forwarder-show" style={{ fontSize: 14 }}>
           <thead>
-            <tr>
+            <tr className="text-center">
               <th>เลขที่ PAY</th>
-              <th>customer</th>
+              <th>user_id</th>
               <th>วันที่สร้าง</th>
               <th>วันที่ส่งออก</th>
               <th>ประเภทการจัดส่ง</th>
               <th>ราคา</th>
               <th>สถานะ</th>
-              {/* <th>รวม</th> */}
+              <th>...</th>
               {/* <th>สถานะ</th> */}
             </tr>
           </thead>
@@ -227,8 +229,12 @@ const BuylistPage: React.FC = () => {
                 // )
                 .map(product => (
                   <tr key={product.paymentNumber}>
-                    <td>{product.paymentNumber}</td>
-                    <td>{product.customerID}</td>
+                    <td>
+                        <Link href={`/admin/payments/${product.paymentNumber}`}>
+                          <a>{product.paymentNumber}</a> {/* Make Payment Number clickable */}
+                        </Link>
+                    </td>
+                    <td>{product.user_id}</td>
                     <td>{product.date}</td>
                     <td>{product.export_product}</td>
                     <td>{product.transport}</td>
@@ -236,7 +242,7 @@ const BuylistPage: React.FC = () => {
                     <td>{product.status}</td>
                     <td>
                       <button
-                        onClick={() => handleShowModal(product as ImportedProduct)}
+                        onClick={() => handleShowModal(product as unknown as ImportedProduct)}
                         className="btn btn-success"
                       >
                         จัดการ

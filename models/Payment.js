@@ -2,15 +2,16 @@
 import mongoose from 'mongoose';
 
 const PaymentSchema = new mongoose.Schema({
-    customerID: {
+    user_id: {
         type: String,
         required: true,
     },
-    parcels: [
+    tracking: [
     {
-        codeID: String,
+        trackingID: String,
         lotNumber: String,
-        create_date: { type: Date, required: true },
+        // create_date: { type: Date, required: true },
+        create_date: Date,
         price: Number,
     },
     ],

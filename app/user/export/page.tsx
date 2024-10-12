@@ -24,6 +24,7 @@ type LocalPayment = {
     export_product: string;
     address: string;
     transport: string; 
+    status: string;
 
   // Add other fields if necessary
 };
@@ -236,7 +237,7 @@ const BuylistPage: React.FC = () => {
                     <td>{product.status}</td>
                     <td>
                       <button
-                        onClick={() => handleShowModal(product as ImportedProduct)}
+                        onClick={() => handleShowModal(product as unknown as ImportedProduct)}
                         className="btn btn-success"
                       >
                         จัดการ
