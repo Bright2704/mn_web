@@ -81,51 +81,64 @@ function RegisterPage() {
     
 
     return (
-        <div className='container mx-auto py-5'>
-            <h3>หน้าลงทะเบียน</h3>
-            <hr className='my-3'></hr>
-            <form onSubmit={handleSubmit}>
-                <input
-                    onChange={(e) => setName(e.target.value)}
-                    className='block bg-gray-300 p-2 my-2 rounded-md'
-                    type="text"
-                    placeholder='Enter your name'
-                />
-                <input
-                    onChange={(e) => setEmail(e.target.value)}
-                    className='block bg-gray-300 p-2 my-2 rounded-md'
-                    type="text"
-                    placeholder='Enter your email'
-                />
-                <input
-                    onChange={(e) => setPassword(e.target.value)}
-                    className='block bg-gray-300 p-2 my-2 rounded-md'
-                    type="password"
-                    placeholder='Enter your password'
-                />
-                <input
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className='block bg-gray-300 p-2 my-2 rounded-md'
-                    type="password"
-                    placeholder='Confirm password'
-                />
-                <button type='submit' className='bg-green-500 p-2 rounded-md text-white'> ลงทะเบียน </button>
+        <>
+            <div className='hidden md:flex justify-center items-center w-1/2' style={{marginBlock:"5%"}}>
+                <img src='/banner.jpg' alt="banner image" className='' style={{width:"60%"}}></img>
+            </div>
+            <div className='flex flex-col justify-center items-center w-full md:w-1/2'>
+                <div className='shadow-xl px-14 py-14 rounded-lg'>
+                    <p className='text-3xl'> สมัครสมาชิก </p>
+                    <p className='text-4xl font-semibold text-red-600'> MN 1688 EXPRESS </p>
+                    <form onSubmit={handleSubmit} className='mt-8'>
+                        <input
+                            onChange={(e) => setName(e.target.value)}
+                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
+                            type="text"
+                            placeholder='ชื่อผู้ใช้งาน'
+                        />
+                        <input
+                            onChange={(e) => setEmail(e.target.value)}
+                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
+                            type="text"
+                            placeholder='อีเมล'
+                        />
+                        <input
+                            onChange={(e) => setPassword(e.target.value)}
+                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
+                            type="password"
+                            placeholder='รหัสผ่าน'
+                        />
+                        <input
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
+                            type="password"
+                            placeholder='ยืนยันรหัสผ่าน'
+                        />
+                        <div className='my-5'>
+                            <p> <input type='checkbox'></input> ท่านรับทราบและตกลงตาม <a href='#' className='text-red-500'> เงื่อนไข </a> และ <a href='#' className='text-red-500'> ข้อตกลงการให้บริการ </a></p>
+                            <p> <input type='checkbox'></input> รับข่าวสารจากทางเรา </p>
+                        </div>
+                        
+                        <button type='submit' className='bg-red-600 p-2 rounded-md text-white w-full'> ลงทะเบียน </button>
 
-                {error && (
-                    <div className='bg-red-500 w-fit text-sm text-white py-1 px-3 rounded-md mt-2'>
-                        {error}
-                    </div>
-                )}
+                        {error && (
+                            <div className='bg-red-500 w-fit text-sm text-white py-1 px-3 rounded-md mt-2'>
+                                {error}
+                            </div>
+                        )}
 
-                {success && (
-                    <div className='bg-green-500 w-fit text-sm text-white py-1 px-3 rounded-md mt-2'>
-                        {success}
-                    </div>
-                )}
-            </form>
-            <hr className='my-3'/>
-            <p>คุณมีบัญชีอยู่แล้วใช่หรือไม่? ไปที่หน้า <Link className='text-blue-500 hover:underline' href="/login">เข้าสู่ระบบ</Link> </p>
-        </div>
+                        {success && (
+                            <div className='bg-green-500 w-fit text-sm text-white py-1 px-3 rounded-md mt-2'>
+                                {success}
+                            </div>
+                        )}
+                    </form>
+                    <hr className='my-3'/>
+                    <p>คุณมีบัญชีอยู่แล้วใช่หรือไม่? ไปที่หน้า <Link className='text-red-500 hover:underline' href="/login">เข้าสู่ระบบ</Link> </p>
+                </div>
+            </div>
+        </>
+        
     )
 }
 
