@@ -1,16 +1,32 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import Container from "@/components/container";
 import logo from "@/public/logo_MN1688_rmb.png"; // Correct path to the image
-import {signOut} from 'next-auth/react'
-import { useSession } from 'next-auth/react'
+import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { FaUser } from "react-icons/fa"; // Import a user icon from react-icons
 
 const NavBar = () => {
-
   const { data: session } = useSession();
-    console.log(session)
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      if (session?.user) {
+        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        if (userId) {
+          setUserId(userId); // Set the user_id from session
+        } else {
+          console.error("User ID not found in session");
+        }
+      }
+    };
+
+    fetchSession();
+  }, [session]);
 
   return (
     <div
@@ -27,13 +43,8 @@ const NavBar = () => {
         <Container>
           <div className="flex justify-between items-center">
             <Link href="/" passHref>
-              <div style={{ position: 'relative', height: '100px', width: '150px' }}>
-                <Image 
-                  src={logo} 
-                  alt="MN-Shop Logo" 
-                  fill
-                  style={{ objectFit: 'contain' }}
-                />
+              <div style={{ position: "relative", height: "100px", width: "150px" }}>
+                <Image src={logo} alt="MN-Shop Logo" fill style={{ objectFit: "contain" }} />
               </div>
             </Link>
             <ul
@@ -45,17 +56,35 @@ const NavBar = () => {
                 mr-10
               "
             >
-              <li> <a href="#" className="cursor-pointer" >ภาษา</a> </li>
-                {!session ? (
-                  <>
-                  <li> <Link href="/login">ลงชื่อเข้าใช้งาน</Link> </li>
-                  </>
-                ) : (
-                  <>
-                    <li> <a className="bg-gray-500 text-white border py-2 px-3 rounded-md text-lg my-2 cursor-pointer" href="/profile" > โปรไฟล์ </a> </li>
-                    <li> <a onClick={() => signOut()} className="bg-red-500 text-white border py-2 px-3 rounded-md text-lg my-2 cursor-pointer"> ออกจากระบบ </a> </li>
-                  </>
-                )}
+              <li>
+                <a href="#" className="cursor-pointer">
+                  ภาษา
+                </a>
+              </li>
+              {!session ? (
+                <>
+                  <li>
+                    <Link href="/login">ลงชื่อเข้าใช้งาน</Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <FaUser className="text-lg" /> {/* User icon */}
+                      {userId && <span>{userId}</span>} {/* Display the user_id */}
+                    </Link>
+                  </li>
+                  <li>
+                    <a
+                      onClick={() => signOut()}
+                      className="bg-red-500 text-white border py-2 px-3 rounded-md text-lg my-2 cursor-pointer"
+                    >
+                      ออกจากระบบ
+                    </a>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </Container>
@@ -65,4 +94,3 @@ const NavBar = () => {
 };
 
 export default NavBar;
-

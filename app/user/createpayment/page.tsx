@@ -123,14 +123,15 @@ const CreatePayment = () => {
         <main className="flex flex-col space-y-4 m-3">
             <div style={{ padding: '24px 16px', background: 'rgb(240, 242, 245)' }}>
                 <Breadcrumb>
-                <Breadcrumb.Item><a href="/user/dashboard">Dashboard</a></Breadcrumb.Item>
-                <Breadcrumb.Item><a href="/user/status">Status</a></Breadcrumb.Item>
-                <Breadcrumb.Item>Payment</Breadcrumb.Item>
+                <Breadcrumb.Item><a href="/user/status">เช็คสถานะสินค้าและแจ้งนำออก</a></Breadcrumb.Item>
+                {/* <Breadcrumb.Item>Payment</Breadcrumb.Item> */}
                 </Breadcrumb>
             </div>
+
             <div className="flex flex-row gap-5 bg-blue-100 m-3">
                     <AddressForm onAddressChange={setAddress} />
             </div>
+
 
             <table className="table table-width-1" style={{ fontSize: 14 }}>
                 <thead>

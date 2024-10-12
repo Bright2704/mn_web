@@ -815,7 +815,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({ show, onClose, lotId })
           </div>
 
           <div className="p-4 flex flex-col border-t">
-            <div className="d-flex align-items-center " style={{ display: 'flex', gap: '750px' }}>
+            <div className="d-flex align-items-center " style={{ display: 'flex', gap: '500px' }}>
               <div className="mb-3" style={{ display: 'flex', gap: '10px' }}>
                 <label htmlFor="in_cn" className="block mb-1"></label>
                 <input

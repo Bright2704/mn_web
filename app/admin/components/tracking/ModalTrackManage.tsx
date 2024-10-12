@@ -91,7 +91,8 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
     // Append all other form data fields
     Object.entries(formData).forEach(([key, value]) => {
       if (key !== 'image_item_paths' && key !== 'transport_file_path') {
-        form.append(key, value.toString());
+        // Ensure value is not null or undefined before calling toString()
+        form.append(key, value != null ? value.toString() : '');
       }
     });
   
