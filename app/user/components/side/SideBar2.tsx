@@ -51,6 +51,9 @@ const SideBar2 = () => {
                         <li className="menu-item">
                         <Link href="/user/wallet/deposit">เติมเงินเข้าระบบ</Link>
                         </li>
+                        <li className="menu-item">
+                        <Link href="/user/wallet/balance">สมุดบัญชี</Link>
+                        </li>
                     </ul>
                 </li>
                 <li className="menu-item">
@@ -64,7 +67,7 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/setting">
+                    <Link href="/user/profile">
                         ตั้งค่าบัญชีผู้ใช้งาน
                     </Link>
                 </li>

@@ -1,13 +1,12 @@
 "use client"
-import React, { useEffect, useState , useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import Head from 'next/head';
 import axios from 'axios';
-import { Breadcrumb, Row, Col, Button } from 'antd';
+import { Row, Col, Button } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import StatusCard from '../components/StatusCard';
-// import ColorStatus from '../components/StatusStyle';
 import { Modal } from 'antd';  
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
@@ -52,8 +51,7 @@ const StatusPage: React.FC = () => {
    const [modalOpen, setModalOpen] = useState(false);
    const swiperRef = useRef<any>(null);
   
-
-      // Fetch the session and extract user_id on component mount
+  // Fetch the session and extract user_id on component mount
   useEffect(() => {
     const fetchSession = async () => {
       const session = await getSession();
@@ -74,16 +72,24 @@ const StatusPage: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const { data } = await axios.get('http://localhost:5000/tracking');
-        setTrackingData(data);
+        if (userId) {
+          const { data } = await axios.get('http://localhost:5000/tracking');
+          
+          // Filter tracking data by the current userId
+          const filteredData = data.filter((item: TrackingData) => item.user_id === userId);
+          setTrackingData(filteredData);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, []);
+
+    if (userId) {
+      fetchData();
+    }
+  }, [userId]);
 
   // Handle selecting/deselecting rows
   const handleSelectRow = (index: number) => {
