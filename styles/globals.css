@@ -140,10 +140,9 @@
 /* Sidebar */
 .sidebar {
     width: 250px;
-    height: calc(100vh - 60px); /* Adjust the height as needed */
     background-color: #f4f4f4;
-    padding: 20px;
-    overflow-y: auto; /* Add vertical scrollbar */
+    padding-inline: 20px;
+    overflow-x: hidden; /* Add vertical scrollbar */
 }
 
 .sidebar ul {
@@ -157,24 +156,36 @@
 }
 
 .sidebar ul li a {
-    display: block;
+    display: flex;
+    align-items: center;
     color: #333;
     padding: 8px 16px;
     text-decoration: none;
     position: relative;
     z-index: 1;
+    font-size: 14px;
+    transition: color 0.2s ease-in-out;
 }
 
 .sidebar ul li a:hover {
-    background-color: #FFA500;
+    /* background-color: #f48ca9; */
     color: white;
 }
 
+.hover-icon {
+    min-width: 16px;
+    transition: filter 0.3s ease;
+}
+
+.sidebar ul li:hover .hover-icon {
+    filter: invert(1); /* Inverts the color */
+}
+
 .sidebar ul li.submenu-item > a::after {
-    content: '▼';
-    position: absolute;
-    right: 16px;
-    font-size: 12px;
+    /* content: '▼';
+    position: absolute; */
+    /* right: 16px;
+    font-size: 12px; */
 }
 
 .sidebar ul li:hover::before {
@@ -184,7 +195,7 @@
     left: 0;
     height: 100%;
     width: 100%;
-    background-color: #FFA500;
+    background-color: #f48ca9;
     z-index: 0;
 }
 
@@ -199,14 +210,14 @@
 }
 
 .sidebar ul li.submenu-item .submenu {
-    display: none;
+    /* display: none; */
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
 .sidebar ul li.submenu-item:hover .submenu {
-    display: block;
+    /* display: block; */
     position: relative; /* Adjust positioning as needed */
     left: 0;
     top: 0;
@@ -220,8 +231,8 @@
     margin-left: 50px; /* Align submenu text */
 }
 
-.submenu li a:hover {
-    background-color: #FFA500;
+.submenu li a:hover{
+    background-color: white;
     color: white;
 }
 
@@ -261,8 +272,7 @@
 }
 
 .menu-item {
-    padding-top: 15px; /* Adjust the value as needed */
-    padding-bottom: 15px; /* Adjust the value as needed */
+    /* padding-block: 10px; */
     margin: 0 -20px; /* Ensure the hover effect spans the full width */
 }
 
