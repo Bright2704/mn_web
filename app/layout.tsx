@@ -7,23 +7,23 @@ const inter = Inter({ subsets: ['latin'] })
 import { AuthProvider } from './Providers'
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
-  return (
-      <html lang="en">
-          <body className={'${inter.className} text-slate-700'}>
-            <AuthProvider>
-              <div className="flex flex-col min-h-screen">
-                  <NavBar/>
-                      <div className="flex flex-grow">                          
+    return (
+        <html lang="en">
+            <body className={`${inter.className} text-slate-700`}>
+                <AuthProvider>
+                <div className="flex flex-col min-h-screen">
+                    <NavBar/>
+                        <div className="flex flex-grow">                          
                             {children}
-                      </div>
-                  <Footer/>
-              </div>
-            </AuthProvider>
-          </body>
-      </html>
-  )
+                        </div>
+                    <Footer/>
+                </div>
+                </AuthProvider>
+            </body>
+        </html>
+    )
 }
