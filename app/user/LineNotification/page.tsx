@@ -3,13 +3,12 @@
 import React from 'react';
 import LineNotification from '../components/LineNotification';  // Import your widget
 
-const dashboard = () => {
+const Lineconnect = () => {
     return (
-        <div className="content">
-                <LineNotification />  {/* Use your widget here */}
-                {/* Add more widgets as needed */}
+        <div className="flex items-center justify-center min-h-screen p-4">
+            <LineNotification />
         </div>
     );
 };
 
-export default dashboard;
+export default Lineconnect;
