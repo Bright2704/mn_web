@@ -140,14 +140,23 @@
 /* Sidebar */
 .sidebar {
     width: 250px;
+    max-width: fit-content;
     background-color: #f4f4f4;
-    padding-inline: 20px;
+    /* padding-inline: 20px; */
     overflow-x: hidden; /* Add vertical scrollbar */
+    height: 100vh;
+    left: 0;
+    top: 0;
+}
+
+.menu-list {
+    display: block;
+    min-width: 180px;
 }
 
 .sidebar ul {
     list-style-type: none;
-    padding: 0;
+    padding-inline: 20px;
     margin: 0;
 }
 
@@ -172,8 +181,17 @@
     color: white;
 }
 
+.sidebar-logo {
+    margin-block: 10px;
+    min-width: 90px;
+    width: 100%;
+    max-width: 90px;
+}
+
 .hover-icon {
-    min-width: 16px;
+    min-width: 18px;
+    width: 18px;
+    max-width: 18px;
     transition: filter 0.3s ease;
 }
 
@@ -188,25 +206,21 @@
     font-size: 12px; */
 }
 
-.sidebar ul li:hover::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
+.sidebar ul li:hover a {
     background-color: #f48ca9;
+    color: white;
     z-index: 0;
 }
 
-.sidebar ul li:hover a {
-    color: white;
+.sidebar ul li.s-menu-item:hover a {
+    color: #f04072;
+    background-color: transparent;
 }
 
 .sidebar ul li.submenu-item:hover::before,
 .sidebar ul li.submenu-item:hover a {
-    background-color: transparent;
-    color: #333;
+    /* background-color: transparent; */
+    /* color: #333; */
 }
 
 .sidebar ul li.submenu-item .submenu {
@@ -226,9 +240,10 @@
 .submenu li a {
     display: block;
     color: #666;
-    padding: 5px 0;
+    /* padding: 5px 0; */
+    margin-inline: -5px;
     text-decoration: none;
-    margin-left: 50px; /* Align submenu text */
+    /* margin-left: 50px;  */
 }
 
 .submenu li a:hover{
@@ -273,6 +288,7 @@
 
 .menu-item {
     /* padding-block: 10px; */
+    min-height: 37px;
     margin: 0 -20px; /* Ensure the hover effect spans the full width */
 }
 

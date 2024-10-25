@@ -8,17 +8,22 @@ import { FormEvent } from 'react';
 
 const SideBar2 = () => {
 
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const [isSubmenuOpen, setIsSubmenuOpen] = useState(false);
     const [isSubmenuOpen2, setIsSubmenuOpen2] = useState(false);
 
+    const toggleSidebar = () => {
+        setIsCollapsed(prev => !prev); // Toggle sidebar collapse
+      };
+
     const toggleSubmenu = (e:FormEvent) => {
         e.preventDefault();
-        setIsSubmenuOpen(!isSubmenuOpen);
+        setIsSubmenuOpen(prev => !prev);
     };
 
     const toggleSubmenu2 = (e:FormEvent) => {
         e.preventDefault();
-        setIsSubmenuOpen2(!isSubmenuOpen2);
+        setIsSubmenuOpen2(prev => !prev);
     };
 
     return (

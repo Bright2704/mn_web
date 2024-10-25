@@ -41,12 +41,7 @@ const NavBar = () => {
     >
       <div className="py-1 border-b-[1px]">
         <Container>
-          <div className="flex justify-between items-center">
-            <Link href="/" passHref>
-              <div style={{ position: "relative", height: "100px", width: "150px" }}>
-                <Image src={logo} alt="MN-Shop Logo" fill style={{ objectFit: "contain" }} />
-              </div>
-            </Link>
+          <div className="flex justify-end items-center py-3">
             <ul
               className="
                 flex

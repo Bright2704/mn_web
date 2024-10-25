@@ -6,6 +6,9 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import SideBar2 from './components/side/SideBar_Admin';
 import AnnouncementBar from './components/announcement/AnnouncementBar';
+import NavBar from '@/components/header'
+import Footer from '@/app/user/components/footer/Footer'
+
 
 export default function RootLayout({
   children,
@@ -37,14 +40,20 @@ export default function RootLayout({
 
   // If the user is authenticated and has the right role, render the layout
   return (
-    <>
-      <SideBar2 />
-      <div className="flex-grow ml-4">
-        <AnnouncementBar />
-        <main className="flex-grow">
-          {children} {/* Render the page content */}
-        </main>
-      </div>
-    </>
+    <div className='flex'>
+      <section>
+        <SideBar2 />
+      </section>
+      <section className='w-full flex flex-col min-h-screen'>
+        <NavBar/>
+        <div className="flex-grow ml-4">
+          <AnnouncementBar />
+          <main className="flex-grow">
+            {children} {/* Render the page content */}
+          </main>
+        </div>
+        <Footer/>
+      </section>
+    </div>
   );
 }

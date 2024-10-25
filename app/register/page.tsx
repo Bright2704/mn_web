@@ -6,6 +6,8 @@ import { FormEvent } from "react";
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation'
 import generateUserId from '../generateUID';
+import NavBar from '@/components/header'
+import Footer from '@/components/Footer'
 
 function RegisterPage() {
 
@@ -82,6 +84,8 @@ function RegisterPage() {
 
     return (
         <>
+        <NavBar/>
+        <div className="flex flex-grow">
             <div className='hidden md:flex justify-center items-center w-1/2' style={{marginBlock:"5%"}}>
                 <img src='/banner.jpg' alt="banner image" className='' style={{width:"60%"}}></img>
             </div>
@@ -137,6 +141,8 @@ function RegisterPage() {
                     <p>คุณมีบัญชีอยู่แล้วใช่หรือไม่? ไปที่หน้า <Link className='text-red-500 hover:underline' href="/login">เข้าสู่ระบบ</Link> </p>
                 </div>
             </div>
+            </div>
+            <Footer/>
         </>
         
     )
