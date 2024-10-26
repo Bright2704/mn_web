@@ -5,9 +5,9 @@ const inter = Inter({ subsets: ['latin'] })
 import { AuthProvider } from './Providers'
 
 export default function RootLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode
+    children: React.ReactNode
 }) {
   return (
       <html lang="en">
