@@ -14,7 +14,15 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({ totalAmount, handleSave
 
     return (
         <>
-            <Card title="เงื่อนไขและข้อตกลง" bordered>
+            {/* <Card title="เงื่อนไขและข้อตกลง" bordered> */}
+            <Card
+            title={(
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ marginBottom: 0 }}>เงื่อนไขและข้อตกลง</h3>
+                </div>
+            ) }
+            
+             >
                 <div
                     style={{ marginBottom: '18px' }}
                     dangerouslySetInnerHTML={{
@@ -33,7 +41,14 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({ totalAmount, handleSave
             </Card>
 
 
-            <Card title="ยอดที่ต้องชำระ" bordered style={{ marginTop: '16px' }}>
+            {/* <Card title="ยอดที่ต้องชำระ" bordered style={{ marginTop: '16px' }}> */}
+            <Card
+            title={(
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ marginBottom: 0 }}>ยอดที่ต้องชำระ</h3>
+                </div>
+            ) } bordered style={{ marginTop: '16px' ,marginBottom: '16px' }}
+             >
             <Form layout="vertical">
 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
