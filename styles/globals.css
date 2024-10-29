@@ -664,7 +664,7 @@ object-fit: contain;
 }
 
 .user-dropdown {
-    position: relative; /* Ensures that the dropdown aligns relative to this element */
+    /* position: relative; Ensures that the dropdown aligns relative to this element */
   }
   
   /* Dropdown options styling */
@@ -673,7 +673,7 @@ object-fit: contain;
     opacity: 0;
     position: absolute;
     top: 100%; /* Aligns directly below the user-dropdown */
-    left: 0;    /* Aligns to the left of the user-dropdown component */
+    right: 0;    /* Aligns to the left of the user-dropdown component */
     background-color: white;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -701,6 +701,6 @@ object-fit: contain;
     color: white;
 }
 
-.navbar_active {
+.sidebar_active {
     background-color: #d0ebff;
 }
