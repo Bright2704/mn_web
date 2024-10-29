@@ -679,7 +679,7 @@ object-fit: contain;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 10px 0;
     list-style-type: none;
-    width: max-content;
+    width: 140px;
     z-index: 1000;
     transition: all 0.2s ease;
   }
@@ -693,10 +693,12 @@ object-fit: contain;
 .dropdown-options li {
     padding: 10px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
   
 .dropdown-options li:hover {
-    background-color: #f0f0f0;
+    background: #f48ca9;
+    color: white;
 }
 
 .navbar_active {
