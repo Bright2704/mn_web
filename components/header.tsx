@@ -39,9 +39,9 @@ const NavBar = () => {
         shadow-sm
       "
     >
-      <div className="py-1 border-b-[1px]">
+      <div className="border-b-[1px]">
         <Container>
-          <div className="flex justify-end items-center py-3">
+          <div className="flex justify-end items-center">
             <ul
               className="
                 flex
@@ -51,33 +51,38 @@ const NavBar = () => {
                 mr-10
               "
             >
-              <li>
-                <a href="#" className="cursor-pointer">
-                  ภาษา
-                </a>
-              </li>
+              <li className="py-3"><Link href="#">ภาษา</Link></li>
+              <li className="py-3"><Link href="/"> หน้าแรก </Link></li>
               {!session ? (
                 <>
-                  <li>
+                  <li className="py-3">
                     <Link href="/login">ลงชื่อเข้าใช้งาน</Link>
                   </li>
                 </>
               ) : (
                 <>
-                  <li>
+                  <li className="user-dropdown h-full py-3">
                     <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
                       <FaUser className="text-lg" /> {/* User icon */}
                       {userId && <span>{userId}</span>} {/* Display the user_id */}
                     </Link>
+                    <ul className="dropdown-options">
+                      <li>
+                        <a href="/profile"> ตั้งค่าบัญชีผู้ใช้ </a>
+                      </li>
+                      <li>
+                        <a onClick={() => signOut()}> ออกจากระบบ </a>
+                      </li>
+                    </ul>
                   </li>
-                  <li>
+                  {/* <li>
                     <a
                       onClick={() => signOut()}
                       className="bg-red-500 text-white border py-2 px-3 rounded-md text-lg my-2 cursor-pointer"
                     >
                       ออกจากระบบ
                     </a>
-                  </li>
+                  </li> */}
                 </>
               )}
             </ul>

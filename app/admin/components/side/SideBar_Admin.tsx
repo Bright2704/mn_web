@@ -160,11 +160,11 @@ const SideBar2 = () => {
       </div>
       <div>
       <button
-        className="sidebar-btn fixed top-0 py-2 px-3 rounded-md bg-red-500"
+        className="sidebar-btn fixed top-0 py-4 px-3 rounded-md"
         onClick={toggleSidebar}
         style={{ zIndex: 99 }}
       >
-        {isCollapsed ? '>' : '<'} {/* Display different text when collapsed */}
+        <Image src="/angle-circle-left.png" alt='button icon' width={20} height={20} style={{transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition:"transform 0.2s ease-out"}}/>
       </button>
       </div>
     </div>
@@ -179,7 +179,7 @@ const SideBar2 = () => {
           </Link>
         
       <ul>
-        <li className="menu-item">
+        <li className={`menu-item`}>
           <Link href="/admin/dashboard">
             <Image className='h-full mr-2 hover-icon' src="/dashboard-monitor.png" alt='dashboard image' width={30} height={30}/> 
             <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' }}> แดชบอร์ด </p>
