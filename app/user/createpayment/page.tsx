@@ -12,16 +12,26 @@ import ColorStatus from '../components/StatusStyle';
 // Define the interface for tracking data
 interface TrackingData {
     tracking_id: string;
+    mnemonics?: string;
     weight: number;
     wide: number;
     high: number;
     long: number;
     number: number;
     lot_id: string;
+    in_cn?: string;
+    out_cn?: string;
+    in_th?: string;
     user_id: string;
     type_item: string;
+    check_product_price?: number;
+    transport?: number;
+    price_crate?: number;
+    other?: number;
     image_item_paths: string[];
+    lot_type?: string;
 }
+
 
 interface Address {
     province: string;
@@ -57,8 +67,11 @@ const CreatePayment: React.FC = () => {
         setTotalAmount(total);
     }, [trackingData]);
 
-    // Helper to calculate volume
     const calculateVolume = (wide: number, long: number, high: number) => (wide * long * high) / 1000;
+
+    const calculateSum = (key: keyof TrackingData) => {
+        return trackingData.reduce((sum, item) => sum + (item[key] as number || 0), 0);
+    };
 
     // Handle address change
     const handleAddressChange = (field: string, value: string) => {
@@ -117,7 +130,11 @@ const CreatePayment: React.FC = () => {
             </Row>
 
             {/* Tracking Table for tracking data */}
-            <TrackingTable trackingData={trackingData} calculateVolume={calculateVolume} />
+            <TrackingTable 
+                trackingData={trackingData} 
+                calculateVolume={calculateVolume} 
+                calculateSum={calculateSum} 
+            />
 
             {/* Color status component */}
             <ColorStatus />

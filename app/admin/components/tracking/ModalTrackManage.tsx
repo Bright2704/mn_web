@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from "antd";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
@@ -49,6 +49,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
   const [previewIndex, setPreviewIndex] = useState<number>(0);
   const [modalOpen, setModalOpen] = useState(false);
   const swiperRef = useRef<any>(null);
+  const [serviceFee, setServiceFee] = useState<number>(0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -133,6 +134,63 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
       console.error('Error updating tracking data:', error);
     }
   };
+
+  // Function to calculate `cal_price`
+  const calculateServiceFee = () => {
+    const { pricing, lot_type, user_rate, weight, wide, high, long, number } = formData;
+    const volume = (wide * high * long) / 1000000;
+    let cal_price = 0;
+
+    if (pricing === "อัตโนมัติ") {
+      if (lot_type === "รถ") {
+        if (user_rate === "A") {
+          cal_price = Math.max(weight * 15, volume * 5900);
+        } else if (user_rate === "B") {
+          cal_price = Math.max(weight * 20, volume * 6000);
+        } else if (user_rate === "C") {
+          cal_price = Math.max(weight * 35, volume * 8500);
+        }
+      } else if (lot_type === "เรือ") {
+        if (user_rate === "A") {
+          cal_price = Math.max(weight * 10, volume * 3800);
+        } else if (user_rate === "B") {
+          cal_price = Math.max(weight * 15, volume * 5500);
+        } else if (user_rate === "C") {
+          cal_price = Math.max(weight * 35, volume * 8500);
+        }
+      }
+    } else if (pricing === "น้ำหนัก") {
+      if (lot_type === "รถ") {
+        cal_price = user_rate === "A" ? weight * 15 : user_rate === "B" ? weight * 20 : weight * 35;
+      } else if (lot_type === "เรือ") {
+        cal_price = user_rate === "A" ? weight * 10 : user_rate === "B" ? weight * 15 : weight * 35;
+      }
+    } else if (pricing === "ปริมาตร") {
+      if (lot_type === "รถ") {
+        cal_price = user_rate === "A" ? volume * 5900 : user_rate === "B" ? volume * 6000 : volume * 8500;
+      } else if (lot_type === "เรือ") {
+        cal_price = user_rate === "A" ? volume * 3800 : user_rate === "B" ? volume * 5500 : volume * 8500;
+      }
+    }
+
+    // Calculate final service fee
+    setServiceFee(cal_price * number);
+    setFormData((prev) => ({ ...prev, cal_price }));
+  };
+
+  useEffect(() => {
+    calculateServiceFee();
+  }, [
+    formData.lot_type,
+    formData.user_rate,
+    formData.pricing,
+    formData.weight,
+    formData.wide,
+    formData.high,
+    formData.long,
+    formData.number,
+  ]);
+
 
   if (!show) {
     return null;
@@ -482,6 +540,16 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
               {/* Additional Costs */}
               <div>
                 <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายเพิ่มเติม</h6>
+                <div className="mb-3">
+                  <label htmlFor="cal_price" className="block mb-1">ค่าบริการ:</label>
+                  <input
+                    id="cal_price"
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={(serviceFee || 0).toFixed(2)}
+                    readOnly
+                  />
+                </div>
                 <div className="mb-3">
                   <label htmlFor="check_product_price" className="block mb-1">ค่าเช็คสินค้า:</label>
                   <input

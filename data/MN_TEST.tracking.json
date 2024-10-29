@@ -78,4 +78,42 @@
     "/storage/tracking/tracking_image/test002_03.jpg"
   ],
   "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6710cfaf0eec8b949fffacd4"
+  },
+  "user_id": "MN_0001",
+  "lot_id": "",
+  "lot_order": "",
+  "not_owner": false,
+  "tracking_id": "123456",
+  "buylist_id": "",
+  "mnemonics": "test",
+  "lot_type": "",
+  "type_item": "",
+  "crate": "ไม่ตี",
+  "check_product": "ไม่เช็ค",
+  "weight": 0,
+  "wide": 0,
+  "high": 0,
+  "long": 0,
+  "number": 5,
+  "pricing": "",
+  "user_rate": "A",
+  "in_cn": "2024-10-29",
+  "out_cn": "",
+  "in_th": "",
+  "check_product_price": 0,
+  "new_wrap": 0,
+  "transport": 0,
+  "price_crate": 0,
+  "other": 0,
+  "status": "รอเข้าโกดังจีน",
+  "cal_price": 0,
+  "transport_file_path": "/storage/tracking/tracking_file/123456.png",
+  "image_item_paths": [
+    "/storage/tracking/tracking_image/123456_01.png"
+  ],
+  "__v": 0
 }]

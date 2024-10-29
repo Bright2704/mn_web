@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ModalAddTrackProps {
   show: boolean;
@@ -39,6 +39,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
 
   const [file, setFile] = useState<File | null>(null); // Single file
   const [images, setImages] = useState<File[]>([]); // Multiple images
+  const [serviceFee, setServiceFee] = useState<number>(0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { id, value, type } = e.target;
@@ -59,6 +60,81 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
       setImages(Array.from(e.target.files)); // Set multiple images
     }
   };
+
+   // Calculate service fee based on updated logic
+   useEffect(() => {
+    const calculateServiceFee = () => {
+      const weight = parseFloat(formData.weight) || 0;
+      const wide = parseFloat(formData.wide) || 0;
+      const high = parseFloat(formData.high) || 0;
+      const long = parseFloat(formData.long) || 0;
+      const volume = (wide * high * long) / 1000000;
+      let cal_price = 0;
+
+      if (formData.pricing === "อัตโนมัติ") {
+        if (formData.lot_type === "รถ") {
+          if (formData.user_rate === "A") {
+            cal_price = Math.max(weight * 15, volume * 5900);
+          } else if (formData.user_rate === "B") {
+            cal_price = Math.max(weight * 20, volume * 6000);
+          } else if (formData.user_rate === "C") {
+            cal_price = Math.max(weight * 35, volume * 8500);
+          }
+        } else if (formData.lot_type === "เรือ") {
+          if (formData.user_rate === "A") {
+            cal_price = Math.max(weight * 10, volume * 3800);
+          } else if (formData.user_rate === "B") {
+            cal_price = Math.max(weight * 15, volume * 5500);
+          } else if (formData.user_rate === "C") {
+            cal_price = Math.max(weight * 35, volume * 8500);
+          }
+        }
+      } else if (formData.pricing === "น้ำหนัก") {
+        if (formData.lot_type === "รถ") {
+          if (formData.user_rate === "A") {
+            cal_price = weight * 15;
+          } else if (formData.user_rate === "B") {
+            cal_price = weight * 20;
+          } else if (formData.user_rate === "C") {
+            cal_price = weight * 35;
+          }
+        } else if (formData.lot_type === "เรือ") {
+          if (formData.user_rate === "A") {
+            cal_price = weight * 10;
+          } else if (formData.user_rate === "B") {
+            cal_price = weight * 15;
+          } else if (formData.user_rate === "C") {
+            cal_price = weight * 35;
+          }
+        }
+      } else if (formData.pricing === "ปริมาตร") {
+        if (formData.lot_type === "รถ") {
+          if (formData.user_rate === "A") {
+            cal_price = volume * 5900;
+          } else if (formData.user_rate === "B") {
+            cal_price = volume * 6000;
+          } else if (formData.user_rate === "C") {
+            cal_price = volume * 8500;
+          }
+        } else if (formData.lot_type === "เรือ") {
+          if (formData.user_rate === "A") {
+            cal_price = volume * 3800;
+          } else if (formData.user_rate === "B") {
+            cal_price = volume * 5500;
+          } else if (formData.user_rate === "C") {
+            cal_price = volume * 8500;
+          }
+        }
+      }
+
+      // Update service fee with cal_price * number
+      setServiceFee(cal_price * (parseInt(formData.number) || 1));
+      setFormData(prev => ({ ...prev, cal_price: cal_price.toFixed(2) }));
+    };
+
+  // Call calculateServiceFee whenever relevant fields change
+  calculateServiceFee();
+}, [formData.lot_type, formData.user_rate, formData.pricing, formData.weight, formData.wide, formData.high, formData.long, formData.number]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,7 +427,17 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
 
               {/* Additional Costs */}
               <div>
-                <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายเพิ่มเติม</h6>
+                <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายทั้งหมด</h6>
+                <div className="mb-3">
+                  <label htmlFor="cal_price" className="block mb-1">ค่าบริการ:</label>
+                  <input
+                    id="cal_price"
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={(serviceFee || 0).toFixed(2)}
+                    readOnly
+                  />
+                </div>
                 <div className="mb-3">
                   <label htmlFor="check_product_price" className="block mb-1">ค่าเช็คสินค้า:</label>
                   <input
