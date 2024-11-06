@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import "bootstrap/dist/css/bootstrap.min.css";
+import '../../../styles/globals.css';
 import 'font-awesome/css/font-awesome.min.css';
 import ModalComponent, { Product as ImportedProduct } from '../components/export_detail/ModalComponent';
 import Link from 'next/link';
