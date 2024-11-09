@@ -1,0 +1,26 @@
+[{
+  "_id": {
+    "$oid": "672f9eb889a6435159385caf"
+  },
+  "user_id": "MN_0001",
+  "balance_id": "BLA_0001",
+  "balance_date": "10/11/2024 00:00",
+  "balance_type": "deposit",
+  "balance_descri": "รายการเติมเงิน DEP_0006",
+  "balance_amount": 150,
+  "balance_total": 150,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "672f9eee89a6435159385cca"
+  },
+  "user_id": "MN_0001",
+  "balance_id": "BLA_0002",
+  "balance_date": "10/11/2024 00:00",
+  "balance_type": "deposit",
+  "balance_descri": "รายการเติมเงิน DEP_0007",
+  "balance_amount": 555,
+  "balance_total": 705,
+  "__v": 0
+}]

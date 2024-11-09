@@ -1,100 +1,30 @@
-[
-    {
-        "deposit_id": "DEP_0001",
-        "date": "05/08/2024 15:02",
-        "user_id": "MN270",
-        "amount": 25000.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0002",
-        "date": "05/08/2024 11:55",
-        "user_id": "MN54",
-        "amount": 613.51,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0003",
-        "date": "05/08/2024 10:30",
-        "user_id": "MN0297",
-        "amount": 500.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0004",
-        "date": "05/08/2024 09:18",
-        "user_id": "MN146",
-        "amount": 2028.90,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0005",
-        "date": "04/08/2024 16:09",
-        "user_id": "MN231",
-        "amount": 10818.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0006",
-        "date": "04/08/2024 14:46",
-        "user_id": "MN0283",
-        "amount": 158.06,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0007",
-        "date": "04/08/2024 12:58",
-        "user_id": "MN05",
-        "amount": 3000.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0008",
-        "date": "04/08/2024 12:46",
-        "user_id": "MN0356",
-        "amount": 40019.63,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0009",
-        "date": "04/08/2024 12:12",
-        "user_id": "MN248",
-        "amount": 20000.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0010",
-        "date": "04/08/2024 11:31",
-        "user_id": "MN176",
-        "amount": 2000.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0011",
-        "date": "04/08/2024 11:04",
-        "user_id": "MN161",
-        "amount": 500.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0012",
-        "date": "04/08/2024 11:00",
-        "user_id": "MN160",
-        "amount": 1200.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0013",
-        "date": "04/08/2024 09:38",
-        "user_id": "MN0392",
-        "amount": 300.00,
-        "status": "สำเร็จ"
-    },
-    {
-        "deposit_id": "DEP_0014",
-        "date": "03/08/2024 20:31",
-        "user_id": "MN0289",
-        "amount": 300.00,
-        "status": "สำเร็จ"
-    }
-]
+[{
+  "_id": {
+    "$oid": "672f9ea989a6435159385c9e"
+  },
+  "user_id": "MN_0001",
+  "deposit_id": "DEP_0006",
+  "date_deposit": "10/11/2024 00:00",
+  "date_success": "10/11/2024 00:41",
+  "amount": "150",
+  "bank": "gsb",
+  "status": "succeed",
+  "slip": "/storage/slips/DEP_0006.jpg",
+  "six_digits": "777777",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "672f9ee489a6435159385cb9"
+  },
+  "user_id": "MN_0001",
+  "deposit_id": "DEP_0007",
+  "date_deposit": "10/11/2024 00:00",
+  "date_success": "10/11/2024 00:42",
+  "amount": "555",
+  "bank": "ktb",
+  "status": "succeed",
+  "slip": "/storage/slips/DEP_0007.jpg",
+  "six_digits": "546786",
+  "__v": 0
+}]

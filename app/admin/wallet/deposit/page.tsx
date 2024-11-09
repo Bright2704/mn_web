@@ -23,9 +23,22 @@ type DepositNew = {
 
 const statuses = [
   { label: 'สถานะทั้งหมด', value: 'all' },
-  { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
-  { label: 'สำเร็จ', value: 'สำเร็จ' },
-  { label: 'ไม่สำเร็จ', value: 'ไม่สำเร็จ' },
+  { label: 'รอตรวจสอบ', value: 'wait' },
+  { label: 'สำเร็จ', value: 'succeed' },
+  { label: 'ไม่สำเร็จ', value: 'cancel' },
+];
+
+const bankOptions = [
+  { value: 'bbl', label: 'ธนาคารกรุงเทพ', image: '/storage/icon/bank/bbl.png' },
+  { value: 'ktb', label: 'ธนาคารกรุงไทย', image: '/storage/icon/bank/ktb.jpg' },
+  { value: 'scbb', label: 'ธนาคารไทยพาณิชย์', image: '/storage/icon/bank/scbb.jpg' },
+  { value: 'gsb', label: 'ธนาคารออมสิน', image: '/storage/icon/bank/gsb.jpg' },
+  { value: 'bay', label: 'ธนาคารกรุงศรีอยุธยา', image: '/storage/icon/bank/bay.png' },
+  { value: 'kbank', label: 'ธนาคารกสิกรไทย', image: '/storage/icon/bank/kbank.jpg' },
+  { value: 'kkp', label: 'ธนาคารเกียรตินาคินภัทร', image: '/storage/icon/bank/kkp.jpg' },
+  { value: 'citi', label: 'ซิตี้แบงก์', image: '/storage/icon/bank/citi.jpg' },
+  { value: 'ttb', label: 'ทีเอ็มบีธนชาต', image: '/storage/icon/bank/ttb.png' },
+  { value: 'uobt', label: 'ธนาคารยูโอบี', image: '/storage/icon/bank/uobt.jpg' },
 ];
 
 const searchTopics = [
@@ -51,13 +64,13 @@ const DepositPage: React.FC = () => {
         let response;
         if (selectedStatus === 'all') {
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${status.value}`)
+            axios.get<DepositNew[]>(`http://localhost:5000/deposits/status/${status.value}`)
           );
           const results = await Promise.all(requests);
           const allDeposits = results.flatMap(result => result.data);
           response = { data: allDeposits };
         } else {
-          response = await axios.get<DepositNew[]>(`http://localhost:5000/deposits_new/status/${selectedStatus}`);
+          response = await axios.get<DepositNew[]>(`http://localhost:5000/deposits/status/${selectedStatus}`);
         }
         setDeposits(response.data);
         setLoading(false);
@@ -157,17 +170,20 @@ const DepositPage: React.FC = () => {
                     <td>{deposit.date_success}</td>
                     <td>{deposit.amount}</td>
                     <td className="text-center">
-                      {deposit.bank === 'kbank' ? (
+                    {(() => {
+                      const bank = bankOptions.find(b => b.value === deposit.bank);
+                      return bank ? (
                         <img 
-                          src="/storage/icon/bank/kbank.jpg" 
-                          alt="ธนาคารกสิกรไทย"
+                          src={bank.image} 
+                          alt={bank.label}
                           className="centered-img_icon_bank"
                           style={{ width: '50px', height: '50px', objectFit: 'contain' }}
                         />
                       ) : (
-                        deposit.bank
-                      )}
-                    </td>
+                        deposit.bank // Fallback in case no match is found
+                      );
+                    })()}
+                  </td>
                     <td className="text-center">
                       {deposit.slip ? (
                         <img 
@@ -181,7 +197,12 @@ const DepositPage: React.FC = () => {
                         'N/A'
                       )}
                     </td>
-                    <td>{deposit.status}</td>
+                    <td>
+                    {(() => {
+                      const status = statuses.find(s => s.value === deposit.status);
+                      return status ? status.label : deposit.status; // Fallback to deposit.status if no match is found
+                    })()}
+                  </td>
                     <td>
                       <button className="btn btn-success" onClick={() => handleManageClick(deposit.deposit_id)} style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}>
                         รายละเอียด

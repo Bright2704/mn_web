@@ -113,6 +113,9 @@ const SideBar2 = () => {
                     <li className="s-menu-item">
                         <Link href="/user/wallet/balance">• สมุดบัญชี</Link>
                     </li>
+                    <li className="s-menu-item">
+                        <Link href="/user/wallet/withdraw">• ถอนเงินในระบบ</Link>
+                    </li>
                     </ul>
                 </div>
                 <li className="menu-item">
@@ -253,10 +256,14 @@ const SideBar2 = () => {
                 <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: isSubmenuOpen && !isCollapsed ? '200px' : '0'}}>
                     <ul className="submenu">
                     <li className="s-menu-item">
-                        <Link href="/user/wallet/deposit" style={{color: pathname === '/user/wallet/deposit' ? '#f04072':''}}>• เติมเงินเข้าระบบ</Link>
+                        <Link href="/user/wallet/balance" style={{color: pathname === '/user/wallet/balance' ? '#f04072':''}}>• สมุดบัญชี</Link>
                     </li>
                     <li className="s-menu-item">
-                        <Link href="/user/wallet/balance" style={{color: pathname === '/user/wallet/balance' ? '#f04072':''}}>• สมุดบัญชี</Link>
+                        <Link href="/user/wallet/deposit" style={{color: pathname === '/user/wallet/deposit' ? '#f04072':''}}>• เติมเงินเข้าระบบ</Link>
+                    </li>
+                    
+                    <li className="s-menu-item">
+                        <Link href="/user/wallet/withdraw" style={{color: pathname === '/user/wallet/withdraw' ? '#f04072':''}}>• ถอนเงินในระบบ</Link>
                     </li>
                     </ul>
                 </div>
