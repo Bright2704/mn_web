@@ -68,7 +68,11 @@ const NavBar = () => {
                     </Link>
                     <ul className="dropdown-options">
                       <li>
-                        <a href="/profile"> ตั้งค่าบัญชีผู้ใช้ </a>
+                        {session.user?.role === "admin" ? (
+                          <a href="/admin/profile">ตั้งค่าบัญชีผู้ใช้</a>
+                        ) : (
+                          <a href="/user/profile">ตั้งค่าบัญชีผู้ใช้</a>
+                        )}
                       </li>
                       <li>
                         <a onClick={() => signOut()}> ออกจากระบบ </a>
