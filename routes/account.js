@@ -6,7 +6,10 @@ const { AccountInfo, AccountUpdate, AccountDelete} = require('../controllers/acc
 // Get account info
 router.get('/account-info', AccountInfo);
 
+// Update account info
 router.post('/account-update', AccountUpdate);
+
+
 router.delete('/account-delete', AccountDelete)
 
 module.exports = router;
