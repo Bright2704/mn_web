@@ -1,0 +1,17 @@
+[{
+  "_id": {
+    "$oid": "6730992cbefdc467e9142428"
+  },
+  "withdraw_id": "WTD_0001",
+  "user_id": "MN_0001",
+  "date_withdraw": "10/11/2024 18:29",
+  "date_success": "",
+  "bank": "bay",
+  "account_name": "test",
+  "account_number": "test",
+  "branch": "test",
+  "withdraw_amount": 500,
+  "status": "wait",
+  "slip": "",
+  "__v": 0
+}]

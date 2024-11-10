@@ -131,7 +131,7 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/profile">
+                    <Link href="/user/setting">
                         <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' }}>ตั้งค่าบัญชีผู้ใช้งาน</p>
                     </Link>
@@ -279,10 +279,10 @@ const SideBar2 = () => {
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === 'listnoowner' ? 'white':''}}>รายการสินค้าไม่มีเจ้าของ</p>
                     </Link>
                 </li>
-                <li className="menu-item" style={{background: pathname === '/user/profile' ? '#f48ca9':''}}>
-                    <Link href="/user/profile">
-                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/profile' ? 'invert(1)':''}}/>
-                        <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/profile' ? 'white':''}}>ตั้งค่าบัญชีผู้ใช้งาน</p>
+                <li className="menu-item" style={{background: pathname === '/user/setting' ? '#f48ca9':''}}>
+                    <Link href="/user/setting">
+                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/setting' ? 'invert(1)':''}}/>
+                        <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/setting' ? 'white':''}}>ตั้งค่าบัญชีผู้ใช้งาน</p>
                     </Link>
                 </li>
                 <li className="menu-item submenu-item"> {/* submenu-item */}

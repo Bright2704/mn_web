@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -25,6 +26,8 @@ const depositRoutes = require('./routes/depositRoutes');
 const lotRoutes = require('./routes/lotRoutes');
 const trackingRoutes = require('./routes/trackingRoutes');
 const balanceRoutes = require('./routes/balanceRoutes');
+const bookBankRoutes = require('./routes/bookBankRoutes'); // Import new routes
+const withdrawRoutes = require('./routes/withdrawRoutes');
 
 // Static files for uploaded images, etc.
 app.use('/storage', express.static(path.join(__dirname, 'public/storage')));
@@ -36,6 +39,8 @@ app.use('/deposits', depositRoutes);
 app.use('/lots', lotRoutes);
 app.use('/tracking', trackingRoutes);
 app.use('/balances', balanceRoutes);
+app.use('/book_bank', bookBankRoutes); // Use new routes
+app.use('/withdraws', withdrawRoutes);
 
 // Error Handling for Unhandled Routes
 app.use((req, res) => res.status(404).send('Not Found'));

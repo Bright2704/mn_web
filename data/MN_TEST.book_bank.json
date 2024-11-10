@@ -1,0 +1,22 @@
+[{
+  "_id": {
+    "$oid": "673083169f127132bad8e0b0"
+  },
+  "user_id": "MN_0001",
+  "bank": "bay",
+  "account_name": "test",
+  "account_number": "test",
+  "branch": "test",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6730891c9f127132bad8e0b9"
+  },
+  "user_id": "MN_0001",
+  "bank": "kbank",
+  "account_name": "test2",
+  "account_number": "test2",
+  "branch": "test2",
+  "__v": 0
+}]
