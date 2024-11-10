@@ -1,12 +1,16 @@
+// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
+const morgan = require('morgan');
 
+const {readdirSync} = require('fs');
 const app = express();
 
+app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
@@ -197,6 +201,9 @@ const uploadTrackingFiles = upload.fields([
   { name: 'trackingFile', maxCount: 1 },
   { name: 'trackingImages', maxCount: 10 }
 ]);
+
+readdirSync('./routes')
+.map((c)=> app.use('/api', require('./routes/' + c)));
 
 // New endpoint to copy and rename slip
 app.post('/copy-slip', (req, res) => {
