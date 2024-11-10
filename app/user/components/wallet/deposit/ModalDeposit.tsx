@@ -2,34 +2,47 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
-import { getSession } from 'next-auth/react'; // Import getSession
+import { getSession } from 'next-auth/react';
 
 interface ModalDepositProps {
   show: boolean;
   onClose: () => void;
 }
 
+const bankOptions = [
+  { value: 'bbl', label: 'ธนาคารกรุงเทพ', image: '/storage/icon/bank/bbl.png' },
+  { value: 'ktb', label: 'ธนาคารกรุงไทย', image: '/storage/icon/bank/ktb.jpg' },
+  { value: 'scbb', label: 'ธนาคารไทยพาณิชย์', image: '/storage/icon/bank/scbb.jpg' },
+  { value: 'gsb', label: 'ธนาคารออมสิน', image: '/storage/icon/bank/gsb.jpg' },
+  { value: 'bay', label: 'ธนาคารกรุงศรีอยุธยา', image: '/storage/icon/bank/bay.png' },
+  { value: 'kbank', label: 'ธนาคารกสิกรไทย', image: '/storage/icon/bank/kbank.jpg' },
+  { value: 'kkp', label: 'ธนาคารเกียรตินาคินภัทร', image: '/storage/icon/bank/kkp.jpg' },
+  { value: 'citi', label: 'ซิตี้แบงก์', image: '/storage/icon/bank/citi.jpg' },
+  { value: 'ttb', label: 'ทีเอ็มบีธนชาต', image: '/storage/icon/bank/ttb.png' },
+  { value: 'uobt', label: 'ธนาคารยูโอบี', image: '/storage/icon/bank/uobt.jpg' },
+];
+
 const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
   const [file, setFile] = useState<File | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [amount, setAmount] = useState<string>('');
-  const [bank, setBank] = useState<string>('');
+  const [selectedBank, setSelectedBank] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [selectedHour, setSelectedHour] = useState<string>('00');
   const [selectedMinute, setSelectedMinute] = useState<string>('00');
-  const [userId, setUserId] = useState<string | null>(null); // State to store user_id
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Fetch the session and extract user_id on component mount
   useEffect(() => {
     const fetchSession = async () => {
       const session = await getSession();
       if (session?.user) {
-        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        const userId = (session.user as { user_id?: string }).user_id;
         if (userId) {
-          setUserId(userId); // Set the user_id from session
+          setUserId(userId);
         } else {
           console.error('User ID not found in session');
         }
@@ -39,7 +52,6 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
     fetchSession();
   }, []);
   
-
   if (!show) {
     return null;
   }
@@ -63,11 +75,9 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
     setError('');
 
     try {
-      // Fetch the next deposit ID
-      const response = await axios.get('http://localhost:5000/deposits_new/next-id');
+      const response = await axios.get('http://localhost:5000/deposits/next-id');
       const nextDepositId = response.data.next_deposit_id;
 
-      // Combine selected date with selected time
       const formattedDate = selectedDate
         ? selectedDate.toLocaleString('en-GB', {
             day: '2-digit',
@@ -76,23 +86,22 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
           }).replace(',', '') + ` ${selectedHour}:${selectedMinute}`
         : '';
 
-      // Prepare the deposit data
       const depositData = new FormData();
       depositData.append('deposit_id', nextDepositId);
       depositData.append('date_deposit', formattedDate);
       depositData.append('date_success', '');
-      depositData.append('user_id', userId || ''); // Use the user_id from session
-      depositData.append('amount', amount || '0'); // Default to '0' if amount is not set
-      depositData.append('bank', bank || ''); // Default to empty string if not set
-      depositData.append('status', 'รอตรวจสอบ'); // Fixed status
+      depositData.append('user_id', userId || '');
+      depositData.append('amount', amount || '0');
+      depositData.append('bank', selectedBank || '');
+      depositData.append('status', 'wait');
+      depositData.append('six_digits', '');
       if (file) {
         depositData.append('slip', file);
       } else {
         throw new Error('File is required.');
       }
 
-      // Send the deposit data to the backend
-      const depositResponse = await axios.post('http://localhost:5000/deposits_new', depositData, {
+      const depositResponse = await axios.post('http://localhost:5000/deposits', depositData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -100,7 +109,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
 
       console.log('Deposit successful:', depositResponse.data);
       setLoading(false);
-      setShowSuccessModal(true); // Show success modal
+      setShowSuccessModal(true);
     } catch (error: any) {
       console.error('There was an error!', error);
       setError('There was an error submitting your deposit. Please make sure all fields are filled out correctly.');
@@ -110,8 +119,13 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
 
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false);
-    onClose(); // Close the deposit modal
-    window.location.reload(); // Refresh the page
+    onClose();
+    window.location.reload();
+  };
+
+  const handleBankSelect = (value: string) => {
+    setSelectedBank(value);
+    setShowDropdown(false);
   };
 
   return (
@@ -128,24 +142,47 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
             <span className="text-xl">&times;</span>
           </button>
         </div>
+
         <div className="p-4 flex flex-wrap md:flex-row">
           <div className="w-full md:w-1/2 md:pr-4">
-            <h5 className="mb-4">รายละเอียด</h5>
             <form onSubmit={handleImport}>
               <div className="form-group">
-                <label className="_fw-200 _fs-16" htmlFor="bank-id">ธนาคารที่โอน</label>
-                <select
-                  name="bank_id"
-                  id="bank-id"
-                  className="form-control deposituser-select"
-                  required
-                  value={bank}
-                  onChange={(e) => setBank(e.target.value)}
-                >
-                  <option value="">เลือกธนาคาร</option>
-                  <option value="kbank">ธนาคารกสิกรไทย - (141-3-41660-0)</option>
-                </select>
+                <label className="_fw-200 _fs-16">ธนาคารที่โอน</label>
+                <div onClick={() => setShowDropdown(!showDropdown)} className="custom-dropdown">
+                  {selectedBank ? (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <img
+                        src={bankOptions.find((bank) => bank.value === selectedBank)?.image}
+                        alt=""
+                        style={{ width: '50px', height: '50px', marginRight: '10px' }}
+                      />
+                      <span>{bankOptions.find((bank) => bank.value === selectedBank)?.label}</span>
+                    </div>
+                  ) : (
+                    <span>เลือกธนาคาร</span>
+                  )}
+                </div>
+                {showDropdown && (
+                  <div className="dropdown-options" style={{ border: '1px solid #ccc', borderRadius: '5px' }}>
+                    {bankOptions.map((bank) => (
+                      <div 
+                        key={bank.value}
+                        onClick={() => handleBankSelect(bank.value)}
+                        className="dropdown-option"
+                        style={{ display: 'flex', alignItems: 'center', padding: '5px' }}
+                      >
+                        <img
+                          src={bank.image}
+                          alt={bank.label}
+                          style={{ width: '30px', height: '30px', marginRight: '10px' }}
+                        />
+                        {bank.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
               <div className="form-group mt-3 mb-3">
                 <label className="_fw-300 _fs-16" htmlFor="time">วันที่</label>
                 <DatePicker

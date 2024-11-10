@@ -1,9 +1,8 @@
 "use client";
 
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { getSession } from 'next-auth/react'; // Import getSession
+import { getSession } from 'next-auth/react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'font-awesome/css/font-awesome.min.css';
 import '../../../../styles/globals.css';
@@ -23,30 +22,42 @@ type DepositNew = {
 
 const statuses = [
   { label: 'สถานะทั้งหมด', value: 'all' },
-  { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
-  { label: 'สำเร็จ', value: 'สำเร็จ' },
-  { label: 'ไม่สำเร็จ', value: 'ไม่สำเร็จ' },
+  { label: 'รอตรวจสอบ', value: 'wait' },
+  { label: 'สำเร็จ', value: 'succeed' },
+  { label: 'ไม่สำเร็จ', value: 'cancel' },
 ];
 
-  const DepositPage: React.FC = () => {
-  const [allDeposits, setAllDeposits] = useState<DepositNew[]>([]);  // Store all deposits initially
-  const [deposits, setDeposits] = useState<DepositNew[]>([]);        // Store filtered deposits
+const bankOptions = [
+  { value: 'bbl', label: 'ธนาคารกรุงเทพ', image: '/storage/icon/bank/bbl.png' },
+  { value: 'ktb', label: 'ธนาคารกรุงไทย', image: '/storage/icon/bank/ktb.jpg' },
+  { value: 'scbb', label: 'ธนาคารไทยพาณิชย์', image: '/storage/icon/bank/scbb.jpg' },
+  { value: 'gsb', label: 'ธนาคารออมสิน', image: '/storage/icon/bank/gsb.jpg' },
+  { value: 'bay', label: 'ธนาคารกรุงศรีอยุธยา', image: '/storage/icon/bank/bay.png' },
+  { value: 'kbank', label: 'ธนาคารกสิกรไทย', image: '/storage/icon/bank/kbank.jpg' },
+  { value: 'kkp', label: 'ธนาคารเกียรตินาคินภัทร', image: '/storage/icon/bank/kkp.jpg' },
+  { value: 'citi', label: 'ซิตี้แบงก์', image: '/storage/icon/bank/citi.jpg' },
+  { value: 'ttb', label: 'ทีเอ็มบีธนชาต', image: '/storage/icon/bank/ttb.png' },
+  { value: 'uobt', label: 'ธนาคารยูโอบี', image: '/storage/icon/bank/uobt.jpg' },
+];
+
+const DepositPage: React.FC = () => {
+  const [allDeposits, setAllDeposits] = useState<DepositNew[]>([]);
+  const [deposits, setDeposits] = useState<DepositNew[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');  // Store selected status
-  const [userId, setUserId] = useState<string | null>(null);           // Store the user_id
-  const [showModal, setShowModal] = useState<boolean>(false);           // Store modal visibility
-  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);  // Store details modal visibility
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
   const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
 
-  // Fetch the session and extract user_id on component mount
   useEffect(() => {
     const fetchSession = async () => {
       const session = await getSession();
       if (session?.user) {
-        const userId = (session.user as { user_id?: string }).user_id; // Type assertion
+        const userId = (session.user as { user_id?: string }).user_id;
         if (userId) {
-          setUserId(userId); // Set the user_id from session
+          setUserId(userId);
         } else {
           console.error('User ID not found in session');
         }
@@ -56,16 +67,16 @@ const statuses = [
     fetchSession();
   }, []);
 
-  // Fetch all deposits for the user
   useEffect(() => {
     const fetchAllDeposits = async () => {
       setLoading(true);
-      setError(null);  // Reset error state before fetching
+      setError(null);
 
       try {
         if (userId) {
-          const response = await axios.get(`http://localhost:5000/deposits_new/user_id/${userId}/status/all`);
-          setAllDeposits(response.data);  // Store all deposits
+          const response = await axios.get(`http://localhost:5000/deposits/user_id/${userId}/status/${selectedStatus}`);
+
+          setAllDeposits(response.data);
         }
         setLoading(false);
       } catch (error) {
@@ -76,20 +87,18 @@ const statuses = [
     };
 
     if (userId) {
-      fetchAllDeposits();  // Fetch all deposits for the user
+      fetchAllDeposits();
     }
-  }, [userId]);  // Only run when userId is available
+  }, [userId]);
 
-  // Filter deposits based on selectedStatus
   useEffect(() => {
     if (selectedStatus === 'all') {
-      setDeposits(allDeposits);  // Show all deposits if status is "all"
+      setDeposits(allDeposits);
     } else {
       const filteredDeposits = allDeposits.filter(deposit => deposit.status === selectedStatus);
-      setDeposits(filteredDeposits);  // Filter deposits by status
+      setDeposits(filteredDeposits);
     }
   }, [selectedStatus, allDeposits]);
-  
 
   const handleManageClick = (depositId: string) => {
     setSelectedDepositId(depositId);
@@ -140,7 +149,6 @@ const statuses = [
         <table className="table table-width-1">
           <thead>
             <tr className="text-center">
-              {/* <th>No.</th> */}
               <th>วันที่ทำรายการ</th>
               <th>วันที่อนุมัติ</th>
               <th>จำนวน</th>
@@ -161,26 +169,28 @@ const statuses = [
               </tr>
             ) : deposits.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center p-3">No deposits found.</td>
+                <td colSpan={9} className="text-center p-3">ไม่มีรายการ</td>
               </tr>
             ) : (
               deposits.map(deposit => (
                 <tr key={deposit.deposit_id}>
-                  {/* <td>{deposit.deposit_id}</td> */}
                   <td>{deposit.date_deposit}</td>
                   <td>{deposit.date_success}</td>
                   <td>{deposit.amount}</td>
                   <td className="text-center">
-                    {deposit.bank === 'kbank' ? (
-                      <img 
-                        src="/storage/icon/bank/kbank.jpg" 
-                        alt="ธนาคารกสิกรไทย"
-                        className="centered-img_icon_bank"
-                        style={{ width: '50px', height: '50px', objectFit: 'contain' }}
-                      />
-                    ) : (
-                      deposit.bank
-                    )}
+                    {(() => {
+                      const bank = bankOptions.find(b => b.value === deposit.bank);
+                      return bank ? (
+                        <img 
+                          src={bank.image} 
+                          alt={bank.label}
+                          className="centered-img_icon_bank"
+                          style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        deposit.bank // Fallback in case no match is found
+                      );
+                    })()}
                   </td>
                   <td className="text-center">
                     {deposit.slip ? (
@@ -195,7 +205,12 @@ const statuses = [
                       'N/A'
                     )}
                   </td>
-                  <td>{deposit.status}</td>
+                  <td>
+                    {(() => {
+                      const status = statuses.find(s => s.value === deposit.status);
+                      return status ? status.label : deposit.status; // Fallback to deposit.status if no match is found
+                    })()}
+                  </td>
                   <td>
                     <button className="btn btn-success" onClick={() => handleManageClick(deposit.deposit_id)} style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}>
                       รายละเอียด
@@ -206,19 +221,12 @@ const statuses = [
             )}
           </tbody>
         </table>
-        <div className="demo-spacing-0 d-flex justify-content-end">
-          <ul className="pagination mb-0">
-            {/* Add pagination controls here */}
-          </ul>
-        </div>
       </div>
 
-      {/* Existing Modal for Deposit */}
       {showModal && (
         <ModalDeposit show={showModal} onClose={handleCloseModal} />
       )}
 
-      {/* New Modal for Deposit Details */}
       {showDetailsModal && selectedDepositId && (
         <ModalDepositDetails show={showDetailsModal} depositId={selectedDepositId} onClose={handleCloseDetailsModal} />
       )}

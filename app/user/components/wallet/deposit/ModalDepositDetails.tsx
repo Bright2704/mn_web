@@ -7,6 +7,29 @@ interface ModalDepositDetailsProps {
   onClose: () => void;
 }
 
+const statuses = [
+  { label: 'สถานะทั้งหมด', value: 'all' },
+  { label: 'รอตรวจสอบ', value: 'wait' },
+  { label: 'สำเร็จ', value: 'succeed' },
+  { label: 'ไม่สำเร็จ', value: 'cancel' },
+];
+
+const bankOptions = [
+  { value: 'bbl', label: 'ธนาคารกรุงเทพ', image: '/storage/icon/bank/bbl.png' },
+  { value: 'ktb', label: 'ธนาคารกรุงไทย', image: '/storage/icon/bank/ktb.jpg' },
+  { value: 'scbb', label: 'ธนาคารไทยพาณิชย์', image: '/storage/icon/bank/scbb.jpg' },
+  { value: 'gsb', label: 'ธนาคารออมสิน', image: '/storage/icon/bank/gsb.jpg' },
+  { value: 'bay', label: 'ธนาคารกรุงศรีอยุธยา', image: '/storage/icon/bank/bay.png' },
+  { value: 'kbank', label: 'ธนาคารกสิกรไทย', image: '/storage/icon/bank/kbank.jpg' },
+  { value: 'kkp', label: 'ธนาคารเกียรตินาคินภัทร', image: '/storage/icon/bank/kkp.jpg' },
+  { value: 'citi', label: 'ซิตี้แบงก์', image: '/storage/icon/bank/citi.jpg' },
+  { value: 'ttb', label: 'ทีเอ็มบีธนชาต', image: '/storage/icon/bank/ttb.png' },
+  { value: 'uobt', label: 'ธนาคารยูโอบี', image: '/storage/icon/bank/uobt.jpg' },
+];
+
+
+
+
 const ModalDepositDetails: React.FC<ModalDepositDetailsProps> = ({ show, depositId, onClose }) => {
   const [depositDetails, setDepositDetails] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,7 +40,7 @@ const ModalDepositDetails: React.FC<ModalDepositDetailsProps> = ({ show, deposit
       setLoading(true);
       setError(''); // Reset error before fetching
       axios
-        .get(`http://localhost:5000/deposits_new/${depositId}`)
+        .get(`http://localhost:5000/deposits/${depositId}`)
         .then((response) => {
           setDepositDetails(response.data);
           setLoading(false);
@@ -61,21 +84,24 @@ const ModalDepositDetails: React.FC<ModalDepositDetailsProps> = ({ show, deposit
                   <p><strong>วันที่ทำรายการ :</strong> {depositDetails.date_deposit}</p>
                   <p><strong>วันที่อนุมัติ :</strong> {depositDetails.date_success}</p>
                   <p><strong>จำนวน :</strong> {depositDetails.amount}</p>
-                  <p><strong>ธนาคารที่โอน :</strong> {depositDetails.bank === 'kbank' ? (
-                      <img 
-                        src="/storage/icon/bank/kbank.jpg" 
-                        alt="ธนาคารกสิกรไทย"
-                        className="centered-img_icon_bank"
-                        style={{ width: '100px', height: '100px', objectFit: 'contain' }}
-                      />
-                    ) : (
-                      depositDetails.bank
-                    )}
+                  <p><strong>ธนาคารที่โอน :</strong> {(() => {
+                      const bank = bankOptions.find(b => b.value === depositDetails.bank);
+                      return bank ? (
+                        <img 
+                          src={bank.image} 
+                          alt={bank.label}
+                          className="centered-img_icon_bank"
+                          style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+                        />
+                      ) : (
+                        depositDetails.bank // Fallback in case no match is found
+                      );
+                    })()}
                   </p>
-                  <p>สาขา: เซนทรัลลาดพร้าว</p>
-                  <p>เลขที่บัญชี: 141-3-41660-0</p>
-                  <p>ชื่อบัญชี: บริษัท เอ็มเอ็น 1688 คาร์โก้ เอ็กซ์เพรส จำกัด</p>
-                  <p><strong>สถานะ:</strong> {depositDetails.status}</p>
+                  <p><strong>สถานะ:</strong> {(() => {
+                      const status = statuses.find(s => s.value === depositDetails.status);
+                      return status ? status.label : depositDetails.status; // Fallback to deposit.status if no match is found
+                    })()}</p>
                   <p><strong>Note:</strong> {depositDetails.note}</p>
                 </div>
               </div>

@@ -113,6 +113,9 @@ const SideBar2 = () => {
                     <li className="s-menu-item">
                         <Link href="/user/wallet/balance">• สมุดบัญชี</Link>
                     </li>
+                    <li className="s-menu-item">
+                        <Link href="/user/wallet/withdraw">• ถอนเงินในระบบ</Link>
+                    </li>
                     </ul>
                 </div>
                 <li className="menu-item">
@@ -128,7 +131,7 @@ const SideBar2 = () => {
                     </Link>
                 </li>
                 <li className="menu-item">
-                    <Link href="/user/profile">
+                    <Link href="/user/setting">
                         <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' }}>ตั้งค่าบัญชีผู้ใช้งาน</p>
                     </Link>
@@ -253,10 +256,14 @@ const SideBar2 = () => {
                 <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: isSubmenuOpen && !isCollapsed ? '200px' : '0'}}>
                     <ul className="submenu">
                     <li className="s-menu-item">
-                        <Link href="/user/wallet/deposit" style={{color: pathname === '/user/wallet/deposit' ? '#f04072':''}}>• เติมเงินเข้าระบบ</Link>
+                        <Link href="/user/wallet/balance" style={{color: pathname === '/user/wallet/balance' ? '#f04072':''}}>• สมุดบัญชี</Link>
                     </li>
                     <li className="s-menu-item">
-                        <Link href="/user/wallet/balance" style={{color: pathname === '/user/wallet/balance' ? '#f04072':''}}>• สมุดบัญชี</Link>
+                        <Link href="/user/wallet/deposit" style={{color: pathname === '/user/wallet/deposit' ? '#f04072':''}}>• เติมเงินเข้าระบบ</Link>
+                    </li>
+                    
+                    <li className="s-menu-item">
+                        <Link href="/user/wallet/withdraw" style={{color: pathname === '/user/wallet/withdraw' ? '#f04072':''}}>• ถอนเงินในระบบ</Link>
                     </li>
                     </ul>
                 </div>
@@ -272,10 +279,10 @@ const SideBar2 = () => {
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === 'listnoowner' ? 'white':''}}>รายการสินค้าไม่มีเจ้าของ</p>
                     </Link>
                 </li>
-                <li className="menu-item" style={{background: pathname === '/user/profile' ? '#f48ca9':''}}>
-                    <Link href="/user/profile">
-                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/profile' ? 'invert(1)':''}}/>
-                        <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/profile' ? 'white':''}}>ตั้งค่าบัญชีผู้ใช้งาน</p>
+                <li className="menu-item" style={{background: pathname === '/user/setting' ? '#f48ca9':''}}>
+                    <Link href="/user/setting">
+                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/setting' ? 'invert(1)':''}}/>
+                        <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/setting' ? 'white':''}}>ตั้งค่าบัญชีผู้ใช้งาน</p>
                     </Link>
                 </li>
                 <li className="menu-item submenu-item"> {/* submenu-item */}
