@@ -13,4 +13,4 @@ const LotSchema = new mongoose.Schema({
   image_path: String
 });
 
-module.exports = mongoose.model('Lot', LotSchema, 'lot');
+module.exports = mongoose.models.Lot || mongoose.model('Lot', LotSchema);
