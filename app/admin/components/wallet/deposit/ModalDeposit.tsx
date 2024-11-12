@@ -52,6 +52,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
   const [reason, setReason] = useState<string>(''); // State to hold the reason for rejection
   const [isConfirmDisabled, setIsConfirmDisabled] = useState<boolean>(false); // State to disable confirm button
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false); // State to show success popup
+  const [showRejectionModal, setShowRejectionModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (show && depositId) {
@@ -176,26 +177,73 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
     window.location.reload(); // Refresh the page to show new data
   };
   
-  
-  const handleReject = () => {
-    const currentDateSuccess = getCurrentFormattedDate(); // Get current date and time
-  
-    if (reason.trim() === '') {
-      alert('กรุณากรอกเหตุผลในการปฏิเสธ');
-      return;
-    }
-  
-    const updatedDetails = { ...depositDetails, status: 'cancel', note: reason, date_success: currentDateSuccess };
-    axios
-      .put(`http://localhost:5000/deposits/${depositId}`, updatedDetails)
-      .then(() => {
-        setDepositDetails(updatedDetails); // Update the local state
-        setShowSuccessPopup(true); // Show success popup
-      })
-      .catch((err) => {
-        console.error('Error updating deposit details:', err);
-      });
+  // Update the handleReject function
+const handleReject = () => {
+  setShowRejectionModal(true);
+};
+
+const handleRejectionSubmit = () => {
+  if (reason.trim() === '') {
+    alert('กรุณากรอกเหตุผลในการปฏิเสธ');
+    return;
+  }
+
+  const currentDateSuccess = getCurrentFormattedDate();
+  const updatedDetails = {
+    ...depositDetails,
+    status: 'cancel',
+    note: reason,
+    date_success: currentDateSuccess
   };
+
+  axios
+    .put(`http://localhost:5000/deposits/${depositId}`, updatedDetails)
+    .then(() => {
+      setDepositDetails(updatedDetails);
+      setShowRejectionModal(false);
+      setShowSuccessPopup(true);
+    })
+    .catch((err) => {
+      console.error('Error updating deposit details:', err);
+      alert('Error updating deposit status. Please try again.');
+    });
+};
+
+const renderRejectionModal = () => {
+  if (!showRejectionModal) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50" 
+        onClick={() => setShowRejectionModal(false)}
+      />
+      <div className="relative bg-white rounded-lg shadow-lg p-6 w-96">
+        <h3 className="text-xl font-medium mb-4">ระบุเหตุผลในการปฏิเสธ</h3>
+        <textarea
+          className="w-full p-2 border rounded-lg mb-4 min-h-[100px]"
+          placeholder="กรุณาระบุเหตุผล..."
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={() => setShowRejectionModal(false)}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleRejectionSubmit}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            ยืนยัน
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   // Fetch the next balance ID from the backend
   const generateNextBalanceId = async () => {
@@ -388,6 +436,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
           </div>
         </div>
       </div>
+      {showRejectionModal && renderRejectionModal()}
       {showSuccessPopup && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg w-1/3 p-6">

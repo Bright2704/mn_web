@@ -8,7 +8,7 @@ const path = require('path');
 // Configure storage for multer (keep existing configuration)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, './public/storage/slips');
+    cb(null, './public/storage/slips/deposit');
   },
   filename: (req, file, cb) => {
     const deposit_id = req.body.deposit_id || 'default';

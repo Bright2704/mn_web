@@ -1,67 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from 'axios';
 
-interface ModalWithdrawDetailsProps {
+interface ModalWithdrawProps {
   show: boolean;
-  withdrawId: string;
   onClose: () => void;
+  withdrawId: string;
 }
-
-const statuses = [
-  { label: 'สถานะทั้งหมด', value: 'all' },
-  { label: 'รอตรวจสอบ', value: 'wait' },
-  { label: 'สำเร็จ', value: 'success' },
-  { label: 'ไม่สำเร็จ', value: 'failed' },
-];
-
-const bankOptions = [
-  { value: 'bbl', label: 'ธนาคารกรุงเทพ', image: '/storage/icon/bank/bbl.png' },
-  { value: 'ktb', label: 'ธนาคารกรุงไทย', image: '/storage/icon/bank/ktb.jpg' },
-  { value: 'scbb', label: 'ธนาคารไทยพาณิชย์', image: '/storage/icon/bank/scbb.jpg' },
-  { value: 'gsb', label: 'ธนาคารออมสิน', image: '/storage/icon/bank/gsb.jpg' },
-  { value: 'bay', label: 'ธนาคารกรุงศรีอยุธยา', image: '/storage/icon/bank/bay.png' },
-  { value: 'kbank', label: 'ธนาคารกสิกรไทย', image: '/storage/icon/bank/kbank.jpg' },
-  { value: 'kkp', label: 'ธนาคารเกียรตินาคินภัทร', image: '/storage/icon/bank/kkp.jpg' },
-  { value: 'citi', label: 'ซิตี้แบงก์', image: '/storage/icon/bank/citi.jpg' },
-  { value: 'ttb', label: 'ทีเอ็มบีธนชาต', image: '/storage/icon/bank/ttb.png' },
-  { value: 'uobt', label: 'ธนาคารยูโอบี', image: '/storage/icon/bank/uobt.jpg' },
-];
 
 interface WithdrawDetails {
-  withdraw_id: string;
-  user_id: string;
-  date_withdraw: string;
-  date_success: string;
-  bank: string;
-  account_name: string;
-  account_number: string;
-  branch: string;
-  withdraw_amount: number;
-  status: string;
-  slip: string;
-  note?: string;
-}
+    withdraw_id: string;
+    user_id: string;
+    date_withdraw: string;
+    date_success: string;
+    withdraw_amount: number;
+    bank: string;
+    account_name: string;
+    account_number: string;
+    branch: string;
+    slip: string;
+    status: string;
+    note?: string;
+  }
 
-const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withdrawId, onClose }) => {
-  const [withdrawDetails, setWithdrawDetails] = useState<WithdrawDetails | null>(null);
+  const ModalWithdraw: React.FC<ModalWithdrawProps> = ({
+    show,
+    onClose,
+    withdrawId,
+  }) => {
+
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
-  const [showRejectionModal, setShowRejectionModal] = useState<boolean>(false);
-  const [rejectionNote, setRejectionNote] = useState<string>('');
+  const [error, setError] = useState<string>("");
+  const [withdrawDetails, setWithdrawDetails] =useState<WithdrawDetails | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [processingStatus, setProcessingStatus] = useState<boolean>(false);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showRejectionModal, setShowRejectionModal] = useState<boolean>(false);
+  const [rejectionNote, setRejectionNote] = useState<string>('');
 
   useEffect(() => {
     const fetchWithdrawDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/withdraws/${withdrawId}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        const response = await fetch(
+          `http://localhost:5000/withdraws/${withdrawId}`
+        );
+        if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
         setWithdrawDetails(data);
       } catch (error) {
-        console.error('Error fetching withdraw details:', error);
-        setError('ไม่สามารถดึงข้อมูลการถอนเงินได้');
+        console.error("Error fetching withdraw details:", error);
+        setError("ไม่สามารถดึงข้อมูลการถอนเงินได้");
       } finally {
         setLoading(false);
       }
@@ -83,55 +71,123 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
     }
   };
 
-  const handleUpdateStatus = async (newStatus: 'success' | 'failed') => {
-    if (newStatus === 'success' && !file) {
-      setError('กรุณาแนบหลักฐานการโอนเงิน');
+  const generateNextBalanceId = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/balances/next-id');
+      return response.data.nextId;
+    } catch (err) {
+      console.error('Error generating next balance_id:', err);
+      throw err;
+    }
+  };
+
+   // Fetch the last balance total for a specific user
+   const getLastBalanceTotal = async (userId: string) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      // Since your endpoint returns the last balance directly (not in an array)
+      return response.data?.balance_total || 0;
+    } catch (err) {
+      console.error('Error fetching last balance total:', err);
+      throw err;
+    }
+  };
+
+// Create a new balance entry for withdrawal
+const createBalanceRecord = async () => {
+    if (!withdrawDetails) return;
+  
+    try {
+      const newBalanceId = await generateNextBalanceId();
+      const lastBalanceTotal = await getLastBalanceTotal(withdrawDetails.user_id);
+  
+      const currentDate = new Date()
+        .toLocaleString('th-TH', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+        .replace(',', '');
+  
+      const newBalance = {
+        user_id: withdrawDetails.user_id,
+        balance_id: newBalanceId,
+        balance_date: currentDate,
+        balance_type: 'withdraw',
+        balance_descri: `รายการถอนเงิน ${withdrawDetails.withdraw_id}`,
+        balance_amount: withdrawDetails.withdraw_amount,
+        balance_total: lastBalanceTotal - withdrawDetails.withdraw_amount,
+      };
+  
+      await axios.post('http://localhost:5000/balances', newBalance);
+      console.log('Balance record created successfully');
+    } catch (err) {
+      console.error('Error creating balance record:', err);
+      throw err;
+    }
+  };
+
+  const handleUpdateStatus = async (newStatus: "success" | "failed") => {
+    if (newStatus === "success" && !file) {
+      setError("กรุณาแนบหลักฐานการโอนเงิน");
       return;
     }
-
+  
     setProcessingStatus(true);
     try {
       const formData = new FormData();
-      formData.append('status', newStatus);
-      formData.append(
-        'date_success',
-        newStatus === 'success'
-          ? new Date()
-              .toLocaleString('th-TH', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-              .replace(',', '')
-          : ''
-      );
-
+      formData.append("status", newStatus);
+      
+      const currentDate = new Date()
+        .toLocaleString('th-TH', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+        .replace(',', '');
+        
+      formData.append("date_success", newStatus === "success" ? currentDate : "");
+  
       if (file) {
-        const fileExtension = file.name.split('.').pop();
+        const fileExtension = file.name.split(".").pop();
         const newFile = new File([file], `${withdrawId}.${fileExtension}`, {
           type: file.type,
         });
-        formData.append('slip', newFile);
+        formData.append("slip", newFile);
       }
-
-      const response = await fetch(
+  
+      const response = await axios.patch(
         `http://localhost:5000/withdraws/${withdrawId}/status`,
-        {
-          method: 'PATCH',
-          body: formData,
-        }
+        formData
       );
-
-      if (!response.ok) throw new Error('Network response was not ok');
+  
+      if (response.status === 200 && newStatus === "success") {
+        try {
+          await createBalanceRecord();
+        } catch (balanceError) {
+          console.error("Error creating balance record:", balanceError);
+          setError("ไม่สามารถสร้างรายการบันทึกยอดเงินได้");
+          return;
+        }
+      }
+  
       setShowSuccessModal(true);
     } catch (error) {
-      console.error('Error updating status:', error);
-      setError('ไม่สามารถอัพเดทสถานะได้');
+      console.error("Error updating status:", error);
+      setError("ไม่สามารถอัพเดทสถานะได้");
     } finally {
       setProcessingStatus(false);
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    onClose();
+    window.location.reload();
   };
 
   const renderSlipSection = () => {
@@ -217,19 +273,17 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
     try {
       const formData = new FormData();
       formData.append('status', 'failed');
-      formData.append('note', rejectionNote);
-      formData.append(
-        'date_success',
-        new Date()
-          .toLocaleString('th-TH', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })
-          .replace(',', '')
+      formData.append('date_success', new Date()
+        .toLocaleString('th-TH', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+        .replace(',', '')
       );
+      formData.append('note', rejectionNote);
 
       const response = await fetch(
         `http://localhost:5000/withdraws/${withdrawId}/status`,
@@ -251,53 +305,14 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
     }
   };
 
-  const renderStatusSection = () => {
-    if (withdrawDetails?.status === 'wait') {
-      return (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="text-lg font-medium mb-2 text-center">
-            สถานะปัจจุบัน:
-            <span className="text-yellow-600"> รอตรวจสอบ</span>
-          </div>
-        </div>
-      );
-    }
-  
-    return (
-      <div className="bg-gray-50 p-4 rounded-lg text-center">
-        <div className="text-lg font-medium mb-2">
-          สถานะปัจจุบัน:
-          <span className={withdrawDetails?.status === 'success' ? 'text-green-600' : 'text-red-600'}>
-            {withdrawDetails?.status === 'success' ? ' อนุมัติแล้ว' : ' ปฏิเสธแล้ว'}
-          </span>
-        </div>
-        {withdrawDetails?.status === 'failed' && withdrawDetails.note && (
-          <div className="mt-2 p-3 bg-red-50 rounded-lg">
-            <div className="text-gray-700 font-medium mb-1">เหตุผลที่ปฏิเสธ:</div>
-            <div className="text-red-600">{withdrawDetails.note}</div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-
-  const handleSuccessModalClose = () => {
-    setShowSuccessModal(false);
-    onClose();
-    window.location.reload();
-  };
-
   const renderRejectionModal = () => {
     if (!showRejectionModal) return null;
 
-  
-
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50">
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50"
-          onClick={() => setShowRejectionModal(false)}
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50" 
+          onClick={() => setShowRejectionModal(false)} 
         />
         <div className="relative bg-white rounded-lg shadow-lg p-6 w-96">
           <h3 className="text-xl font-medium mb-4">ระบุเหตุผลในการปฏิเสธ</h3>
@@ -324,6 +339,46 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
           </div>
           {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
         </div>
+      </div>
+    );
+  };
+
+  const renderStatusSection = () => {
+    if (withdrawDetails?.status === 'wait') {
+      return (
+        <div className="space-y-4">
+          <button
+            onClick={() => handleUpdateStatus('success')}
+            disabled={processingStatus}
+            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+          >
+            อนุมัติการถอนเงิน
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={processingStatus}
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium disabled:opacity-50 transition-colors"
+          >
+            ปฏิเสธการถอนเงิน
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg text-center">
+        <div className="text-lg font-medium mb-2">
+          สถานะปัจจุบัน:
+          <span className={withdrawDetails?.status === 'success' ? 'text-green-600' : 'text-red-600'}>
+            {withdrawDetails?.status === 'success' ? ' อนุมัติแล้ว' : ' ปฏิเสธแล้ว'}
+          </span>
+        </div>
+        {withdrawDetails?.status === 'failed' && withdrawDetails.note && (
+          <div className="mt-2 p-3 bg-red-50 rounded-lg">
+            <div className="text-gray-700 font-medium mb-1">เหตุผลที่ปฏิเสธ:</div>
+            <div className="text-red-600">{withdrawDetails.note}</div>
+          </div>
+        )}
       </div>
     );
   };
@@ -419,7 +474,6 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
             )
           )}
         </div>
-
         
       </div>
       {showRejectionModal && renderRejectionModal()}
@@ -441,7 +495,7 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
         </div>
       )}
     </div>
-    );
-  };
-  
-  export default ModalWithdrawDetails;
+  );
+};
+
+export default ModalWithdraw;

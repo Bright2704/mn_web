@@ -47,7 +47,7 @@ exports.deleteBalance = async (req, res) => {
 // Get the last balance for a specific user
 exports.getLastBalanceByUserId = async (req, res) => {
   try {
-    const lastBalance = await Balance.findOne({ user_id: req.params.userId }).sort({ balance_date: -1 });
+    const lastBalance = await Balance.findOne({ user_id: req.params.userId }).sort({ balance_id: -1 });
     res.json(lastBalance);
   } catch (err) {
     res.status(500).json({ error: err.message });

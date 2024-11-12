@@ -26,7 +26,7 @@ const statuses = [
   { label: 'ไม่สำเร็จ', value: 'failed' },
 ];
 
-const WithdrawPage: React.FC = () => {
+const WithdrawPageUser: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -34,6 +34,8 @@ const WithdrawPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedWithdrawId, setSelectedWithdrawId] = useState<string>('');
   const [showDetailsModal, setShowDetailsModal] = useState<boolean>(false);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   // Fetch user session
   useEffect(() => {
@@ -114,19 +116,83 @@ const WithdrawPage: React.FC = () => {
     setShowDetailsModal(true);
   };
 
+  const fetchLastBalance = async (userId: string) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      if (response.data) {
+        console.log('Latest balance record:', response.data); // Debug log
+        setTotalAmount(response.data.balance_total);
+      } else {
+        console.log('No balance records found'); // Debug log
+        setTotalAmount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching last balance:', error);
+      setTotalAmount(0);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const session = await getSession();
+      if (session?.user) {
+        const userId = (session.user as { user_id?: string }).user_id;
+        if (userId) {
+          setUserId(userId);
+          // Fetch the last balance once we have the user ID
+          await fetchLastBalance(userId);
+        } else {
+          console.error('User ID not found in session');
+        }
+      }
+    };
+  
+    fetchSession();
+  }, []);
+  
+  // Add this useEffect to refresh the balance when deposits change
+  useEffect(() => {
+    if (userId) {
+      fetchLastBalance(userId);
+    }
+  }, [withdraws, showDetailsModal, showModal]); 
+
+
   return (
     <div className="card">
       <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
-        <h3 className="font-weight-bolder text-lg font-semibold">รายการสถานะ</h3>
-        <button
+        <h3 className="font-weight-bolder text-lg font-semibold">ถอนเงินออกจากระบบ</h3>
+        <div className="d-flex align-items-center" style={{ gap: "24px" }}>
+          {/* Total Amount Information */}
+          <div>
+            {/* Action Buttons */}
+            <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+              <p
+                className="mb-1"
+                style={{ color: "#198754", fontSize: "24px" }}
+              >
+                ยอดเงินในระบบ{" "}
+              </p>
+              <div className="bg-light p-2 rounded">
+                <h5
+                  className="mb-0"
+                  style={{ color: "#198754", fontSize: "30px" }}
+                >
+                  {totalAmount.toLocaleString()} ฿
+                </h5>
+              </div>
+              <button
           className="btn btn-success px-4 py-2.5 ml-2 mr-10"
           style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
           onClick={handleOpenModal}
         >
           ถอนเงินออกจากระบบ
         </button>
+            </div>
+          </div>
+        </div>
       </div>
-
+     
       <div className="nav-panel">
         <div className="anan-tabs__nav">
           <div className="anan-tabs__nav-warp px-2 table-container" style={{ marginTop: '5px' }}>
@@ -219,4 +285,4 @@ const WithdrawPage: React.FC = () => {
   );
 };
 
-export default WithdrawPage;
+export default WithdrawPageUser;

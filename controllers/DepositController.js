@@ -80,7 +80,7 @@ exports.createDeposit = async (req, res) => {
       amount,
       bank,
       status,
-      slip: req.file ? `/storage/slips/${req.file.filename}` : null,
+      slip: req.file ? `/storage/slips/deposit/${req.file.filename}` : null,
       note,
       six_digits
     });

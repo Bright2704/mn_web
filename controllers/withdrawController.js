@@ -113,3 +113,42 @@ exports.updateWithdrawStatus = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Add this new function to get all withdrawals
+exports.getAllWithdraws = async (req, res) => {
+  try {
+    const withdraws = await Withdraw.find({})
+      .sort({ date_withdraw: -1 }); // Sort by newest first
+    res.json(withdraws);
+  } catch (err) {
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์' });
+  }
+};
+
+exports.updateStatus = async (req, res) => {
+  try {
+    const { withdrawId } = req.params;
+    const { status, date_success,note } = req.body;
+    
+    const updateData = {
+      status,
+      date_success,
+      slip: req.file ? `/storage/slips/withdraw/${req.file.filename}` : undefined,
+      note
+    };
+
+    const updatedWithdraw = await Withdraw.findOneAndUpdate(
+      { withdraw_id: withdrawId },
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedWithdraw) {
+      return res.status(404).json({ error: 'Withdrawal not found' });
+    }
+
+    res.json(updatedWithdraw);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
