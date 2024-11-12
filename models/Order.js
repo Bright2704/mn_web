@@ -10,4 +10,4 @@ const OrderSchema = new mongoose.Schema({
   status: String
 });
 
-module.exports = mongoose.model('Order', OrderSchema, 'orders');
+module.exports = mongoose.models.Order || mongoose.model('Order', OrderSchema);

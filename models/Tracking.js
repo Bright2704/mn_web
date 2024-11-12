@@ -35,4 +35,4 @@ const TrackingSchema = new mongoose.Schema({
   image_item_paths: [String] // Array to store multiple image paths
 });
 
-module.exports = mongoose.model('Tracking', TrackingSchema, 'tracking');
+module.exports = mongoose.models.Tracking || mongoose.model('Tracking', TrackingSchema);

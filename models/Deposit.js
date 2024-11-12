@@ -1,3 +1,4 @@
+// models/Deposit.js
 const mongoose = require('mongoose');
 
 const DepositSchema = new mongoose.Schema({
@@ -13,4 +14,4 @@ const DepositSchema = new mongoose.Schema({
   six_digits:String
 });
 
-module.exports = mongoose.model('Deposit', DepositSchema, 'deposit');
+module.exports = mongoose.models.Deposit || mongoose.model('Deposit', DepositSchema);
