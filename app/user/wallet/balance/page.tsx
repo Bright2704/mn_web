@@ -37,17 +37,6 @@ const BalancePage: React.FC = () => {
       .then(response => {
         const fetchedBalances: Balance[] = response.data;
         setBalances(fetchedBalances);
-
-        // Sort balances by balance_id in descending order
-        const sortedBalances = fetchedBalances.sort((a, b) => {
-          // Assuming balance_id is in a format like "BLA_0001"
-          const idA = parseInt(a.balance_id.split('_')[1], 10);
-          const idB = parseInt(b.balance_id.split('_')[1], 10);
-          return idB - idA; // Sort in descending order
-        });
-
-        setBalances(sortedBalances);
-
         // Calculate totalAmount as the latest balance_total
         if (fetchedBalances.length > 0) {
           const latestBalanceTotal = fetchedBalances[fetchedBalances.length - 1].balance_total;
