@@ -30,6 +30,14 @@ const userSchema = new Schema(
             required: true,
             default: "normal", // New field with default value "normal"
         },
+        resetToken: {
+            type: String,
+            required : false,
+        },
+        resetTokenExpiry: {
+            type: Date,
+            required: false,
+        },
     },
     { timestamps: true }
 );

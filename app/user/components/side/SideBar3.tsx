@@ -41,7 +41,7 @@ const SideBar2 = () => {
         <>
         <div className='flex'>
             <div className='sidebar relative z-0' style={{
-                width: isCollapsed ? '50px' : '250px', // Adjust min-width dynamically
+                width: isCollapsed ? '50px' : '230px', // Adjust min-width dynamically
                 transition: 'width .2s ease', // Smooth transition
                 }}>
                 <Link href="/" style={{margin:'0', padding:'0'}}>
@@ -187,7 +187,7 @@ const SideBar2 = () => {
         </div>
             
         <div className="sidebar fixed" style={{
-            width: isCollapsed ? '50px' : '250px', // Adjust min-width dynamically
+            width: isCollapsed ? '50px' : '230px', // Adjust min-width dynamically
             transition: 'width .2s ease', // Smooth transition
             fontFamily: anuphan.style.fontFamily,
             }}>
@@ -247,10 +247,11 @@ const SideBar2 = () => {
                             alt="dashboard image"
                             width={30} height={30}
                             />
-                            <span className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' }}>กระเป๋าเงิน</span> 
+                            <div className="menu-list " style={{ display: isCollapsed ? 'none' : 'flex' }}>
+                                <span>กระเป๋าเงิน</span>
+                                <span className="menu-list ml-auto mr-4 transform transition-transform duration-200" style={{ transform: isSubmenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' , minWidth:"unset",display: isCollapsed ? 'none' : 'block'}}>▼</span>
+                            </div> 
                         </div>
-                        
-                        <span className="menu-list ml-auto transform transition-transform duration-200" style={{ transform: isSubmenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' , minWidth:"unset",display: isCollapsed ? 'none' : 'block'}}>▼</span>
                     </a>
                 </li>
                 <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: isSubmenuOpen && !isCollapsed ? '200px' : '0'}}>
@@ -294,10 +295,11 @@ const SideBar2 = () => {
                             alt="manual image"
                             width={30} height={30}
                             />
-                            <span className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' }}>คู่มือการใช้งาน</span> 
+                            <div className="menu-list " style={{ display: isCollapsed ? 'none' : 'flex' }}>
+                                <span>คู่มือการใช้งาน</span>
+                                <span className="menu-list ml-auto mr-4 transform transition-transform duration-200" style={{ transform: isSubmenuOpen2 ? 'rotate(180deg)' : 'rotate(0deg)' , minWidth:"unset",display: isCollapsed ? 'none' : 'block'}}>▼</span>
+                            </div> 
                         </div>
-                        
-                        <span className="menu-list ml-auto transform transition-transform duration-200" style={{ transform: isSubmenuOpen2 ? 'rotate(180deg)' : 'rotate(0deg)' , minWidth:"unset",display: isCollapsed ? 'none' : 'block'}}>▼</span>
                     </a>
                 </li>
                 <div className="overflow-hidden transition-all duration-200 ease-in-out" style={{ maxHeight: isSubmenuOpen2 && !isCollapsed ? '200px' : '0'}}>
