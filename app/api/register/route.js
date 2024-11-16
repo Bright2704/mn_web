@@ -7,6 +7,7 @@ export async function POST(req) {
     try {
         const { name, email, password } = await req.json();
         const hashedPassword = await bcrypt.hash(password, 10);
+        const resetTokenExpiry = Date.now() + 3600000;
 
         await connectMongoDB();
 
@@ -27,7 +28,9 @@ export async function POST(req) {
             email, 
             password: hashedPassword, 
             user_id: newUserId,
-            user_type: "normal"  // Default value for user_type
+            user_type: "normal",  // Default value for user_type
+            resetToken: "",
+            resetTokenExpiry,
         });
 
         return NextResponse.json({ message: "ลงทะเบียนผู้ใช้งานสำเร็จ" }, { status: 201 });

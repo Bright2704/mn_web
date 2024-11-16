@@ -62,7 +62,7 @@ function LoginPage() {
                     <input onChange={(e) => setPassword(e.target.value)} className='block bg-gray-300 p-2 my-3 rounded-md w-full' type="text" placeholder='Enter your password'/>
                     <div className='flex my-3 justify-between'>
                       <p> <input type='checkbox'></input> จดจำฉัน </p>
-                      <a href='#' className='text-red-500'> ลืมรหัสผ่าน </a>
+                      <a href='/forget-password' className='text-red-500'> ลืมรหัสผ่าน </a>
                     </div>
                     <button type='submit' className='bg-red-600 p-2 my-3 rounded-md text-white w-full'> เข้าสู่ระบบ </button>
                 </form>
