@@ -327,7 +327,7 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
       </div>
     );
   };
-
+ 
   if (!show) return null;
 
   return (

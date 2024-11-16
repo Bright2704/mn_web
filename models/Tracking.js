@@ -1,4 +1,3 @@
-// models/Tracking.js
 const mongoose = require('mongoose');
 
 const TrackingSchema = new mongoose.Schema({
@@ -28,11 +27,14 @@ const TrackingSchema = new mongoose.Schema({
   transport: Number,
   price_crate: Number,
   other: Number,
-  status: String,
+  status: {
+    type: String,
+    default: 'รอเข้าโกดังจีน'
+  },
   bill_id: String,
   cal_price: Number,
   transport_file_path: String,
-  image_item_paths: [String] // Array to store multiple image paths
+  image_item_paths: [String]
 });
 
-module.exports = mongoose.models.Tracking || mongoose.model('Tracking', TrackingSchema);
+module.exports = mongoose.model('Tracking', TrackingSchema, 'tracking');

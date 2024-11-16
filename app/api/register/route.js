@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { connectMongoDB } from "@/lib/mongodb";
-import User from "@/models/user";
+import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 
 export async function POST(req) {
     try {
-        const { name, email, password } = await req.json();
+        const { name, email, phone, password } = await req.json();
         const hashedPassword = await bcrypt.hash(password, 10);
         const resetTokenExpiry = Date.now() + 3600000;
 
@@ -26,6 +26,7 @@ export async function POST(req) {
         await User.create({ 
             name, 
             email, 
+            phone,
             password: hashedPassword, 
             user_id: newUserId,
             user_type: "normal",  // Default value for user_type
