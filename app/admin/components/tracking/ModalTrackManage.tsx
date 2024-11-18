@@ -3,6 +3,7 @@ import { Modal } from "antd";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Navigation } from 'swiper/modules';
+import { calculateServiceFee } from './calculateServiceFee';
 import 'swiper/swiper-bundle.css';
 
 interface TrackingItem {
@@ -33,6 +34,7 @@ interface TrackingItem {
   not_owner: string;
   transport_file_path: string;
   image_item_paths: string[];
+  type_cal: 'weightPrice' | 'volumePrice';
 }
 
 interface ModalTrackManageProps {
@@ -42,7 +44,21 @@ interface ModalTrackManageProps {
 }
 
 const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trackingData }) => {
-  const [formData, setFormData] = useState<TrackingItem>(trackingData);
+  const [formData, setFormData] = useState<TrackingItem>(() => ({
+    ...trackingData,
+    weight: trackingData.weight || 0,
+    wide: trackingData.wide || 0,
+    high: trackingData.high || 0,
+    long: trackingData.long || 0,
+    number: trackingData.number || 1,
+    check_product_price: trackingData.check_product_price || 0,
+    new_wrap: trackingData.new_wrap || 0,
+    transport: trackingData.transport || 0,
+    price_crate: trackingData.price_crate || 0,
+    other: trackingData.other || 0,
+    cal_price: trackingData.cal_price || 0,
+    type_cal: trackingData.type_cal || 'weightPrice'
+  }));
   const [file, setFile] = useState<File | null>(null);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>(formData.image_item_paths || []);
@@ -51,12 +67,26 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
   const swiperRef = useRef<any>(null);
   const [serviceFee, setServiceFee] = useState<number>(0);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { id, value, type } = e.target;
-    setFormData((prev: TrackingItem) => ({
-      ...prev,
-      [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+    
+    if (type === 'number' || type === 'select-one') {
+      setFormData(prev => ({
+        ...prev,
+        [id]: type === 'number' ? parseFloat(value) || 0 : value
+      }));
+    } else if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [id]: (e.target as HTMLInputElement).checked ? 'true' : 'false'
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [id]: value
+      }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,44 +119,44 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
     e.preventDefault();
     const form = new FormData();
   
-    // Append all other form data fields
-    Object.entries(formData).forEach(([key, value]) => {
+    const dataToSend = {
+      ...formData,
+      type_cal: formData.type_cal || 'weightPrice'
+    };
+  
+    // Remove the duplicate Object.entries loop and just use dataToSend
+    Object.entries(dataToSend).forEach(([key, value]) => {
       if (key !== 'image_item_paths' && key !== 'transport_file_path') {
-        // Ensure value is not null or undefined before calling toString()
         form.append(key, value != null ? value.toString() : '');
       }
     });
-  
-    // If no new file is uploaded, retain the existing transport file path
+
     if (!file && formData.transport_file_path) {
       form.append('transport_file_path', formData.transport_file_path);
     } else if (file) {
-      // If a new file is uploaded, append it
       form.append('trackingFile', file);
     }
-  
-    // If no new images are uploaded, retain the existing image paths
+
     if (newImages.length === 0 && formData.image_item_paths.length > 0) {
       form.append('existing_image_paths', JSON.stringify(formData.image_item_paths));
     }
-  
-    // Append new images if uploaded
+
     if (newImages.length > 0) {
-      newImages.forEach((image, index) => {
+      newImages.forEach(image => {
         form.append('trackingImages', image);
       });
     }
-  
+
     try {
       const response = await fetch(`http://localhost:5000/tracking/${formData.tracking_id}`, {
         method: 'PUT',
         body: form,
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to update tracking data');
       }
-  
+
       const result = await response.json();
       console.log('Tracking data updated:', result);
       onClose();
@@ -135,51 +165,24 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
     }
   };
 
-  // Function to calculate `cal_price`
-  const calculateServiceFee = () => {
-    const { pricing, lot_type, user_rate, weight, wide, high, long, number } = formData;
-    const volume = (wide * high * long) / 1000000;
-    let cal_price = 0;
-
-    if (pricing === "อัตโนมัติ") {
-      if (lot_type === "รถ") {
-        if (user_rate === "A") {
-          cal_price = Math.max(weight * 15, volume * 5900);
-        } else if (user_rate === "B") {
-          cal_price = Math.max(weight * 20, volume * 6000);
-        } else if (user_rate === "C") {
-          cal_price = Math.max(weight * 35, volume * 8500);
-        }
-      } else if (lot_type === "เรือ") {
-        if (user_rate === "A") {
-          cal_price = Math.max(weight * 10, volume * 3800);
-        } else if (user_rate === "B") {
-          cal_price = Math.max(weight * 15, volume * 5500);
-        } else if (user_rate === "C") {
-          cal_price = Math.max(weight * 35, volume * 8500);
-        }
-      }
-    } else if (pricing === "น้ำหนัก") {
-      if (lot_type === "รถ") {
-        cal_price = user_rate === "A" ? weight * 15 : user_rate === "B" ? weight * 20 : weight * 35;
-      } else if (lot_type === "เรือ") {
-        cal_price = user_rate === "A" ? weight * 10 : user_rate === "B" ? weight * 15 : weight * 35;
-      }
-    } else if (pricing === "ปริมาตร") {
-      if (lot_type === "รถ") {
-        cal_price = user_rate === "A" ? volume * 5900 : user_rate === "B" ? volume * 6000 : volume * 8500;
-      } else if (lot_type === "เรือ") {
-        cal_price = user_rate === "A" ? volume * 3800 : user_rate === "B" ? volume * 5500 : volume * 8500;
-      }
-    }
-
-    // Calculate final service fee
-    setServiceFee(cal_price * number);
-    setFormData((prev) => ({ ...prev, cal_price }));
-  };
-
   useEffect(() => {
-    calculateServiceFee();
+    const { serviceFee, cal_price, type_cal } = calculateServiceFee({
+      pricing: formData.pricing,
+      lot_type: formData.lot_type,
+      user_rate: formData.user_rate,
+      weight: typeof formData.weight === 'string' ? parseFloat(formData.weight) || 0 : formData.weight,
+      wide: typeof formData.wide === 'string' ? parseFloat(formData.wide) || 0 : formData.wide,
+      high: typeof formData.high === 'string' ? parseFloat(formData.high) || 0 : formData.high,
+      long: typeof formData.long === 'string' ? parseFloat(formData.long) || 0 : formData.long,
+      number: typeof formData.number === 'string' ? parseInt(formData.number) || 1 : formData.number
+    });
+    
+    setServiceFee(serviceFee);
+    setFormData(prev => ({ 
+      ...prev, 
+      cal_price,
+      type_cal 
+    }));
   }, [
     formData.lot_type,
     formData.user_rate,
@@ -191,10 +194,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
     formData.number,
   ]);
 
-
-  if (!show) {
-    return null;
-  }
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -246,7 +246,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     value={formData.tracking_id}
                     onChange={handleInputChange}
                     required
-                    readOnly // Disable editing for tracking_id, as it's unique
+                    readOnly
                   />
                 </div>
                 <div className="mb-3">
@@ -306,7 +306,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.weight}
+                    value={formData.weight || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -317,7 +317,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.wide}
+                    value={formData.wide || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -328,7 +328,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.high}
+                    value={formData.high || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -339,7 +339,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.long}
+                    value={formData.long || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -349,7 +349,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     id="number"
                     type="number"
                     className="w-full p-2 border rounded"
-                    value={formData.number}
+                    value={formData.number || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -382,35 +382,32 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>
-                  </select>
+                    </select>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="user_rate" className="block mb-1">ตีลังไม้:</label>
+                  <label htmlFor="crate" className="block mb-1">ตีลังไม้:</label>
                   <select
-                    id="user_rate"
+                    id="crate"
                     className="w-full p-2 border rounded"
                     value={formData.crate}
                     onChange={handleInputChange}
                   >
                     <option value="ไม่ตี">ไม่ตี</option>
                     <option value="ตี">ตี</option>
-
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="user_rate" className="block mb-1">เช็คสินค้า:</label>
+                  <label htmlFor="check_product" className="block mb-1">เช็คสินค้า:</label>
                   <select
-                    id="user_rate"
+                    id="check_product"
                     className="w-full p-2 border rounded"
                     value={formData.check_product}
                     onChange={handleInputChange}
                   >
                     <option value="ไม่เช็ค">ไม่เช็ค</option>
                     <option value="เช็ค">เช็ค</option>
-
                   </select>
                 </div>
-        
               </div>
 
               {/* Dates */}
@@ -451,8 +448,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
               {/* File and Images */}
               <div>
                 <h6 className="text-lg font-semibold mb-2">รูปภาพสินค้า/ไฟล์แนบขนส่ง</h6>
-
-                {/* File Input */}
                 <div className="mb-3">
                   <label htmlFor="trackingFile" className="block mb-1">แนบไฟล์:</label>
                   <input
@@ -469,7 +464,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                       </a>
                     </div>
                   )}
-                  {/* Show existing transport file */}
                   {formData.transport_file_path && (
                     <div>
                       <span className="label">ไฟล์แนบขนส่งที่มีอยู่: </span>
@@ -480,7 +474,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                   )}
                 </div>
 
-                {/* Image Input */}
                 <div className="mb-3">
                   <label htmlFor="trackingImages" className="block mb-1">แนบรูปภาพ:</label>
                   <input
@@ -491,7 +484,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     onChange={handleImageChange}
                   />
                   
-                  {/* Show image previews (only for new uploads) */}
                   {newImages.length > 0 && (
                     <div>
                       <h6>ตัวอย่างรูปภาพที่เลือกใหม่:</h6>
@@ -513,30 +505,30 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                       </div>
                     </div>
                   )}
-                  {/* Show existing images */}
-                {formData.image_item_paths.length > 0 && (
-                  <div>
-                    <h6>รูปภาพที่มีอยู่:</h6>
-                    <div className="image-gallery" style={{ display: 'flex', gap: '10px' }}>
-                      {formData.image_item_paths.map((imagePath, index) => (
-                        <div
-                          key={index}
-                          className="image-wrapper"
-                          style={{ width: '50px', height: '50px', cursor: 'pointer' }}
-                          onClick={() => openImagePreview(formData.image_item_paths, index)}
-                        >
-                          <img
-                            src={imagePath}
-                            alt={`Existing Image ${index + 1}`}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        </div>
-                      ))}
+                  {formData.image_item_paths.length > 0 && (
+                    <div>
+                      <h6>รูปภาพที่มีอยู่:</h6>
+                      <div className="image-gallery" style={{ display: 'flex', gap: '10px' }}>
+                        {formData.image_item_paths.map((imagePath, index) => (
+                          <div
+                            key={index}
+                            className="image-wrapper"
+                            style={{ width: '50px', height: '50px', cursor: 'pointer' }}
+                            onClick={() => openImagePreview(formData.image_item_paths, index)}
+                          >
+                            <img
+                              src={imagePath}
+                              alt={`Existing Image ${index + 1}`}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 </div>
-                </div>
+              </div>
+
               {/* Additional Costs */}
               <div>
                 <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายเพิ่มเติม</h6>
@@ -557,7 +549,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.check_product_price}
+                    value={formData.check_product_price || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -568,7 +560,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.new_wrap}
+                    value={formData.new_wrap || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -579,7 +571,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.transport}
+                    value={formData.transport || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -590,7 +582,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.price_crate}
+                    value={formData.price_crate || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -601,7 +593,7 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.other}
+                    value={formData.other || ''}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -691,7 +683,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
               ))}
             </Swiper>
 
-            {/* Left Arrow */}
             <button
               className="swiper-button-prev"
               style={{
@@ -715,7 +706,6 @@ const ModalTrackManage: React.FC<ModalTrackManageProps> = ({ show, onClose, trac
               <LeftOutlined style={{ fontSize: "20px" }} />
             </button>
 
-            {/* Right Arrow */}
             <button
               className="swiper-button-next"
               style={{

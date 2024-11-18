@@ -34,7 +34,8 @@ const TrackingSchema = new mongoose.Schema({
   bill_id: String,
   cal_price: Number,
   transport_file_path: String,
-  image_item_paths: [String]
+  image_item_paths: [String],
+  type_cal: String
 });
 
 module.exports = mongoose.model('Tracking', TrackingSchema, 'tracking');

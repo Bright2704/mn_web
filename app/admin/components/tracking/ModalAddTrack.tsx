@@ -1,12 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import { calculateServiceFee } from './calculateServiceFee';
 
 interface ModalAddTrackProps {
   show: boolean;
   onClose: () => void;
 }
 
+interface FormData {
+  user_id: string;
+  not_owner: boolean;
+  tracking_id: string;
+  buylist_id: string;
+  mnemonics: string;
+  lot_type: string;
+  type_item: string;
+  crate: string;
+  check_product: string;
+  weight: string;
+  wide: string;
+  high: string;
+  long: string;
+  number: string;
+  pricing: string;
+  cal_price: string;
+  user_rate: string;
+  in_cn: string;
+  out_cn: string;
+  in_th: string;
+  check_product_price: string;
+  new_wrap: string;
+  transport: string;
+  price_crate: string;
+  other: string;
+  status: string;
+  lot_id: string;
+  lot_order: string;
+  type_cal: string;
+}
+
 const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     user_id: '',
     not_owner: false,
     tracking_id: '',
@@ -14,8 +47,8 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     mnemonics: '',
     lot_type: 'รถ',
     type_item: 'ทั่วไป',
-    crate: false,
-    check_product: false,
+    crate: 'ไม่ตี',
+    check_product: 'ไม่เช็ค',
     weight: '',
     wide: '',
     high: '',
@@ -35,25 +68,24 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     status: 'รอเข้าโกดังจีน',
     lot_id: '',
     lot_order: '',
+    type_cal: ''
   });
 
-  const [file, setFile] = useState<File | null>(null); // Single file
-  const [images, setImages] = useState<File[]>([]); // Multiple images
+  const [file, setFile] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [serviceFee, setServiceFee] = useState<number>(0);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { id, value, type } = e.target;
-    let inputValue: string | boolean = value || ''; // Fallback to empty string
+    let inputValue: string | boolean = value;
 
     if (type === 'checkbox') {
       inputValue = (e.target as HTMLInputElement).checked;
     }
 
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [id]: inputValue,
     }));
@@ -61,89 +93,34 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]); // Set the file
+      setFile(e.target.files[0]);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setImages(Array.from(e.target.files)); // Set multiple images
+      setImages(Array.from(e.target.files));
     }
   };
 
-  // Calculate service fee based on updated logic
   useEffect(() => {
-    const calculateServiceFee = () => {
-      const weight = parseFloat(formData.weight) || 0;
-      const wide = parseFloat(formData.wide) || 0;
-      const high = parseFloat(formData.high) || 0;
-      const long = parseFloat(formData.long) || 0;
-      const volume = (wide * high * long) / 1000000;
-      let cal_price = 0;
-
-      if (formData.pricing === 'อัตโนมัติ') {
-        if (formData.lot_type === 'รถ') {
-          if (formData.user_rate === 'A') {
-            cal_price = Math.max(weight * 15, volume * 5900);
-          } else if (formData.user_rate === 'B') {
-            cal_price = Math.max(weight * 20, volume * 6000);
-          } else if (formData.user_rate === 'C') {
-            cal_price = Math.max(weight * 35, volume * 8500);
-          }
-        } else if (formData.lot_type === 'เรือ') {
-          if (formData.user_rate === 'A') {
-            cal_price = Math.max(weight * 10, volume * 3800);
-          } else if (formData.user_rate === 'B') {
-            cal_price = Math.max(weight * 15, volume * 5500);
-          } else if (formData.user_rate === 'C') {
-            cal_price = Math.max(weight * 35, volume * 8500);
-          }
-        }
-      } else if (formData.pricing === 'น้ำหนัก') {
-        if (formData.lot_type === 'รถ') {
-          if (formData.user_rate === 'A') {
-            cal_price = weight * 15;
-          } else if (formData.user_rate === 'B') {
-            cal_price = weight * 20;
-          } else if (formData.user_rate === 'C') {
-            cal_price = weight * 35;
-          }
-        } else if (formData.lot_type === 'เรือ') {
-          if (formData.user_rate === 'A') {
-            cal_price = weight * 10;
-          } else if (formData.user_rate === 'B') {
-            cal_price = weight * 15;
-          } else if (formData.user_rate === 'C') {
-            cal_price = weight * 35;
-          }
-        }
-      } else if (formData.pricing === 'ปริมาตร') {
-        if (formData.lot_type === 'รถ') {
-          if (formData.user_rate === 'A') {
-            cal_price = volume * 5900;
-          } else if (formData.user_rate === 'B') {
-            cal_price = volume * 6000;
-          } else if (formData.user_rate === 'C') {
-            cal_price = volume * 8500;
-          }
-        } else if (formData.lot_type === 'เรือ') {
-          if (formData.user_rate === 'A') {
-            cal_price = volume * 3800;
-          } else if (formData.user_rate === 'B') {
-            cal_price = volume * 5500;
-          } else if (formData.user_rate === 'C') {
-            cal_price = volume * 8500;
-          }
-        }
-      }
-
-      // Update service fee with cal_price * number
-      setServiceFee(cal_price * (parseInt(formData.number) || 1));
-      setFormData((prev) => ({ ...prev, cal_price: cal_price.toFixed(2) }));
-    };
-
-    // Call calculateServiceFee whenever relevant fields change
-    calculateServiceFee();
+    const { serviceFee, cal_price, type_cal } = calculateServiceFee({
+      pricing: formData.pricing,
+      lot_type: formData.lot_type,
+      user_rate: formData.user_rate,
+      weight: parseFloat(formData.weight) || 0,
+      wide: parseFloat(formData.wide) || 0,
+      high: parseFloat(formData.high) || 0,
+      long: parseFloat(formData.long) || 0,
+      number: parseInt(formData.number) || 1
+    });
+    
+    setServiceFee(serviceFee);
+    setFormData(prev => ({ 
+      ...prev, 
+      cal_price: cal_price.toString(),
+      type_cal
+    }));
   }, [
     formData.lot_type,
     formData.user_rate,
@@ -159,25 +136,22 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     e.preventDefault();
     const form = new FormData();
 
-    // Append form data fields
     Object.entries(formData).forEach(([key, value]) => {
       form.append(key, value.toString());
     });
 
-    // Append file if present
     if (file) {
-      form.append('trackingFile', file); // Append the file
+      form.append('trackingFile', file);
     }
 
-    // Append multiple images
-    images.forEach((image, index) => {
-      form.append('trackingImages', image); // Multiple images with the same key
+    images.forEach(image => {
+      form.append('trackingImages', image);
     });
 
     try {
       const response = await fetch('http://localhost:5000/tracking', {
         method: 'POST',
-        body: form, // Send FormData instead of JSON
+        body: form,
       });
 
       if (!response.ok) {
@@ -192,22 +166,14 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     }
   };
 
-  if (!show) {
-    return null;
-  }
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg w-12/13 md:w-7/8 lg:w-5/6 xl:w-3/4 max-h-screen overflow-y-auto">
         <header className="modal-header p-4 border-b">
           <h5 className="modal-title text-xl font-bold">เพิ่มรหัสพัสดุ</h5>
-          <button
-            type="button"
-            className="close text-2xl"
-            onClick={onClose}
-          >
-            &times;
-          </button>
+          <button type="button" className="close text-2xl" onClick={onClose}>&times;</button>
         </header>
         <form onSubmit={handleSubmit}>
           <div className="modal-body p-4">
@@ -223,7 +189,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     id="user_id"
                     type="text"
                     className="w-full p-2 border rounded"
-                    value={formData.user_id || ''}
+                    value={formData.user_id}
                     onChange={handleInputChange}
                     required
                   />
@@ -253,43 +219,37 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     id="tracking_id"
                     type="text"
                     className="w-full p-2 border rounded"
-                    value={formData.tracking_id || ''}
+                    value={formData.tracking_id}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="buylist_id" className="block mb-1">
-                    หมายเลขใบสั่งซื้อ:
-                  </label>
+                  <label htmlFor="buylist_id" className="block mb-1">หมายเลขใบสั่งซื้อ:</label>
                   <input
                     id="buylist_id"
                     type="text"
                     className="w-full p-2 border rounded"
-                    value={formData.buylist_id || ''}
+                    value={formData.buylist_id}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="mnemonics" className="block mb-1">
-                    วลีช่วยจำ:
-                  </label>
+                  <label htmlFor="mnemonics" className="block mb-1">วลีช่วยจำ:</label>
                   <input
                     id="mnemonics"
                     type="text"
                     className="w-full p-2 border rounded"
-                    value={formData.mnemonics || ''}
+                    value={formData.mnemonics}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="lot_type" className="block mb-1">
-                    การขนส่ง:
-                  </label>
+                  <label htmlFor="lot_type" className="block mb-1">การขนส่ง:</label>
                   <select
                     id="lot_type"
                     className="w-full p-2 border rounded"
-                    value={formData.lot_type || ''}
+                    value={formData.lot_type}
                     onChange={handleInputChange}
                   >
                     <option value="รถ">รถ</option>
@@ -297,13 +257,11 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="type_item" className="block mb-1">
-                    ประเภทสินค้า:
-                  </label>
+                  <label htmlFor="type_item" className="block mb-1">ประเภทสินค้า:</label>
                   <select
                     id="type_item"
                     className="w-full p-2 border rounded"
-                    value={formData.type_item || ''}
+                    value={formData.type_item}
                     onChange={handleInputChange}
                   >
                     <option value="ทั่วไป">ทั่วไป</option>
@@ -317,66 +275,56 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div>
                 <h6 className="text-lg font-semibold mb-2">รายละเอียดพัสดุ</h6>
                 <div className="mb-3">
-                  <label htmlFor="weight" className="block mb-1">
-                    น้ำหนัก (กก.):
-                  </label>
+                  <label htmlFor="weight" className="block mb-1">น้ำหนัก (กก.):</label>
                   <input
                     id="weight"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.weight || ''}
+                    value={formData.weight}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="wide" className="block mb-1">
-                    กว้าง (ซม.):
-                  </label>
+                  <label htmlFor="wide" className="block mb-1">กว้าง (ซม.):</label>
                   <input
                     id="wide"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.wide || ''}
+                    value={formData.wide}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="high" className="block mb-1">
-                    สูง (ซม.):
-                  </label>
+                  <label htmlFor="high" className="block mb-1">สูง (ซม.):</label>
                   <input
                     id="high"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.high || ''}
+                    value={formData.high}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="long" className="block mb-1">
-                    ยาว (ซม.):
-                  </label>
+                  <label htmlFor="long" className="block mb-1">ยาว (ซม.):</label>
                   <input
                     id="long"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.long || ''}
+                    value={formData.long}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="number" className="block mb-1">
-                    จำนวน:
-                  </label>
+                  <label htmlFor="number" className="block mb-1">จำนวน:</label>
                   <input
                     id="number"
                     type="number"
                     className="w-full p-2 border rounded"
-                    value={formData.number || ''}
+                    value={formData.number}
                     onChange={handleInputChange}
                   />
                 </div>
@@ -386,13 +334,11 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div>
                 <h6 className="text-lg font-semibold mb-2">ราคาและอัตรา</h6>
                 <div className="mb-3">
-                  <label htmlFor="pricing" className="block mb-1">
-                    คิดราคาตาม:
-                  </label>
+                  <label htmlFor="pricing" className="block mb-1">คิดราคาตาม:</label>
                   <select
                     id="pricing"
                     className="w-full p-2 border rounded"
-                    value={formData.pricing || ''}
+                    value={formData.pricing}
                     onChange={handleInputChange}
                   >
                     <option value="อัตโนมัติ">อัตโนมัติ</option>
@@ -401,13 +347,11 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="user_rate" className="block mb-1">
-                    เรท:
-                  </label>
+                  <label htmlFor="user_rate" className="block mb-1">เรท:</label>
                   <select
                     id="user_rate"
                     className="w-full p-2 border rounded"
-                    value={formData.user_rate || ''}
+                    value={formData.user_rate}
                     onChange={handleInputChange}
                   >
                     <option value="A">A</option>
@@ -416,28 +360,28 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="crate"
-                      checked={formData.crate}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    ตีลังไม้
-                  </label>
+                  <label htmlFor="crate" className="block mb-1">ตีลังไม้:</label>
+                  <select
+                    id="crate"
+                    className="w-full p-2 border rounded"
+                    value={formData.crate}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่ตี">ไม่ตี</option>
+                    <option value="ตี">ตี</option>
+                  </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="check_product"
-                      checked={formData.check_product}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    เช็คสินค้า
-                  </label>
+                  <label htmlFor="check_product" className="block mb-1">เช็คสินค้า:</label>
+                  <select
+                    id="check_product"
+                    className="w-full p-2 border rounded"
+                    value={formData.check_product}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่เช็ค">ไม่เช็ค</option>
+                    <option value="เช็ค">เช็ค</option>
+                  </select>
                 </div>
               </div>
 
@@ -445,39 +389,57 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div>
                 <h6 className="text-lg font-semibold mb-2">วันที่</h6>
                 <div className="mb-3">
-                  <label htmlFor="in_cn" className="block mb-1">
-                    เข้าโกดังจีน:
-                  </label>
+                  <label htmlFor="in_cn" className="block mb-1">เข้าโกดังจีน:</label>
                   <input
                     id="in_cn"
                     type="date"
                     className="w-full p-2 border rounded"
-                    value={formData.in_cn || ''}
+                    value={formData.in_cn}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="out_cn" className="block mb-1">
-                    ออกโกดังจีน:
-                  </label>
+                  <label htmlFor="out_cn" className="block mb-1">ออกโกดังจีน:</label>
                   <input
                     id="out_cn"
                     type="date"
                     className="w-full p-2 border rounded"
-                    value={formData.out_cn || ''}
+                    value={formData.out_cn}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="in_th" className="block mb-1">
-                    เข้าโกดังไทย:
-                  </label>
+                  <label htmlFor="in_th" className="block mb-1">เข้าโกดังไทย:</label>
                   <input
                     id="in_th"
                     type="date"
                     className="w-full p-2 border rounded"
-                    value={formData.in_th || ''}
+                    value={formData.in_th}
                     onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              {/* File and Images */}
+              <div>
+                <h6 className="text-lg font-semibold mb-2">รูปภาพสินค้า/ไฟล์แนบขนส่ง</h6>
+                <div className="mb-3">
+                  <label htmlFor="trackingFile" className="block mb-1">แนบไฟล์:</label>
+                  <input
+                    id="trackingFile"
+                    type="file"
+                    className="w-full"
+                    onChange={handleFileChange}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="trackingImages" className="block mb-1">แนบรูปภาพ:</label>
+                  <input
+                    id="trackingImages"
+                    type="file"
+                    className="w-full"
+                    multiple
+                    onChange={handleImageChange}
                   />
                 </div>
               </div>
@@ -486,9 +448,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div>
                 <h6 className="text-lg font-semibold mb-2">ค่าใช้จ่ายทั้งหมด</h6>
                 <div className="mb-3">
-                  <label htmlFor="cal_price" className="block mb-1">
-                    ค่าบริการ:
-                  </label>
+                  <label htmlFor="cal_price" className="block mb-1">ค่าบริการ:</label>
                   <input
                     id="cal_price"
                     type="text"
@@ -498,67 +458,57 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="check_product_price" className="block mb-1">
-                    ค่าเช็คสินค้า:
-                  </label>
+                  <label htmlFor="check_product_price" className="block mb-1">ค่าเช็คสินค้า:</label>
                   <input
                     id="check_product_price"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.check_product_price || ''}
+                    value={formData.check_product_price}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="new_wrap" className="block mb-1">
-                    ค่าห่อใหม่:
-                  </label>
+                  <label htmlFor="new_wrap" className="block mb-1">ค่าห่อใหม่:</label>
                   <input
                     id="new_wrap"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.new_wrap || ''}
+                    value={formData.new_wrap}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="transport" className="block mb-1">
-                    ค่าขนส่งจีน:
-                  </label>
+                  <label htmlFor="transport" className="block mb-1">ค่าขนส่งจีน:</label>
                   <input
                     id="transport"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.transport || ''}
+                    value={formData.transport}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="price_crate" className="block mb-1">
-                    ค่าตีลัง:
-                  </label>
+                  <label htmlFor="price_crate" className="block mb-1">ค่าตีลัง:</label>
                   <input
                     id="price_crate"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.price_crate || ''}
+                    value={formData.price_crate}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="other" className="block mb-1">
-                    ค่าอื่นๆ:
-                  </label>
+                  <label htmlFor="other" className="block mb-1">ค่าอื่นๆ:</label>
                   <input
                     id="other"
                     type="number"
                     step="0.01"
                     className="w-full p-2 border rounded"
-                    value={formData.other || ''}
+                    value={formData.other}
                     onChange={handleInputChange}
                   />
                 </div>

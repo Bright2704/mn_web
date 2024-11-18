@@ -45,6 +45,9 @@ exports.createTracking = async (req, res, files) => {
     crate,
     check_product,
     number,
+    pricing,
+    cal_price,
+    type_cal,
     ...otherFields
   } = req.body;
 
@@ -68,7 +71,7 @@ exports.createTracking = async (req, res, files) => {
       tracking_id,
       buylist_id,
       mnemonics,
-      lot_type,
+      lot_type: otherFields.lot_type || 'รถ',
       type_item: otherFields.type_item || '',
       crate: crate === 'true' ? 'ตี' : 'ไม่ตี',
       check_product: check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
@@ -77,8 +80,8 @@ exports.createTracking = async (req, res, files) => {
       high: parseFloat(otherFields.high) || 0,
       long: parseFloat(otherFields.long) || 0,
       number: parseInt(number, 10) || 0,
-      pricing: otherFields.pricing || '',
-      cal_price: parseFloat(otherFields.cal_price) || 0,
+      pricing: otherFields.pricing || 'อัตโนมัติ',
+      cal_price: parseFloat(cal_price) || 0,
       user_rate: otherFields.user_rate || 'A',
       in_cn: otherFields.in_cn || '',
       out_cn: otherFields.out_cn || '',
@@ -92,7 +95,8 @@ exports.createTracking = async (req, res, files) => {
       lot_id: otherFields.lot_id || '',
       lot_order: otherFields.lot_order || '',
       transport_file_path,
-      image_item_paths
+      image_item_paths,
+      type_cal: type_cal || 'weightPrice'
     });
 
     const savedTracking = await newTracking.save();
@@ -113,7 +117,6 @@ exports.updateTracking = async (req, res, files) => {
       return res.status(404).json({ error: 'Tracking not found' });
     }
 
-    // Handle file paths
     let transport_file_path = existingTracking.transport_file_path;
     let image_item_paths = existingTracking.image_item_paths;
 
@@ -127,14 +130,15 @@ exports.updateTracking = async (req, res, files) => {
       );
     }
 
-    // Prepare update data
     const updatedData = {
       ...updateData,
       not_owner: updateData.not_owner === 'true',
       crate: updateData.crate === 'true' ? 'ตี' : 'ไม่ตี',
       check_product: updateData.check_product === 'true' ? 'เช็ค' : 'ไม่เช็ค',
       transport_file_path,
-      image_item_paths
+      image_item_paths,
+      cal_price: parseFloat(updateData.cal_price) || 0,
+      type_cal: updateData.type_cal || 'weightPrice'
     };
 
     const updatedTracking = await Tracking.findOneAndUpdate(
