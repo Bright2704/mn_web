@@ -198,43 +198,43 @@ const SideBar2 = () => {
             <ul>
                 <li className="menu-item" style={{background: pathname === '/user/dashboard' ? '#f48ca9':''}}>
                     <Link href="/user/dashboard">
-                        <Image className='h-full mr-2 hover-icon' src="/dashboard-monitor.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/dashboard' ? 'invert(1)':''}}/> 
+                        <Image className='h-full mr-2 hover-icon' src="/dashboard-monitor.png" alt='dashboard image' width={30} height={30}/> 
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/dashboard' ? 'white':''}}> แดชบอร์ด </p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/announcement' ? '#f48ca9':''}}>
                     <Link href="/user/announcement">
-                        <Image className='h-full mr-2 hover-icon' src="/bell-notification-social-media.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/announcement' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/bell-notification-social-media.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/announcement' ? 'white':''}}>ประกาศ</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/buylist' ? '#f48ca9':''}}>
                     <Link href="/user/buylist">
-                        <Image className='h-full mr-2 hover-icon' src="/shopping-cart.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/buylist' ? 'invert(1)':''}}/> 
+                        <Image className='h-full mr-2 hover-icon' src="/shopping-cart.png" alt='dashboard image' width={30} height={30}/> 
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/buylist' ? 'white':''}}>รายการสั่งซื้อ</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/status' ? '#f48ca9':''}}>
                     <Link href="/user/status">
-                    <Image className='h-full mr-2 hover-icon' src="/file-export.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/status' ? 'invert(1)':''}}/> 
+                    <Image className='h-full mr-2 hover-icon' src="/file-export.png" alt='dashboard image' width={30} height={30}/> 
                     <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/status' ? 'white':''}}>เช็คสถานะสินค้าและแจ้งนำออก</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/export' ? '#f48ca9':''}}>
                     <Link href="/user/export">
-                        <Image className='h-full mr-2 hover-icon' src="/rectangle-list.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/export' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/rectangle-list.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/export' ? 'white':''}}>รายการนำสินค้าออก</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/tracking' ? '#f48ca9':''}}>
                     <Link href="/user/tracking">
-                        <Image className='h-full mr-2 hover-icon' src="/password-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/tracking' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/password-alt.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/tracking' ? 'white':''}}>รหัสพัสดุ</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/service' ? '#f48ca9':''}}>
                     <Link href="/user/service">
-                        <Image className='h-full mr-2 hover-icon' src="/truck-side.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/service' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/truck-side.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/service' ? 'white':''}}>บริการขนส่งไปจีน</p>
                     </Link>
                 </li>
@@ -270,19 +270,19 @@ const SideBar2 = () => {
                 </div>
                 <li className="menu-item" style={{background: pathname === '/user/points' ? '#f48ca9':''}}>
                     <Link href="/user/points">
-                        <Image className='h-full mr-2 hover-icon' src="/token.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/points' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/token.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/points' ? 'white':''}}>สะสมแต้ม</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === 'listnoowner' ? '#f48ca9':''}}>
                     <Link href="listnoowner">
-                        <Image className='h-full mr-2 hover-icon' src="/person-circle-xmark.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === 'listnoowner' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/person-circle-xmark.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === 'listnoowner' ? 'white':''}}>รายการสินค้าไม่มีเจ้าของ</p>
                     </Link>
                 </li>
                 <li className="menu-item" style={{background: pathname === '/user/setting' ? '#f48ca9':''}}>
                     <Link href="/user/setting">
-                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/setting' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/admin-alt.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/setting' ? 'white':''}}>ตั้งค่าบัญชีผู้ใช้งาน</p>
                     </Link>
                 </li>
@@ -320,7 +320,7 @@ const SideBar2 = () => {
                 </div>
                 <li className="menu-item" style={{background: pathname === '/user/LineNotification' ? '#f48ca9':''}}>
                     <Link href="/user/LineNotification">
-                        <Image className='h-full mr-2 hover-icon' src="/line.png" alt='dashboard image' width={30} height={30} style={{filter: pathname === '/user/LineNotification' ? 'invert(1)':''}}/>
+                        <Image className='h-full mr-2 hover-icon' src="/line.png" alt='dashboard image' width={30} height={30}/>
                         <p className="menu-list" style={{ display: isCollapsed ? 'none' : 'block' , color: pathname === '/user/LineNotification' ? 'white':''}}>เชื่อมต่อ LINE NOTIFY</p>
                     </Link>
                 </li>

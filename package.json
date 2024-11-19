@@ -10,6 +10,7 @@
     "server": "nodemon server.js"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@types/node": "20.14.4",
@@ -30,8 +31,8 @@
     "glob": "^11.0.0",
     "gridfs-stream": "^1.1.1",
     "lucide-react": "^0.438.0",
-    "moment": "^2.30.1",
     "mailersend": "^2.3.0",
+    "moment": "^2.30.1",
     "mongodb": "^6.8.0",
     "mongoose": "^8.6.0",
     "morgan": "^1.10.0",
@@ -39,6 +40,7 @@
     "multer-gridfs-storage": "^5.0.2",
     "next": "^14.2.5",
     "next-auth": "^4.24.8",
+    "nodemailer": "^6.9.16",
     "path": "^0.12.7",
     "postcss": "8.4.38",
     "react": "^18.3.1",

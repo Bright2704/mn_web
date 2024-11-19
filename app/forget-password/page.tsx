@@ -36,8 +36,7 @@ function forgotPassword() {
             const form = e.target as HTMLFormElement;
             setError("");
             setSuccess("ลิงค์สำหรับรีเซ็ตรหัสผ่าน ถูกส่งไปยังอีเมลของคุณแล้ว");
-            // form.reset();
-            router.push("/login");
+            form.reset();
 
         } else {
             setError("อีเมลนี้ยังไม่เคยลงทะเบียน");
@@ -69,6 +68,12 @@ function forgotPassword() {
                             {error}
                         </div>
                     )}
+
+                    {success && (
+                            <div className='bg-green-500 w-fit text-sm text-white py-1 px-3 rounded-md mt-2'>
+                                {success}
+                            </div>
+                        )}
 
                     <input onChange={(e) => setEmail(e.target.value)} className='block bg-gray-300 p-2 my-3 rounded-md w-full' type="email" placeholder='Enter your email'/>
                     <button type='submit' className='bg-red-600 p-2 my-3 rounded-md text-white w-full'> ยืนยัน </button>
