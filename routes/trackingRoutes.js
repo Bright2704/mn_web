@@ -69,5 +69,7 @@ router.put('/:trackingId', (req, res) => {
 
 router.put('/:trackingId/updateFields', TrackingController.updateTrackingFields);
 router.put('/:trackingId/update-lot-id', TrackingController.updateLotId);
+router.put('/:trackingId/removeFromLot', TrackingController.removeFromLot);
+router.put('/:trackingId/resetDates', TrackingController.resetDates);
 
 module.exports = router;

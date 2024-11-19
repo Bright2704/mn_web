@@ -168,23 +168,44 @@ exports.getTrackingById = async (req, res) => {
 };
 
 exports.getTrackingByLotId = async (req, res) => {
+  const { lotId } = req.params; // Extract lotId from the request
+
   try {
-    const trackingData = await Tracking.find({ lot_id: req.params.lotId });
+    const trackingData = await Tracking.find({ lot_id: lotId }); // Fetch all tracking data for this lot
+
+    // Return an empty array if no tracking data is found
     if (trackingData.length === 0) {
-      return res.status(404).json({ message: 'No tracking data found for this lot_id' });
+      return res.json([]); // Respond with an empty array
     }
-    res.json(trackingData);
+
+    res.json(trackingData); // Respond with tracking data
   } catch (err) {
     console.error('Error fetching tracking data:', err);
     res.status(500).json({ error: 'Failed to fetch tracking data' });
   }
 };
 
+
 exports.updateTrackingFields = async (req, res) => {
   const { trackingId } = req.params;
   const updateFields = req.body;
 
   try {
+    const existingTracking = await Tracking.findOne({ tracking_id: trackingId });
+
+    if (!existingTracking) {
+      return res.status(404).json({ error: "Tracking not found" });
+    }
+
+    // Dynamically calculate the new status
+    let newStatus = "wait_cn"; // Default status
+    if (updateFields.in_th || existingTracking.in_th) newStatus = "in_th";
+    else if (updateFields.out_cn || existingTracking.out_cn) newStatus = "out_cn";
+    else if (updateFields.in_cn || existingTracking.in_cn) newStatus = "in_cn";
+
+    // Add the calculated status to the updateFields
+    updateFields.status = newStatus;
+
     const updatedTracking = await Tracking.findOneAndUpdate(
       { tracking_id: trackingId },
       { $set: updateFields },
@@ -192,34 +213,108 @@ exports.updateTrackingFields = async (req, res) => {
     );
 
     if (!updatedTracking) {
-      return res.status(404).json({ error: 'Tracking not found' });
+      return res.status(404).json({ error: "Tracking not found" });
     }
 
     res.json(updatedTracking);
   } catch (err) {
-    console.error('Error updating tracking:', err);
-    res.status(500).json({ error: 'Failed to update tracking' });
+    console.error("Error updating tracking:", err);
+    res.status(500).json({ error: "Failed to update tracking" });
   }
 };
 
+
 exports.updateLotId = async (req, res) => {
-  const { trackingId } = req.params;
-  const { newLotId } = req.body;
+  const { trackingId } = req.params; // Tracking ID to update
+  const { newLotId } = req.body;    // Lot ID to assign
 
   try {
+    // Find the highest lot_order for the given lot_id
+    const lastTracking = await Tracking.findOne({ lot_id: newLotId })
+      .sort({ lot_order: -1 }) // Sort by lot_order in descending order (as a string)
+      .select('lot_order');    // Only select the lot_order field
+
+    // Determine the next lot_order
+    let nextLotOrder;
+    if (lastTracking && lastTracking.lot_order) {
+      // Convert string to number, increment, and convert back to string
+      const lastLotOrder = parseInt(lastTracking.lot_order, 10) || 0;
+      nextLotOrder = String(lastLotOrder + 1);
+    } else {
+      // Start with '1' if no lot_order exists
+      nextLotOrder = '1';
+    }
+
+    // Update the tracking record
     const updatedTracking = await Tracking.findOneAndUpdate(
       { tracking_id: trackingId },
-      { $set: { lot_id: newLotId } },
-      { new: true }
+      { $set: { lot_id: newLotId, lot_order: nextLotOrder } },
+      { new: true } // Return the updated document
     );
 
     if (!updatedTracking) {
       return res.status(404).json({ error: 'Tracking not found' });
     }
 
-    res.json(updatedTracking);
+    res.json(updatedTracking); // Respond with the updated tracking record
   } catch (err) {
     console.error('Error updating lot_id:', err);
     res.status(500).json({ error: 'Failed to update lot_id' });
+  }
+};
+
+
+exports.removeFromLot = async (req, res) => {
+  try {
+    const tracking = await Tracking.findOneAndUpdate(
+      { tracking_id: req.params.trackingId },
+      {
+        $set: {
+          lot_id: null,
+          lot_order: null,
+          in_cn: null,
+          out_cn: null,
+          in_th: null,
+          status: "wait_cn", // Set status to "wait_cn"
+        },
+      },
+      { new: true }
+    );
+
+    if (!tracking) {
+      return res.status(404).json({ error: "Tracking not found" });
+    }
+
+    res.json(tracking);
+  } catch (err) {
+    console.error("Error removing from lot:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.resetDates = async (req, res) => {
+  try {
+    const tracking = await Tracking.findOneAndUpdate(
+      { tracking_id: req.params.trackingId },
+      {
+        $set: {
+          in_cn: null,
+          out_cn: null,
+          in_th: null,
+          status: "wait_cn", // Reset status to "wait_cn"
+        },
+      },
+      { new: true }
+    );
+
+    if (!tracking) {
+      return res.status(404).json({ error: "Tracking not found" });
+    }
+
+    res.json(tracking);
+  } catch (err) {
+    console.error("Error resetting dates:", err);
+    res.status(500).json({ error: err.message });
   }
 };

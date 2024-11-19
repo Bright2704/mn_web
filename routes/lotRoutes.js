@@ -48,4 +48,7 @@ router.put('/:lotId', uploadLotFiles, LotController.updateLot);
 router.get('/:lotId/attachments', LotController.getLotAttachments);
 router.delete('/:lotId', LotController.deleteLot);
 
+
+
+
 module.exports = router;

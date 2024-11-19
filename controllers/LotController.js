@@ -1,15 +1,25 @@
 const Lot = require('../models/Lot');
+const Tracking = require('../models/Tracking'); // Ensure Tracking model is imported
 
-// Get all lots
 exports.getAllLots = async (req, res) => {
   try {
     const lots = await Lot.find();
-    res.status(200).json(lots);
+
+    // Dynamically calculate num_item for each lot
+    const lotsWithCount = await Promise.all(
+      lots.map(async (lot) => {
+        const trackingCount = await Tracking.countDocuments({ lot_id: lot.lot_id });
+        return { ...lot.toObject(), num_item: trackingCount.toString() }; // Ensure num_item is a string
+      })
+    );
+
+    res.status(200).json(lotsWithCount);
   } catch (err) {
     console.error('Error fetching lots:', err);
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get the latest lot
 exports.getLatestLot = async (req, res) => {
@@ -57,7 +67,11 @@ exports.getLotById = async (req, res) => {
     if (!lot) {
       return res.status(404).json({ error: 'Lot not found' });
     }
-    res.json(lot);
+
+    // Dynamically count the number of trackings in the lot
+    const trackingCount = await Tracking.countDocuments({ lot_id: lot.lot_id });
+
+    res.json({ ...lot.toObject(), num_item: trackingCount.toString() }); // Ensure num_item is returned as a string
   } catch (err) {
     console.error('Error fetching lot:', err);
     res.status(500).json({ error: err.message });
@@ -80,6 +94,16 @@ exports.updateLot = async (req, res) => {
       }
     }
 
+    // Handle num_item increment
+    if (updateData.num_item) {
+      const existingLot = await Lot.findOne({ lot_id: lotId });
+      if (!existingLot) {
+        return res.status(404).json({ error: 'Lot not found' });
+      }
+      const currentNumItem = parseInt(existingLot.num_item || "0");
+      updateData.num_item = String(currentNumItem + parseInt(updateData.num_item));
+    }
+
     const updatedLot = await Lot.findOneAndUpdate(
       { lot_id: lotId },
       updateData,
@@ -95,6 +119,7 @@ exports.updateLot = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // Get lot attachments
 exports.getLotAttachments = async (req, res) => {
@@ -124,5 +149,58 @@ exports.deleteLot = async (req, res) => {
   } catch (err) {
     console.error('Error deleting lot:', err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getLotByIdWithDynamicFields = async (req, res) => {
+  try {
+    const lotId = req.params.lotId;
+
+    // Fetch the lot
+    const lot = await Lot.findOne({ lot_id: lotId });
+    if (!lot) {
+      return res.status(404).json({ error: 'Lot not found' });
+    }
+
+    // Fetch associated tracking data
+    const trackings = await Tracking.find({ lot_id: lotId });
+
+    // Calculate the most popular date for each field (mode)
+    const calculatePopularDate = (field) => {
+      const dateCounts = {};
+      trackings.forEach((tracking) => {
+        const date = tracking[field];
+        if (date) {
+          dateCounts[date] = (dateCounts[date] || 0) + 1;
+        }
+      });
+
+      return Object.keys(dateCounts).reduce((a, b) =>
+        dateCounts[a] > dateCounts[b] ? a : b,
+        null
+      );
+    };
+
+    // Dynamically calculate fields for the lot
+    const mostPopularInCn = calculatePopularDate("in_cn") || "";
+    const mostPopularOutCn = calculatePopularDate("out_cn") || "";
+    const mostPopularInTh = calculatePopularDate("in_th") || "";
+
+    // Calculate num_item based on associated trackings
+    const numItem = trackings.length.toString();
+
+    // Add dynamic fields to the response
+    const updatedLot = {
+      ...lot.toObject(),
+      in_cn: mostPopularInCn,
+      out_cn: mostPopularOutCn,
+      in_th: mostPopularInTh,
+      num_item: numItem,
+    };
+
+    res.status(200).json(updatedLot);
+  } catch (err) {
+    console.error("Error fetching lot with dynamic fields:", err);
+    res.status(500).json({ error: "Failed to fetch lot" });
   }
 };
