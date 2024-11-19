@@ -10,9 +10,9 @@ import NavBar from '@/components/header'
 import Footer from '@/components/Footer'
 
 function RegisterPage() {
-
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
@@ -59,7 +59,7 @@ function RegisterPage() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    name, email, password
+                    name, email, phone,password
                 })
             });
 
@@ -94,30 +94,65 @@ function RegisterPage() {
                     <p className='text-3xl'> สมัครสมาชิก </p>
                     <p className='text-4xl font-semibold text-red-600'> MN 1688 EXPRESS </p>
                     <form onSubmit={handleSubmit} className='mt-8'>
-                        <input
-                            onChange={(e) => setName(e.target.value)}
-                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
-                            type="text"
-                            placeholder='ชื่อผู้ใช้งาน'
-                        />
-                        <input
-                            onChange={(e) => setEmail(e.target.value)}
-                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
-                            type="text"
-                            placeholder='อีเมล'
-                        />
-                        <input
-                            onChange={(e) => setPassword(e.target.value)}
-                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
-                            type="password"
-                            placeholder='รหัสผ่าน'
-                        />
-                        <input
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className='block bg-gray-300 p-2 my-3 rounded-md w-full'
-                            type="password"
-                            placeholder='ยืนยันรหัสผ่าน'
-                        />
+                    <div className="relative">
+        <label className="block text-sm mb-1">
+            ชื่อ-นามสุกล <span className="text-red-600">*</span>
+        </label>
+        <input
+            onChange={(e) => setName(e.target.value)}
+            className='block bg-gray-300 p-2 rounded-md w-full'
+            type="text"
+            placeholder='ชื่อ-นามสุกล'
+        />
+    </div>
+    
+    <div className="relative mt-3">
+        <label className="block text-sm mb-1">
+            อีเมล <span className="text-red-600">*ใช้ในกรณีที่ลืมรหัสผ่าน</span>
+        </label>
+        <input
+            onChange={(e) => setEmail(e.target.value)}
+            className='block bg-gray-300 p-2 rounded-md w-full'
+            type="text"
+            placeholder='อีเมล'
+        />
+    </div>
+    
+    <div className="relative mt-3">
+        <label className="block text-sm mb-1">
+            เบอร์โทรศัพท์
+        </label>
+        <input
+            onChange={(e) => setPhone(e.target.value)}
+            className='block bg-gray-300 p-2 rounded-md w-full'
+            type="text"
+            placeholder='เบอร์โทรศัพท์'
+        />
+    </div>
+    
+    <div className="relative mt-3">
+        <label className="block text-sm mb-1">
+            รหัสผ่าน <span className="text-red-600">*</span>
+        </label>
+        <input
+            onChange={(e) => setPassword(e.target.value)}
+            className='block bg-gray-300 p-2 rounded-md w-full'
+            type="password"
+            placeholder='รหัสผ่าน'
+        />
+    </div>
+    
+    <div className="relative mt-3">
+        <label className="block text-sm mb-1">
+            ยืนยันรหัสผ่าน <span className="text-red-600">*</span>
+        </label>
+        <input
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className='block bg-gray-300 p-2 rounded-md w-full'
+            type="password"
+            placeholder='ยืนยันรหัสผ่าน'
+        />
+    </div>
                         <div className='my-5'>
                             <p> <input type='checkbox'></input> ท่านรับทราบและตกลงตาม <a href='#' className='text-red-500'> เงื่อนไข </a> และ <a href='#' className='text-red-500'> ข้อตกลงการให้บริการ </a></p>
                             <p> <input type='checkbox'></input> รับข่าวสารจากทางเรา </p>

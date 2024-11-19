@@ -123,7 +123,7 @@ const ModalWithdraw: React.FC<ModalWithdrawProps> = ({ show, onClose }) => {
         branch: selectedBankAccount.branch,
         withdraw_amount: parseFloat(amount)
       };
-
+      
       await axios.post<WithdrawData>('http://localhost:5000/withdraws', withdrawData);
       
       // Clear form

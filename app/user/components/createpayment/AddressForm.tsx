@@ -5,15 +5,19 @@ import addressData from '../AddressData';
 import TaxInformationModal from '../tax/TaxInformationModal';
 import TransportData from '../TransportData';
 import { getSession } from "next-auth/react";
+import axios from 'axios';
 
 const { Option } = Select;
 
 interface Address {
+    _id: string;
+    name: string;
+    address: string;
     province: string;
-    district: string;
-    subdistrict: string;
+    districts: string;
+    subdistricts: string;
     postalCode: string;
-    transport: string;
+    phone: string;
 }
 
 interface TaxInfo {
@@ -26,7 +30,13 @@ interface TaxInfo {
 }
 
 interface AddressFormProps {
-    address: Address;
+    address: {
+        province: string;
+        district: string;
+        subdistrict: string;
+        postalCode: string;
+        transport: string;
+    };
     handleAddressChange: (field: string, value: string) => void;
 }
 
@@ -35,7 +45,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
     const [selectedShippingPayment, setSelectedShippingPayment] = useState<string>('');
     const [selectedCarrier, setSelectedCarrier] = useState<string>('');
     const [senderOption, setSenderOption] = useState<string>('0');
-    const [showReceiptOptions, setShowReceiptOptions] = useState<string>(''); // Tracks receipt option selection
+    const [showReceiptOptions, setShowReceiptOptions] = useState<string>('');
     const [userName, setUserName] = useState<string>('');
     const [userAddress, setUserAddress] = useState<string>('');
     const [userProvince, setUserProvince] = useState<string>('');
@@ -48,27 +58,39 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
     const [selectedTaxInfo, setSelectedTaxInfo] = useState<TaxInfo | null>(null);
     const [showPreviewCard, setShowPreviewCard] = useState<boolean>(false);
 
+    useEffect(() => {
+        const fetchSession = async () => {
+            const session = await getSession();
+            if (session?.user) {
+                const userId = (session.user as { user_id?: string }).user_id;
+                if (userId) {
+                    setUserName(`${userId}`);
+                }
+            }
+        };
+        fetchSession();
+    }, []);
+
+
     const handleTransportChange = (e: any) => setSelectedTransport(e.target.value);
     const handleShippingPaymentChange = (e: any) => setSelectedShippingPayment(e.target.value);
     const handleCarrierChange = (value: string) => setSelectedCarrier(value);
     const handleSenderOptionChange = (value: string) => setSenderOption(value);
     const handleReceiptRadioChange = (e: any) => {
         setShowReceiptOptions(e.target.value);
-        // Hide preview card if "ไม่ต้องการใบเสร็จ" is selected
         if (e.target.value === '2') setShowPreviewCard(false);
     };
+
     const handleAddressBookClick = () => setShowAddressBookModal(true);
 
-    const handleAddressSelect = (selectedAddress: any) => {
-        if (selectedAddress) {
-            setUserName(selectedAddress.name);
-            setUserAddress(selectedAddress.address);
-            setUserProvince(selectedAddress.province);
-            setUserDistrict(selectedAddress.districts);
-            setUserSubdistrict(selectedAddress.subdistricts);
-            setUserPostalCode(selectedAddress.postalCode);
-            setUserPhone(selectedAddress.phone);
-        }
+    const handleAddressSelect = (selectedAddress: Address) => {
+        setUserName(selectedAddress.name);
+        setUserAddress(selectedAddress.address);
+        setUserProvince(selectedAddress.province);
+        setUserDistrict(selectedAddress.districts);
+        setUserSubdistrict(selectedAddress.subdistricts);
+        setUserPostalCode(selectedAddress.postalCode);
+        setUserPhone(selectedAddress.phone);
         setShowAddressBookModal(false);
     };
 
@@ -104,11 +126,11 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
 
     return (
         <>
-        <Card
+            <Card
                 title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ marginBottom: 0 }}>ที่อยู่ผู้รับสินค้า</h3>
-                        <Button type="primary" style={{ height: '40px' }} onClick={handleAddressBookClick}>
+                        <Button type="primary" style={{ height: '40px' }} onClick={() => setShowAddressBookModal(true)}>
                             เลือกที่อยู่ผู้รับจากสมุดที่อยู่
                         </Button>
                     </div>
@@ -494,11 +516,10 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
 
         {/* Render the AddressBookModal */}
         <AddressBookModal
-            visible={showAddressBookModal}
-            onClose={() => setShowAddressBookModal(false)}
-            onSelect={handleAddressSelect}
-            onAddNewAddress={() => alert('Add new Address clicked')} 
-        />
+                show={showAddressBookModal}
+                onClose={() => setShowAddressBookModal(false)}
+                onSelectAddress={handleAddressSelect}
+            />
         
         {/* Render the TaxInformationModal */}
         <TaxInformationModal

@@ -46,6 +46,10 @@ const withdrawSchema = new mongoose.Schema({
   slip: {
     type: String,
     default: ''
+  },
+  note: {
+    type: String,
+    default: ''
   }
 });
 

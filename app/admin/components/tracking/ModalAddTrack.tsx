@@ -1,12 +1,45 @@
 import React, { useState, useEffect } from 'react';
+import { calculateServiceFee } from './calculateServiceFee';
 
 interface ModalAddTrackProps {
   show: boolean;
   onClose: () => void;
 }
 
+interface FormData {
+  user_id: string;
+  not_owner: boolean;
+  tracking_id: string;
+  buylist_id: string;
+  mnemonics: string;
+  lot_type: string;
+  type_item: string;
+  crate: string;
+  check_product: string;
+  weight: string;
+  wide: string;
+  high: string;
+  long: string;
+  number: string;
+  pricing: string;
+  cal_price: string;
+  user_rate: string;
+  in_cn: string;
+  out_cn: string;
+  in_th: string;
+  check_product_price: string;
+  new_wrap: string;
+  transport: string;
+  price_crate: string;
+  other: string;
+  status: string;
+  lot_id: string;
+  lot_order: string;
+  type_cal: string;
+}
+
 const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     user_id: '',
     not_owner: false,
     tracking_id: '',
@@ -14,8 +47,8 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     mnemonics: '',
     lot_type: 'รถ',
     type_item: 'ทั่วไป',
-    crate: false,
-    check_product: false,
+    crate: 'ไม่ตี',
+    check_product: 'ไม่เช็ค',
     weight: '',
     wide: '',
     high: '',
@@ -32,133 +65,93 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     transport: '',
     price_crate: '',
     other: '',
-    status:'รอเข้าโกดังจีน',
-    lot_id:'',
-    lot_order:''
+    status: 'รอเข้าโกดังจีน',
+    lot_id: '',
+    lot_order: '',
+    type_cal: ''
   });
 
-  const [file, setFile] = useState<File | null>(null); // Single file
-  const [images, setImages] = useState<File[]>([]); // Multiple images
+  const [file, setFile] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
   const [serviceFee, setServiceFee] = useState<number>(0);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { id, value, type } = e.target;
+    let inputValue: string | boolean = value;
+
+    if (type === 'checkbox') {
+      inputValue = (e.target as HTMLInputElement).checked;
+    }
+
     setFormData(prev => ({
       ...prev,
-      [id]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [id]: inputValue,
     }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]); // Set the file
+      setFile(e.target.files[0]);
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setImages(Array.from(e.target.files)); // Set multiple images
+      setImages(Array.from(e.target.files));
     }
   };
 
-   // Calculate service fee based on updated logic
-   useEffect(() => {
-    const calculateServiceFee = () => {
-      const weight = parseFloat(formData.weight) || 0;
-      const wide = parseFloat(formData.wide) || 0;
-      const high = parseFloat(formData.high) || 0;
-      const long = parseFloat(formData.long) || 0;
-      const volume = (wide * high * long) / 1000000;
-      let cal_price = 0;
-
-      if (formData.pricing === "อัตโนมัติ") {
-        if (formData.lot_type === "รถ") {
-          if (formData.user_rate === "A") {
-            cal_price = Math.max(weight * 15, volume * 5900);
-          } else if (formData.user_rate === "B") {
-            cal_price = Math.max(weight * 20, volume * 6000);
-          } else if (formData.user_rate === "C") {
-            cal_price = Math.max(weight * 35, volume * 8500);
-          }
-        } else if (formData.lot_type === "เรือ") {
-          if (formData.user_rate === "A") {
-            cal_price = Math.max(weight * 10, volume * 3800);
-          } else if (formData.user_rate === "B") {
-            cal_price = Math.max(weight * 15, volume * 5500);
-          } else if (formData.user_rate === "C") {
-            cal_price = Math.max(weight * 35, volume * 8500);
-          }
-        }
-      } else if (formData.pricing === "น้ำหนัก") {
-        if (formData.lot_type === "รถ") {
-          if (formData.user_rate === "A") {
-            cal_price = weight * 15;
-          } else if (formData.user_rate === "B") {
-            cal_price = weight * 20;
-          } else if (formData.user_rate === "C") {
-            cal_price = weight * 35;
-          }
-        } else if (formData.lot_type === "เรือ") {
-          if (formData.user_rate === "A") {
-            cal_price = weight * 10;
-          } else if (formData.user_rate === "B") {
-            cal_price = weight * 15;
-          } else if (formData.user_rate === "C") {
-            cal_price = weight * 35;
-          }
-        }
-      } else if (formData.pricing === "ปริมาตร") {
-        if (formData.lot_type === "รถ") {
-          if (formData.user_rate === "A") {
-            cal_price = volume * 5900;
-          } else if (formData.user_rate === "B") {
-            cal_price = volume * 6000;
-          } else if (formData.user_rate === "C") {
-            cal_price = volume * 8500;
-          }
-        } else if (formData.lot_type === "เรือ") {
-          if (formData.user_rate === "A") {
-            cal_price = volume * 3800;
-          } else if (formData.user_rate === "B") {
-            cal_price = volume * 5500;
-          } else if (formData.user_rate === "C") {
-            cal_price = volume * 8500;
-          }
-        }
-      }
-
-      // Update service fee with cal_price * number
-      setServiceFee(cal_price * (parseInt(formData.number) || 1));
-      setFormData(prev => ({ ...prev, cal_price: cal_price.toFixed(2) }));
-    };
-
-  // Call calculateServiceFee whenever relevant fields change
-  calculateServiceFee();
-}, [formData.lot_type, formData.user_rate, formData.pricing, formData.weight, formData.wide, formData.high, formData.long, formData.number]);
+  useEffect(() => {
+    const { serviceFee, cal_price, type_cal } = calculateServiceFee({
+      pricing: formData.pricing,
+      lot_type: formData.lot_type,
+      user_rate: formData.user_rate,
+      weight: parseFloat(formData.weight) || 0,
+      wide: parseFloat(formData.wide) || 0,
+      high: parseFloat(formData.high) || 0,
+      long: parseFloat(formData.long) || 0,
+      number: parseInt(formData.number) || 1
+    });
+    
+    setServiceFee(serviceFee);
+    setFormData(prev => ({ 
+      ...prev, 
+      cal_price: cal_price.toString(),
+      type_cal
+    }));
+  }, [
+    formData.lot_type,
+    formData.user_rate,
+    formData.pricing,
+    formData.weight,
+    formData.wide,
+    formData.high,
+    formData.long,
+    formData.number,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = new FormData();
 
-    // Append form data fields
     Object.entries(formData).forEach(([key, value]) => {
       form.append(key, value.toString());
     });
 
-    // Append file if present
     if (file) {
-      form.append('trackingFile', file); // Append the file
+      form.append('trackingFile', file);
     }
 
-    // Append multiple images
-    images.forEach((image, index) => {
-      form.append('trackingImages', image); // Multiple images with the same key
+    images.forEach(image => {
+      form.append('trackingImages', image);
     });
 
     try {
       const response = await fetch('http://localhost:5000/tracking', {
         method: 'POST',
-        body: form, // Send FormData instead of JSON
+        body: form,
       });
 
       if (!response.ok) {
@@ -173,9 +166,7 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
     }
   };
 
-  if (!show) {
-    return null;
-  }
+  if (!show) return null;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
@@ -191,7 +182,9 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div className="col-span-1 md:col-span-2">
                 <h6 className="text-lg font-semibold mb-2">ข้อมูลลูกค้า</h6>
                 <div className="mb-3">
-                  <label htmlFor="user_id" className="block mb-1">รหัสลูกค้า: <span className="text-red-500">*</span></label>
+                  <label htmlFor="user_id" className="block mb-1">
+                    รหัสลูกค้า: <span className="text-red-500">*</span>
+                  </label>
                   <input
                     id="user_id"
                     type="text"
@@ -219,7 +212,9 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
               <div>
                 <h6 className="text-lg font-semibold mb-2">ข้อมูลพัสดุ</h6>
                 <div className="mb-3">
-                  <label htmlFor="tracking_id" className="block mb-1">รหัสพัสดุ: <span className="text-red-500">*</span></label>
+                  <label htmlFor="tracking_id" className="block mb-1">
+                    รหัสพัสดุ: <span className="text-red-500">*</span>
+                  </label>
                   <input
                     id="tracking_id"
                     type="text"
@@ -365,28 +360,28 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="crate"
-                      checked={formData.crate}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    ตีลังไม้
-                  </label>
+                  <label htmlFor="crate" className="block mb-1">ตีลังไม้:</label>
+                  <select
+                    id="crate"
+                    className="w-full p-2 border rounded"
+                    value={formData.crate}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่ตี">ไม่ตี</option>
+                    <option value="ตี">ตี</option>
+                  </select>
                 </div>
                 <div className="mb-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="check_product"
-                      checked={formData.check_product}
-                      onChange={handleInputChange}
-                      className="mr-2"
-                    />
-                    เช็คสินค้า
-                  </label>
+                  <label htmlFor="check_product" className="block mb-1">เช็คสินค้า:</label>
+                  <select
+                    id="check_product"
+                    className="w-full p-2 border rounded"
+                    value={formData.check_product}
+                    onChange={handleInputChange}
+                  >
+                    <option value="ไม่เช็ค">ไม่เช็ค</option>
+                    <option value="เช็ค">เช็ค</option>
+                  </select>
                 </div>
               </div>
 
@@ -421,6 +416,30 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
                     className="w-full p-2 border rounded"
                     value={formData.in_th}
                     onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              {/* File and Images */}
+              <div>
+                <h6 className="text-lg font-semibold mb-2">รูปภาพสินค้า/ไฟล์แนบขนส่ง</h6>
+                <div className="mb-3">
+                  <label htmlFor="trackingFile" className="block mb-1">แนบไฟล์:</label>
+                  <input
+                    id="trackingFile"
+                    type="file"
+                    className="w-full"
+                    onChange={handleFileChange}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="trackingImages" className="block mb-1">แนบรูปภาพ:</label>
+                  <input
+                    id="trackingImages"
+                    type="file"
+                    className="w-full"
+                    multiple
+                    onChange={handleImageChange}
                   />
                 </div>
               </div>
@@ -497,15 +516,15 @@ const ModalAddTrack: React.FC<ModalAddTrackProps> = ({ show, onClose }) => {
             </div>
           </div>
           <footer className="modal-footer p-4 border-t flex justify-end">
-            <button 
-              type="button" 
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded mr-2" 
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded mr-2"
               onClick={onClose}
             >
               ยกเลิก
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="px-4 py-2 bg-blue-500 text-white rounded"
             >
               บันทึก
