@@ -38,9 +38,16 @@ interface AddressFormProps {
         transport: string;
     };
     handleAddressChange: (field: string, value: string) => void;
+    onTransportChange: (value: string, carrier?: string) => void;
+    onSenderOptionChange: (value: string) => void;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange }) => {
+const AddressForm: React.FC<AddressFormProps> = ({ 
+    address, 
+    handleAddressChange, 
+    onTransportChange,
+    onSenderOptionChange
+}) => {
     const [selectedTransport, setSelectedTransport] = useState<string>('');
     const [selectedShippingPayment, setSelectedShippingPayment] = useState<string>('');
     const [selectedCarrier, setSelectedCarrier] = useState<string>('');
@@ -57,6 +64,24 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
     const [showTaxInfoModal, setShowTaxInfoModal] = useState<boolean>(false);
     const [selectedTaxInfo, setSelectedTaxInfo] = useState<TaxInfo | null>(null);
     const [showPreviewCard, setShowPreviewCard] = useState<boolean>(false);
+    const cashOnDeliveryCarriers = ["Kerry Express", "Flash Express", "J&T Express"];
+
+    const handleTransportChange = (e: any) => {
+        const value = e.target.value;
+        setSelectedTransport(value);
+        setSelectedCarrier(''); // Clear carrier when transport type changes
+        onTransportChange(value);
+    };
+    
+    const handleCarrierChange = (value: string) => {
+        setSelectedCarrier(value);
+        onTransportChange(selectedTransport, value);
+    };
+    
+    const handleSenderOptionChange = (value: string) => {
+        setSenderOption(value);
+        onSenderOptionChange(value);
+    };
 
     useEffect(() => {
         const fetchSession = async () => {
@@ -72,10 +97,7 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
     }, []);
 
 
-    const handleTransportChange = (e: any) => setSelectedTransport(e.target.value);
     const handleShippingPaymentChange = (e: any) => setSelectedShippingPayment(e.target.value);
-    const handleCarrierChange = (value: string) => setSelectedCarrier(value);
-    const handleSenderOptionChange = (value: string) => setSenderOption(value);
     const handleReceiptRadioChange = (e: any) => {
         setShowReceiptOptions(e.target.value);
         if (e.target.value === '2') setShowPreviewCard(false);
@@ -299,31 +321,30 @@ const AddressForm: React.FC<AddressFormProps> = ({ address, handleAddressChange 
 
                         {/* Conditionally render extra options if "ขนส่งเอกชน" is selected */}
                         {selectedTransport === '-99' && (
-                            <div style={{ marginLeft: '16px', marginTop: '16px' }}>
-                                <Radio.Group onChange={handleShippingPaymentChange} value={selectedShippingPayment}>
-                                    <Radio value="0" style={{ marginBottom: '12px' }}>
-                                        จ่ายค่าขนส่งต้นทาง
-                                    </Radio>
-                                    <br />
-                                    <Radio value="1" style={{ marginBottom: '12px' }}>
-                                        จ่ายค่าขนส่งปลายทาง
-                                    </Radio>
-                                </Radio.Group>
+            <div style={{ marginLeft: '16px', marginTop: '16px' }}>
+                <Radio.Group onChange={handleShippingPaymentChange} value={selectedShippingPayment}>
+                    <Radio value="0" style={{ marginBottom: '12px' }}>
+                        จ่ายค่าขนส่งต้นทาง
+                    </Radio>
+                    <br />
+                    <Radio value="1" style={{ marginBottom: '12px' }}>
+                        จ่ายค่าขนส่งปลายทาง
+                    </Radio>
+                </Radio.Group>
 
-                                {/* Dropdown for selecting carrier */}
-                                <Select
-                                    className="ant-input ant-input-lg"
-                                    value={selectedCarrier}
-                                    onChange={handleCarrierChange}
-                                    style={{ width: '100%', marginTop: '12px' }}
-                                >
-                                    {TransportData.companies.map((company, index) => (
-                                        <Option key={index} value={company}>
-                                            {company}
-                                        </Option>
-                                    ))}
-                                </Select>
-                            </div>
+                <Select
+                    className="ant-input ant-input-lg"
+                    value={selectedCarrier}
+                    onChange={handleCarrierChange}
+                    style={{ width: '100%', marginTop: '12px' }}
+                >
+                    {(selectedShippingPayment === "1" ? cashOnDeliveryCarriers : TransportData.companies).map((company, index) => (
+                        <Option key={index} value={company}>
+                            {company}
+                        </Option>
+                    ))}
+                </Select>
+            </div>
                         )}
                     </Col>
                 </Row>

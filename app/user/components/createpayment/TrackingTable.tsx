@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Table, Modal, Typography, Card, Tag, Space } from 'antd';
+import { Table, Modal, Typography, Card, Tag, Space ,Tooltip} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -10,33 +10,44 @@ const { Text } = Typography;
 
 interface TrackingData {
     tracking_id: string;
-    mnemonics?: string;
-    weight: number;
-    wide: number;
-    high: number;
-    long: number;
-    number: number;
-    lot_id: string;
-    in_cn?: string;
-    out_cn?: string;
-    in_th?: string;
-    user_id: string;
-    type_item: string;
-    check_product_price?: number;
-    transport?: number;
-    price_crate?: number;
-    other?: number;
-    image_item_paths: string[];
-    lot_type?: string;
+  mnemonics: string;
+  weight: number;
+  wide: number;
+  high: number;
+  long: number;
+  number: number;
+  lot_id: string;
+  in_cn: string;
+  out_cn: string;
+  in_th: string;
+  user_id: string;
+  type_item: string;
+  check_product_price: number;
+  transport: number;
+  price_crate: number;
+  new_wrap: number;
+  other: number;
+  image_item_paths: string[];
+  lot_type: string;
+  cal_price: number;
+  type_cal: "weightPrice" | "volumePrice";
 }
 
 interface TrackingTableProps {
     trackingData: TrackingData[];
     calculateVolume: (wide: number, long: number, high: number) => number;
     calculateSum: (key: keyof TrackingData) => number;
+    transportFee: number;
+    serviceFee: number;
 }
 
-const TrackingTable: React.FC<TrackingTableProps> = ({ trackingData, calculateVolume, calculateSum }) => {
+const TrackingTable: React.FC<TrackingTableProps> = ({ 
+    trackingData, 
+    calculateVolume, 
+    calculateSum,
+    transportFee,
+    serviceFee 
+}) => {
     const [previewImages, setPreviewImages] = useState<string[]>([]);
     const [previewIndex, setPreviewIndex] = useState<number>(0);
     const [modalOpen, setModalOpen] = useState(false);
@@ -93,15 +104,65 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ trackingData, calculateVo
             className: 'header-center'
         },
         { title: 'ประเภท', dataIndex: 'type_item', key: 'type_item', className: 'header-center' },
-        { title: 'ค่าบริการ', render: () => "92.5", align: 'right', className: 'header-center' },
-        { title: 'ราคากิโล', render: (record: TrackingData) => (record.weight * record.number).toFixed(2), align: 'right', className: 'header-center' },
-        { title: 'ราคาคิว', render: () => "0.00", align: 'right', className: 'header-center' }
+        {
+            title: 'ค่าบริการ',
+            render: (record: TrackingData) => (
+                <Tooltip title={
+                    <div>
+                        <p>ค่าเช็คสินค้า: {record.check_product_price?.toFixed(2)}</p>
+                        <p>ค่าห่อใหม่: {record.new_wrap?.toFixed(2)}</p>
+                        <p>ค่าขนส่งจีน: {record.transport?.toFixed(2)}</p>
+                        <p>ค่าตีลัง: {record.price_crate?.toFixed(2)}</p>
+                        <p>ค่าอื่นๆ: {record.other?.toFixed(2)}</p>
+                    </div>
+                }>
+                    {(
+                        record.check_product_price +
+                        record.new_wrap +
+                        record.transport +
+                        record.price_crate +
+                        record.other
+                    ).toFixed(2)}
+                </Tooltip>
+            ),
+            align: 'right',
+            className: 'header-center'
+        },
+        {
+            title: 'ราคากิโล',
+            render: (record: TrackingData) => 
+                (record.type_cal === "weightPrice" ? record.cal_price * record.number : 0).toFixed(2),
+            align: 'right',
+            className: 'header-center',
+            onCell: () => ({ style: { backgroundColor: "rgb(255, 167, 163)" } })
+        },
+        {
+            title: 'ราคาคิว',
+            render: (record: TrackingData) => 
+                (record.type_cal === "volumePrice" ? record.cal_price * record.number : 0).toFixed(2),
+            align: 'right',
+            className: 'header-center',
+            onCell: () => ({ style: { backgroundColor: "rgb(255, 167, 163)" } })
+        }
     ];
 
     const totalSum = trackingData.reduce((sum, row) => sum + calculateVolume(row.wide, row.long, row.high) * row.number, 0);
     const warehouseServiceFee = 0.00; // Example value, replace with actual calculation if needed
     const thaiShippingFee = 0.00; // Example value, replace with actual calculation if needed
     const grandTotal = totalSum + warehouseServiceFee + thaiShippingFee;
+    const calculateSelectedTotals = () => {
+        return trackingData.reduce((acc, row) => {
+            const weightPrice = row.type_cal === "weightPrice" ? row.cal_price * row.number : 0;
+            const volumePrice = row.type_cal === "volumePrice" ? row.cal_price * row.number : 0;
+            const serviceFee = row.check_product_price + row.new_wrap + row.transport + row.price_crate + row.other;
+
+            return {
+                serviceFee: acc.serviceFee + serviceFee,
+                weightPrice: acc.weightPrice + weightPrice,
+                volumePrice: acc.volumePrice + volumePrice
+            };
+        }, { serviceFee: 0, weightPrice: 0, volumePrice: 0 });
+    };
 
     return (
         <Card title="รายการรหัสพัสดุ" bordered style={{ marginTop: '16px' }}>
@@ -112,16 +173,21 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ trackingData, calculateVo
                 pagination={false}
                 bordered
                 size="small"
-                summary={() => (
-                    <>
+                summary={() => {
+                    const totals = calculateSelectedTotals();
+                    const total = totals.serviceFee + totals.weightPrice + totals.volumePrice;
+                    const grandTotal = total + transportFee + serviceFee;
+                    
+                    return (
+                        <>
                         <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
-                                รวม
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
-                                <Text strong>{totalSum.toFixed(2)}</Text>
-                            </Table.Summary.Cell>
-                        </Table.Summary.Row>
+                                <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
+                                    รวม
+                                </Table.Summary.Cell>
+                                <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
+                                <Text strong>{total.toFixed(2)}</Text>
+                                </Table.Summary.Cell>
+                            </Table.Summary.Row>
                         <Table.Summary.Row>
                             <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
                                 คูปองส่วนลด
@@ -131,24 +197,24 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ trackingData, calculateVo
                             </Table.Summary.Cell>
                         </Table.Summary.Row>
                         <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
-                                ค่าบริการโกดังไทย
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
-                                <Text strong>{warehouseServiceFee.toFixed(2)}</Text>
-                            </Table.Summary.Cell>
-                        </Table.Summary.Row>
-                        <Table.Summary.Row>
-                            <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
-                                <Text type="danger">
-                                    (ราคาข้างต้นเป็นเพียงราคาประมาณการ ค่าใช้จ่ายจริงจะคิดตามบิลขนส่งตัวจริงและหักลบคืนเป็นยอดเงินในระบบ)
-                                </Text>
-                                &nbsp;ค่าจัดส่งในไทย
-                            </Table.Summary.Cell>
-                            <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
-                                <Text strong>{thaiShippingFee.toFixed(2)}</Text>
-                            </Table.Summary.Cell>
-                        </Table.Summary.Row>
+                                <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
+                                    ค่าบริการโกดังไทย
+                                </Table.Summary.Cell>
+                                <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
+                                    <Text strong>{serviceFee.toFixed(2)}</Text>
+                                </Table.Summary.Cell>
+                            </Table.Summary.Row>
+                            <Table.Summary.Row>
+                                <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
+                                    <Text type="danger">
+                                        (ราคาข้างต้นเป็นเพียงราคาประมาณการ ค่าใช้จ่ายจริงจะคิดตามบิลขนส่งตัวจริงและหักลบคืนเป็นยอดเงินในระบบ)
+                                    </Text>
+                                    &nbsp;ค่าจัดส่งในไทย
+                                </Table.Summary.Cell>
+                                <Table.Summary.Cell index={1} colSpan={3} className="text-right p-1">
+                                    <Text strong>{transportFee.toFixed(2)}</Text>
+                                </Table.Summary.Cell>
+                            </Table.Summary.Row>
                         <Table.Summary.Row>
                             <Table.Summary.Cell index={0} colSpan={11} className="text-right p-1">
                                 สุทธิ
@@ -157,8 +223,9 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ trackingData, calculateVo
                                 <Text strong style={{ fontSize: '20px' }}>{grandTotal.toFixed(2)}</Text>
                             </Table.Summary.Cell>
                         </Table.Summary.Row>
-                    </>
-                )}
+                        </>
+                    );
+                }}
             />           
         </Card>
     );

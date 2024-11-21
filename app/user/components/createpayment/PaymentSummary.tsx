@@ -6,12 +6,26 @@ import { Button, Card, Checkbox,Form,Row,Col } from 'antd';
 interface PaymentSummaryProps {
     totalAmount: number;
     handleSavePayments: () => void;
+    transportFee: number;
+    serviceFee: number;
+    selectedCarrier: string;
+    total: number;
+    grandTotal: number;
+    balance: number;
+    userName: string;
 }
 
-const PaymentSummary: React.FC<PaymentSummaryProps> = ({ totalAmount, handleSavePayments }) => {
-    const importFee = 95.52; // Example of import fee
-    const transportCost = 0.00; // Adjust based on transport
-
+const PaymentSummary: React.FC<PaymentSummaryProps> = ({ 
+    totalAmount, 
+    handleSavePayments, 
+    transportFee, 
+    serviceFee,
+    selectedCarrier,
+    total,
+    grandTotal,
+    balance,
+    userName
+}) => {
     return (
         <>
             {/* <Card title="เงื่อนไขและข้อตกลง" bordered> */}
@@ -37,7 +51,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({ totalAmount, handleSave
                         `,
                     }}
                 />
-                <Checkbox> user_id เข้าใจและยอมรับเงื่อนไขแล้ว</Checkbox>
+                <Checkbox> {userName} เข้าใจและยอมรับเงื่อนไขแล้ว</Checkbox>
             </Card>
 
 
@@ -51,68 +65,68 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({ totalAmount, handleSave
              >
             <Form layout="vertical">
 
-                <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>ยอดเงินในระบบลูกค้า </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+            <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                <span style={{ fontWeight: '600' }}>ยอดเงินในระบบลูกค้า </span>&nbsp; &nbsp;
+            </Col>
+            <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                <span>{balance.toLocaleString()} ฿</span>
+            </Col>
+        </Row>
 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>ค่านำเข้า </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+                <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                    <span style={{ fontWeight: '600' }}>ค่านำเข้า </span>&nbsp; &nbsp;
+                </Col>
+                <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                    <span>{total.toFixed(2)}</span>
+                </Col>
+            </Row>
 '               
-                <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>จัดส่งโดย </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+<Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                    <span style={{ fontWeight: '600' }}>จัดส่งโดย </span>&nbsp; &nbsp;
+                </Col>
+                <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                    <span>{selectedCarrier}</span>
+                </Col>
+            </Row>
 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>ค่าบริการ </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+                <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                    <span style={{ fontWeight: '600' }}>ค่าบริการ </span>&nbsp; &nbsp;
+                </Col>
+                <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                    <span>{serviceFee.toFixed(2)}</span>
+                </Col>
+            </Row>
 
-                <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>ค่าขนส่ง </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+            <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                    <span style={{ fontWeight: '600' }}>ค่าขนส่ง </span>&nbsp; &nbsp;
+                </Col>
+                <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                    <span>{transportFee.toFixed(2)}</span>
+                </Col>
+            </Row>
 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
                         <span style={{ fontWeight: '600' }}>ประเภทการชำระ </span>&nbsp; &nbsp;
                     </Col>
                     <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
+                        <span>ตัดเงินในระบบ</span> {/* Display the name on the same line */}
                     </Col>
                 </Row>
 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
-                        <span style={{ fontWeight: '600' }}>ยอดรวม </span>&nbsp; &nbsp;
-                    </Col>
-                    <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}> {/* Adjusted span to ensure proper spacing */}
-                        <span>name</span> {/* Display the name on the same line */}
-                    </Col>
-                </Row>
+                <Col span={10} style={{ textAlign: 'right', paddingTop: '6px' }}>
+                    <span style={{ fontWeight: '600' }}>ยอดรวม </span>&nbsp; &nbsp;
+                </Col>
+                <Col span={4} style={{ textAlign: 'left', paddingTop: '6px' }}>
+                    <span>{grandTotal.toFixed(2)}</span>
+                </Col>
+            </Row>
                 
                 <Row style={{ marginBottom: '4px', marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
                     <Col span={20}> {/* Adjust span to occupy enough space */}

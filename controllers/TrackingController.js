@@ -1,5 +1,45 @@
 const Tracking = require('../models/Tracking');
+const Lot = require('../models/Lot');
 
+// Helper functions
+const calculateModeDates = async (lotId) => {
+  const trackings = await Tracking.find({ lot_id: lotId });
+  
+  const getModeDate = (dates) => {
+    const frequency = dates.filter(date => date)
+      .reduce((acc, date) => {
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
+
+    if (Object.keys(frequency).length === 0) return '';
+    return Object.entries(frequency)
+      .reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  };
+
+  return {
+    in_cn: getModeDate(trackings.map(t => t.in_cn)),
+    out_cn: getModeDate(trackings.map(t => t.out_cn)),
+    in_th: getModeDate(trackings.map(t => t.in_th))
+  };
+};
+
+const updateLotDates = async (lotId) => {
+  if (!lotId) return;
+  
+  const modeDates = await calculateModeDates(lotId);
+  
+  await Lot.findOneAndUpdate(
+    { lot_id: lotId },
+    {
+      in_cn: modeDates.in_cn,
+      out_cn: modeDates.out_cn,
+      in_th: modeDates.in_th
+    }
+  );
+};
+
+// Main controller methods
 exports.getAllTracking = async (req, res) => {
   try {
     const trackingData = await Tracking.find();
@@ -31,6 +71,34 @@ exports.searchTracking = async (req, res) => {
   } catch (error) {
     console.error('Error fetching tracking IDs:', error);
     return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.getTrackingById = async (req, res) => {
+  try {
+    const tracking = await Tracking.findOne({ tracking_id: req.params.trackingId });
+    if (!tracking) {
+      return res.status(404).json({ error: 'Tracking not found' });
+    }
+    res.json(tracking);
+  } catch (err) {
+    console.error('Error fetching tracking details:', err);
+    res.status(500).json({ error: 'Failed to fetch tracking details' });
+  }
+};
+
+exports.getTrackingByLotId = async (req, res) => {
+  const { lotId } = req.params;
+
+  try {
+    const trackingData = await Tracking.find({ lot_id: lotId });
+    if (trackingData.length === 0) {
+      return res.json([]);
+    }
+    res.json(trackingData);
+  } catch (err) {
+    console.error('Error fetching tracking data:', err);
+    res.status(500).json({ error: 'Failed to fetch tracking data' });
   }
 };
 
@@ -100,6 +168,12 @@ exports.createTracking = async (req, res, files) => {
     });
 
     const savedTracking = await newTracking.save();
+
+    // Update lot dates if tracking is assigned to a lot
+    if (savedTracking.lot_id) {
+      await updateLotDates(savedTracking.lot_id);
+    }
+
     res.status(201).json(savedTracking);
   } catch (err) {
     console.error('Error creating tracking:', err);
@@ -116,6 +190,8 @@ exports.updateTracking = async (req, res, files) => {
     if (!existingTracking) {
       return res.status(404).json({ error: 'Tracking not found' });
     }
+
+    const oldLotId = existingTracking.lot_id;
 
     let transport_file_path = existingTracking.transport_file_path;
     let image_item_paths = existingTracking.image_item_paths;
@@ -147,44 +223,20 @@ exports.updateTracking = async (req, res, files) => {
       { new: true }
     );
 
+    // Update lot dates for both old and new lots if they're different
+    if (oldLotId) {
+      await updateLotDates(oldLotId);
+    }
+    if (updatedTracking.lot_id && updatedTracking.lot_id !== oldLotId) {
+      await updateLotDates(updatedTracking.lot_id);
+    }
+
     res.json(updatedTracking);
   } catch (err) {
     console.error('Error updating tracking:', err);
     res.status(500).json({ error: 'Failed to update tracking' });
   }
 };
-
-exports.getTrackingById = async (req, res) => {
-  try {
-    const tracking = await Tracking.findOne({ tracking_id: req.params.trackingId });
-    if (!tracking) {
-      return res.status(404).json({ error: 'Tracking not found' });
-    }
-    res.json(tracking);
-  } catch (err) {
-    console.error('Error fetching tracking details:', err);
-    res.status(500).json({ error: 'Failed to fetch tracking details' });
-  }
-};
-
-exports.getTrackingByLotId = async (req, res) => {
-  const { lotId } = req.params; // Extract lotId from the request
-
-  try {
-    const trackingData = await Tracking.find({ lot_id: lotId }); // Fetch all tracking data for this lot
-
-    // Return an empty array if no tracking data is found
-    if (trackingData.length === 0) {
-      return res.json([]); // Respond with an empty array
-    }
-
-    res.json(trackingData); // Respond with tracking data
-  } catch (err) {
-    console.error('Error fetching tracking data:', err);
-    res.status(500).json({ error: 'Failed to fetch tracking data' });
-  }
-};
-
 
 exports.updateTrackingFields = async (req, res) => {
   const { trackingId } = req.params;
@@ -198,12 +250,11 @@ exports.updateTrackingFields = async (req, res) => {
     }
 
     // Dynamically calculate the new status
-    let newStatus = "wait_cn"; // Default status
+    let newStatus = "wait_cn";
     if (updateFields.in_th || existingTracking.in_th) newStatus = "in_th";
     else if (updateFields.out_cn || existingTracking.out_cn) newStatus = "out_cn";
     else if (updateFields.in_cn || existingTracking.in_cn) newStatus = "in_cn";
 
-    // Add the calculated status to the updateFields
     updateFields.status = newStatus;
 
     const updatedTracking = await Tracking.findOneAndUpdate(
@@ -216,6 +267,11 @@ exports.updateTrackingFields = async (req, res) => {
       return res.status(404).json({ error: "Tracking not found" });
     }
 
+    // Update the lot dates if this tracking belongs to a lot
+    if (updatedTracking.lot_id) {
+      await updateLotDates(updatedTracking.lot_id);
+    }
+
     res.json(updatedTracking);
   } catch (err) {
     console.error("Error updating tracking:", err);
@@ -223,49 +279,49 @@ exports.updateTrackingFields = async (req, res) => {
   }
 };
 
-
 exports.updateLotId = async (req, res) => {
-  const { trackingId } = req.params; // Tracking ID to update
-  const { newLotId } = req.body;    // Lot ID to assign
+  const { trackingId } = req.params;
+  const { newLotId } = req.body;
 
   try {
-    // Find the highest lot_order for the given lot_id
+    const existingTracking = await Tracking.findOne({ tracking_id: trackingId });
+    const oldLotId = existingTracking ? existingTracking.lot_id : null;
+
     const lastTracking = await Tracking.findOne({ lot_id: newLotId })
-      .sort({ lot_order: -1 }) // Sort by lot_order in descending order (as a string)
-      .select('lot_order');    // Only select the lot_order field
+      .sort({ lot_order: -1 })
+      .select('lot_order');
 
-    // Determine the next lot_order
-    let nextLotOrder;
-    if (lastTracking && lastTracking.lot_order) {
-      // Convert string to number, increment, and convert back to string
-      const lastLotOrder = parseInt(lastTracking.lot_order, 10) || 0;
-      nextLotOrder = String(lastLotOrder + 1);
-    } else {
-      // Start with '1' if no lot_order exists
-      nextLotOrder = '1';
-    }
+    let nextLotOrder = lastTracking && lastTracking.lot_order ? 
+      String(parseInt(lastTracking.lot_order, 10) + 1) : '1';
 
-    // Update the tracking record
     const updatedTracking = await Tracking.findOneAndUpdate(
       { tracking_id: trackingId },
       { $set: { lot_id: newLotId, lot_order: nextLotOrder } },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedTracking) {
       return res.status(404).json({ error: 'Tracking not found' });
     }
 
-    res.json(updatedTracking); // Respond with the updated tracking record
+    // Update dates for both old and new lots
+    if (oldLotId) {
+      await updateLotDates(oldLotId);
+    }
+    await updateLotDates(newLotId);
+
+    res.json(updatedTracking);
   } catch (err) {
     console.error('Error updating lot_id:', err);
     res.status(500).json({ error: 'Failed to update lot_id' });
   }
 };
 
-
 exports.removeFromLot = async (req, res) => {
   try {
+    const existingTracking = await Tracking.findOne({ tracking_id: req.params.trackingId });
+    const oldLotId = existingTracking ? existingTracking.lot_id : null;
+
     const tracking = await Tracking.findOneAndUpdate(
       { tracking_id: req.params.trackingId },
       {
@@ -275,7 +331,7 @@ exports.removeFromLot = async (req, res) => {
           in_cn: null,
           out_cn: null,
           in_th: null,
-          status: "wait_cn", // Set status to "wait_cn"
+          status: "wait_cn",
         },
       },
       { new: true }
@@ -285,13 +341,17 @@ exports.removeFromLot = async (req, res) => {
       return res.status(404).json({ error: "Tracking not found" });
     }
 
+    // Update the dates for the lot the tracking was removed from
+    if (oldLotId) {
+      await updateLotDates(oldLotId);
+    }
+
     res.json(tracking);
   } catch (err) {
     console.error("Error removing from lot:", err);
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.resetDates = async (req, res) => {
   try {
@@ -302,7 +362,7 @@ exports.resetDates = async (req, res) => {
           in_cn: null,
           out_cn: null,
           in_th: null,
-          status: "wait_cn", // Reset status to "wait_cn"
+          status: "wait_cn",
         },
       },
       { new: true }
@@ -312,9 +372,53 @@ exports.resetDates = async (req, res) => {
       return res.status(404).json({ error: "Tracking not found" });
     }
 
+    // Update the lot dates if this tracking belongs to a lot
+    if (tracking.lot_id) {
+      await updateLotDates(tracking.lot_id);
+    }
+
     res.json(tracking);
   } catch (err) {
     console.error("Error resetting dates:", err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+// Add this method to your TrackingController
+exports.getLotDates = async (req, res) => {
+  const { lotId } = req.params;
+
+  try {
+    // Get all tracking records for this lot
+    const trackingData = await Tracking.find({ lot_id: lotId });
+
+    // Helper function to get mode date
+    const getModeDate = (dates) => {
+      // Filter out null/undefined values and create frequency map
+      const frequency = dates.filter(date => date)
+        .reduce((acc, date) => {
+          acc[date] = (acc[date] || 0) + 1;
+          return acc;
+        }, {});
+
+      // If no valid dates, return null
+      if (Object.keys(frequency).length === 0) return null;
+
+      // Find the mode (date with highest frequency)
+      return Object.entries(frequency)
+        .reduce((a, b) => a[1] > b[1] ? a : b)[0];
+    };
+
+    // Calculate mode dates
+    const dates = {
+      in_cn: getModeDate(trackingData.map(t => t.in_cn)),
+      out_cn: getModeDate(trackingData.map(t => t.out_cn)),
+      in_th: getModeDate(trackingData.map(t => t.in_th))
+    };
+
+    res.json(dates);
+  } catch (err) {
+    console.error('Error calculating lot dates:', err);
+    res.status(500).json({ error: 'Failed to calculate lot dates' });
   }
 };
