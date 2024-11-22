@@ -43,10 +43,15 @@ interface AddressFormProps {
     carrier?: string,
     shippingPayment?: string
   ) => void;
-  onSenderOptionChange: (value: string) => void;
+  onSenderOptionChange: (value: string, senderDetails?: {
+    name: string;
+    address: string;
+    phone: string;
+  }) => void;
   onReceiptOptionChange: (isRequired: boolean) => void;
   taxInfo: TaxInfo | null;
   onTaxInfoChange: (taxInfo: TaxInfo | null) => void;
+  
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({
@@ -111,8 +116,28 @@ const [senderPhone, setSenderPhone] = useState<string>("");
 
   const handleSenderOptionChange = (value: string) => {
     setSenderOption(value);
-    onSenderOptionChange(value);
-  };
+    
+    if (value === "-99") {
+        // Pass null initially when switching to custom sender
+        onSenderOptionChange(value);
+    } else {
+        // Reset sender details when switching away from custom sender
+        setSenderName('');
+        setSenderAddress('');
+        setSenderPhone('');
+        onSenderOptionChange(value);
+    }
+};
+
+useEffect(() => {
+    if (senderOption === "-99" && (senderName || senderAddress || senderPhone)) {
+        onSenderOptionChange(senderOption, {
+            name: senderName,
+            address: senderAddress,
+            phone: senderPhone
+        });
+    }
+}, [senderName, senderAddress, senderPhone, senderOption]);
 
   useEffect(() => {
     const fetchSession = async () => {
