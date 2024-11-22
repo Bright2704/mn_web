@@ -17,6 +17,7 @@ interface TrackingData {
   long: number;
   number: number;
   lot_id: string;
+  lot_order:string;
   in_cn: string;
   out_cn: string;
   in_th: string;
@@ -68,7 +69,7 @@ const TrackingTable: React.FC<TrackingTableProps> = ({
 
     // Define columns with explicit type ColumnsType
     const columns: ColumnsType<TrackingData> = [
-        { title: 'ล็อต/ลำดับ', render: (record: TrackingData) => `${record.lot_type} ${record.lot_id}`, className: 'header-center' },
+        { title: 'ล็อต/ลำดับ', render: (record: TrackingData) => `${record.lot_type} ${record.lot_id}${record.lot_order}`, className: 'header-center' },
         { title: 'รหัสพัสดุ', dataIndex: 'tracking_id', key: 'tracking_id', className: 'header-center' },
         {
             title: 'รูปภาพ',

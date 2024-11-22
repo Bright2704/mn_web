@@ -1,7 +1,8 @@
 // /components/createpayment/PaymentSummary.tsx
 
-import React from 'react';
+import React, {useState }from 'react';
 import { Button, Card, Checkbox,Form,Row,Col } from 'antd';
+
 
 interface PaymentSummaryProps {
     totalAmount: number;
@@ -13,6 +14,8 @@ interface PaymentSummaryProps {
     grandTotal: number;
     balance: number;
     userName: string;
+    notes: string;
+    onNotesChange: (value: string) => void;
 }
 
 const PaymentSummary: React.FC<PaymentSummaryProps> = ({ 
@@ -24,8 +27,18 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
     total,
     grandTotal,
     balance,
-    userName
-}) => {
+    userName,
+    notes,
+    onNotesChange
+}) => {const [isAgreed, setIsAgreed] = useState(false);
+
+    const handleSubmit = () => {
+        if (!isAgreed) {
+            alert('กรุณายอมรับเงื่อนไขและข้อตกลงก่อนดำเนินการต่อ');
+            return;
+        }
+        handleSavePayments();
+    };
     return (
         <>
             {/* <Card title="เงื่อนไขและข้อตกลง" bordered> */}
@@ -137,6 +150,8 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = ({
 
                         {/* Textarea directly below the label */}
                         <textarea
+                            value={notes}
+                            onChange={(e) => onNotesChange(e.target.value)}
                             rows={3}
                             className="ant-input ant-input-lg"
                             placeholder="บ้านเลขที่ ถนน ซอย"

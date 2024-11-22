@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Breadcrumb, Row, Col } from 'antd';
 import axios from 'axios';
 import AddressForm from '../components/createpayment/AddressForm';
@@ -20,6 +20,7 @@ interface TrackingData {
   long: number;
   number: number;
   lot_id: string;
+  lot_order:string;
   in_cn: string;
   out_cn: string;
   in_th: string;
@@ -38,24 +39,57 @@ interface TrackingData {
 
 
 interface Address {
+    userName: string;
+    address: string;
     province: string;
     district: string;
     subdistrict: string;
     postalCode: string;
+    phone: string;
     transport: string;
 }
 
+interface SenderDetails {
+    name: string;
+    address: string;
+    phone: string;
+}
+
+interface TaxInfo {
+    _id: string;  // Added _id field
+    name: string;
+    address: string;
+    phone: string;
+    taxId: string;
+    customerType: string;
+    document: string;
+  }
+
 const CreatePayment: React.FC = () => {
     const router = useRouter();
-    const [trackingData, setTrackingData] = useState<TrackingData[]>([]); // Use TrackingData[] type
+    const [trackingData, setTrackingData] = useState<TrackingData[]>([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const [address, setAddress] = useState<Address>({
+        userName: '',
+        address: '',
         province: '',
         district: '',
         subdistrict: '',
         postalCode: '',
+        phone: '',
         transport: '',
     });
+    
+    const [transportType, setTransportType] = useState('');
+    const [shippingPayment, setShippingPayment] = useState('');
+    const [selectedCarrier, setSelectedCarrier] = useState('');
+    const [senderOption, setSenderOption] = useState('0');
+    const [senderDetails, setSenderDetails] = useState<SenderDetails | null>(null);
+    const [receiptRequired, setReceiptRequired] = useState(false);
+    const [taxInfo, setTaxInfo] = useState<TaxInfo | null>(null);
+    const [balance, setBalance] = useState(0);
+    const [userName, setUserName] = useState('');
+    const [notes, setNotes] = useState('');
     
 
     useEffect(() => {
@@ -80,67 +114,148 @@ const CreatePayment: React.FC = () => {
 
     // Handle address change
     const handleAddressChange = (field: string, value: string) => {
-        setAddress({ ...address, [field]: value });
+        setAddress(prev => ({ ...prev, [field]: value }));
     };
 
     // Handle saving payment
     const handleSavePayments = async () => {
         try {
-            const responseCount = await axios.get('/api/payments');
-            const paymentCount = responseCount.data.length;
-            const paymentNumber = `PAY-${(paymentCount + 1).toString().padStart(4, '0')}`;
-
-            const newPayment = {
-                user_id: trackingData.length > 0 ? trackingData[0].user_id : 'Unknown Customer',
-                tracking: trackingData.map((tracking) => ({
-                    trackingID: tracking.tracking_id,
-                    lotNumber: tracking.lot_id,
-                    price: calculateVolume(tracking.wide, tracking.long, tracking.high) * tracking.number,
-                })),
-                totalPrice: totalAmount,
-                paymentNumber: paymentNumber,
-                date: new Date().toISOString(),
-                address,
-                transport: address.transport,
-            };
-
-            await axios.post('/api/payments', newPayment);
-            alert('Payment has been successfully processed!');
-            router.push('/user/status');
-        } catch (error) {
-            console.error('Failed to process payment:', error);
-            alert('Failed to process payment.');
+          const addressData = {
+            recipientName: address.userName,
+            address: address.address,
+            province: address.province,
+            district: address.district,
+            subdistrict: address.subdistrict,
+            postalCode: address.postalCode,
+            phone: address.phone,
+            transportType,
+            shippingPayment,
+            selectedCarrier,
+            senderOption,
+            senderDetails: senderOption === '-99' ? senderDetails : null,
+            receiptRequired,
+            // Changed this part
+            taxInfo: receiptRequired ? {
+              name: taxInfo?.name,
+              address: taxInfo?.address,
+              phone: taxInfo?.phone,
+              taxId: taxInfo?.taxId,
+              customerType: taxInfo?.customerType,
+              document: taxInfo?.document
+            } : null
+          };
+      
+          const totals = calculateSelectedTotals();
+          const total = totals.serviceFee + totals.weightPrice + totals.volumePrice;
+          const grandTotal = total + transportFee + serviceFee;
+      
+          const paymentData = {
+            agreementAccepted: true,
+            balance,
+            importFee: total,
+            serviceFee,
+            transportFee,
+            paymentType: "ตัดเงินในระบบ",
+            total: grandTotal,
+            notes,
+            status: 'wait'
+          };
+      
+          const trackingsData = trackingData.map(track => ({
+            tracking_id: track.tracking_id,
+            lot_id: track.lot_id,
+            lot_type: track.lot_type,
+            lot_order: track.lot_order
+          }));
+      
+          const createPaymentData = {
+            ...addressData,
+            ...paymentData,
+            trackings: trackingsData,
+            user_id: userName,
+            createdAt: new Date().toISOString(),
+            taxInfo: taxInfo ? {
+              _id: taxInfo._id,
+              name: taxInfo.name,
+              address: taxInfo.address,
+              phone: taxInfo.phone,
+              taxId: taxInfo.taxId,
+              customerType: taxInfo.customerType,
+              document: taxInfo.document
+            } : null
+          };
+      
+          await axios.post('http://localhost:5000/createpayment', createPaymentData);
+      
+          const newBalanceAmount = balance - grandTotal;
+          await axios.post('http://localhost:5000/balances', {
+            user_id: userName,
+            balance_type: 'payment',
+            balance_descri: `Payment for tracking IDs: ${trackingsData.map(t => t.tracking_id).join(', ')}`,
+            balance_amount: -grandTotal,
+            balance_total: newBalanceAmount,
+            balance_date: new Date().toISOString()
+          });
+      
+          alert('Payment has been successfully processed!');
+          router.push('/user/status');
+        } catch (error: any) {
+          console.error('Failed to process payment:', error);
+          alert(error.response?.data?.error || 'Failed to process payment. Please try again.');
         }
-    };
+      };
 
     const [transportFee, setTransportFee] = useState(0);
     const [serviceFee, setServiceFee] = useState(0);
-    const [selectedCarrier, setSelectedCarrier] = useState('');
     const [currentSenderOption, setCurrentSenderOption] = useState('0');
-    const handleTransportTypeChange = (value: string, carrier?: string) => {
-        // Reset values
-        setTransportFee(0);
-        setServiceFee(0);
-        setSelectedCarrier('');
 
-        // Set new values
-        if (value === "-99") {
-            setServiceFee(20);
-            if (carrier) {
-                setTransportFee(250);
-                setSelectedCarrier(carrier);
-            }
-        } else if (value === "2") {
-            setTransportFee(690);
-            setSelectedCarrier("บริษัทจัดส่ง 690 บาท (เฉพาะเขตกรุงเทพ)");
+    const TRANSPORT_LABELS = {
+        "1": "รับสินค้าเอง (รับสินค้าเองได้ทุกวัน 09.00-21.00 น.)",
+        "2": "บริษัทจัดส่ง 690 บาท (เฉพาะเขตกรุงเทพ)",
+        "-99": "ขนส่งเอกชน (แจ้งก่อน 12.00 น.)"
+    };
+
+    const handleTransportTypeChange = (
+        value: string,
+        carrier?: string,
+        shippingPayment?: string
+    ) => {
+        setTransportType(value);
+        
+        // Set carrier based on transport type
+        if (value === "1" || value === "2") {
+            setSelectedCarrier(TRANSPORT_LABELS[value as keyof typeof TRANSPORT_LABELS]);
         } else {
-            setSelectedCarrier("รับสินค้าเอง (รับสินค้าเองได้ทุกวัน 09.00-21.00 น.)");
+            setSelectedCarrier(carrier || '');
+        }
+        
+        setShippingPayment(shippingPayment || '');
+
+        // Reset fees first
+        setServiceFee(0);
+        setTransportFee(0);
+
+        // Calculate new fees
+        let newServiceFee = 0;
+        let newTransportFee = 0;
+
+        // Add sender option fee if it's already set to -99
+        if (senderOption === "-99") {
+            newServiceFee += 10;
         }
 
-        // Restore sender option fee if applicable
-        if (currentSenderOption === "-99") {
-            setServiceFee(prev => prev + 10);
+        // Calculate transport-related fees
+        if (value === "2") {
+            newTransportFee = 690;
+        } else if (value === "-99") {
+            newServiceFee += 20;
+            if (shippingPayment === "0") {
+                newTransportFee = 250;
+            }
         }
+
+        setServiceFee(newServiceFee);
+        setTransportFee(newTransportFee);
     };
     // const handleSenderOptionChange = (value: string) => {
     //     if (value === "-99") {
@@ -153,13 +268,25 @@ const CreatePayment: React.FC = () => {
     //     }
     // };
     const handleSenderOptionChange = (value: string) => {
-        setCurrentSenderOption(value);
+        setSenderOption(value);
+        
+        // Reset and recalculate fees
+        let newServiceFee = 0;
+        let newTransportFee = transportFee; // Keep existing transport fee
+
+        // Add sender option fee
         if (value === "-99") {
-            setServiceFee(prev => prev + 10);
-        } else if (currentSenderOption === "-99") {
-            setServiceFee(prev => Math.max(0, prev - 10));
+            newServiceFee += 10;
         }
+
+        // Add existing transport service fee if applicable
+        if (transportType === "-99") {
+            newServiceFee += 20;
+        }
+
+        setServiceFee(newServiceFee);
     };
+
 
     const calculateSelectedTotals = () => {
         return trackingData.reduce((acc, row) => {
@@ -179,7 +306,7 @@ const CreatePayment: React.FC = () => {
     const total = totals.serviceFee + totals.weightPrice + totals.volumePrice;
     const grandTotal = total + transportFee + serviceFee;
 
-    const [balance, setBalance] = useState(0);
+
 
     useEffect(() => {
         axios.get("http://localhost:5000/balances")
@@ -192,7 +319,7 @@ const CreatePayment: React.FC = () => {
             .catch((error) => console.error("Error fetching balance:", error));
     }, []);
 
-    const [userName, setUserName] = useState('');
+
 
     useEffect(() => {
         const fetchSession = async () => {
@@ -207,25 +334,47 @@ const CreatePayment: React.FC = () => {
         fetchSession();
     }, []);
 
+    const handleNotesChange = (value: string) => {
+        setNotes(value);
+    };
+
+    const handleReceiptOptionChange = (isRequired: boolean) => {
+        setReceiptRequired(isRequired);
+        if (!isRequired) {
+            setTaxInfo(null);
+        }
+    };
+
+    const handleTaxInfoChange = (newTaxInfo: TaxInfo | null) => {
+        setTaxInfo(newTaxInfo);
+    };
+
 
     return (
         <main style={{ padding: '24px 16px', background: 'rgb(240, 242, 245)' }}>
             {/* Breadcrumb for navigation */}
-            <Breadcrumb>
-                <Breadcrumb.Item>
-                    <a href="/user/status">เช็คสถานะสินค้าและแจ้งนำออก</a>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item>ชำระเงินค่าขนส่งสินค้า</Breadcrumb.Item>
-            </Breadcrumb>
+            <Breadcrumb
+  items={[
+    {
+      title: <a href="/user/status">เช็คสถานะสินค้าและแจ้งนำออก</a>
+    },
+    {
+      title: 'ชำระเงินค่าขนส่งสินค้า'
+    }
+  ]}
+/>
 
             {/* Address Form and Payment Summary */}
             <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
                 <Col lg={15} xl={14}>
                 <AddressForm 
-            address={address} 
+            address={address}
             handleAddressChange={handleAddressChange}
             onTransportChange={handleTransportTypeChange}
             onSenderOptionChange={handleSenderOptionChange}
+            onReceiptOptionChange={handleReceiptOptionChange}
+            onTaxInfoChange={handleTaxInfoChange}
+            taxInfo={taxInfo}
         />
                 </Col>
                 <Col lg={11} xl={9}>
@@ -239,20 +388,20 @@ const CreatePayment: React.FC = () => {
                         grandTotal={total + transportFee + serviceFee}
                         balance={balance}
                         userName={userName}
+                        notes={notes}
+                        onNotesChange={handleNotesChange}
                     />
                 </Col>
             </Row>
 
-            {/* Tracking Table for tracking data */}
             <TrackingTable 
-    trackingData={trackingData}
-    calculateVolume={calculateVolume}
-    calculateSum={calculateSum}
-    transportFee={transportFee}
-    serviceFee={serviceFee}
-/>
+                trackingData={trackingData}
+                calculateVolume={calculateVolume}
+                calculateSum={calculateSum}
+                transportFee={transportFee}
+                serviceFee={serviceFee}
+            />
 
-            {/* Color status component */}
             <ColorStatus />
         </main>
     );
