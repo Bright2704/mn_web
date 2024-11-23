@@ -1,6 +1,6 @@
 const TransportData = {
     companies : [
-        "รับที่โกดัง",
+        "ขนส่งเอกชนอื่นๆ (ระบุในช่องหมายเหตุ)",
         "Kerry Express",
         "Flash Express",
         "J&T Express",

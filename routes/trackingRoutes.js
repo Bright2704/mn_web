@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const TrackingController = require('../controllers/TrackingController');
 
-// Configure storage for multer
+// Configure storage for multer (keep your existing multer configuration)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     if (file.fieldname === 'trackingFile') {
@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// Configure multer upload
+// Configure multer upload (keep your existing multer configuration)
 const upload = multer({
   storage: storage,
   limits: { fileSize: 5000000 },
@@ -41,22 +41,20 @@ const upload = multer({
   { name: 'trackingImages', maxCount: 10 }
 ]);
 
-// Define routes
+// Define routes - Reordered for proper routing
+// Specific routes first
 router.get('/search', TrackingController.searchTracking);
-router.get('/', TrackingController.getAllTracking);
-router.get('/:trackingId', TrackingController.getTrackingById);
+router.get('/lot-dates/:lotId', TrackingController.getLotDates);
 router.get('/lot/:lotId', TrackingController.getTrackingByLotId);
 
-router.post('/', (req, res) => {
-  upload(req, res, function(err) {
-    if (err) {
-      console.error('Error uploading files:', err);
-      return res.status(500).json({ error: 'Error uploading files' });
-    }
-    TrackingController.createTracking(req, res, req.files);
-  });
-});
+// CRUD operations with ID parameters
+router.put('/:trackingId/updateFields', TrackingController.updateTrackingFields);
+router.put('/:trackingId/update-lot-id', TrackingController.updateLotId);
+router.put('/:trackingId/removeFromLot', TrackingController.removeFromLot);
+router.put('/:trackingId/resetDates', TrackingController.resetDates);
 
+// Generic ID route
+router.get('/:trackingId', TrackingController.getTrackingById);
 router.put('/:trackingId', (req, res) => {
   upload(req, res, function(err) {
     if (err) {
@@ -67,9 +65,16 @@ router.put('/:trackingId', (req, res) => {
   });
 });
 
-router.put('/:trackingId/updateFields', TrackingController.updateTrackingFields);
-router.put('/:trackingId/update-lot-id', TrackingController.updateLotId);
-router.put('/:trackingId/removeFromLot', TrackingController.removeFromLot);
-router.put('/:trackingId/resetDates', TrackingController.resetDates);
+// Most generic routes last
+router.get('/', TrackingController.getAllTracking);
+router.post('/', (req, res) => {
+  upload(req, res, function(err) {
+    if (err) {
+      console.error('Error uploading files:', err);
+      return res.status(500).json({ error: 'Error uploading files' });
+    }
+    TrackingController.createTracking(req, res, req.files);
+  });
+});
 
 module.exports = router;
