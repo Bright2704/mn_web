@@ -57,37 +57,45 @@ const BalancePage: React.FC = () => {
 
   return (
     <div className="card">
-      <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
+      <div className="flex justify-between items-center px-2 py-2 mt-2 mb-2">
         <h3 className="font-weight-bolder text-lg font-semibold">สมุดบัญชี</h3>
         <div className="d-flex align-items-center" style={{ gap: "24px" }}>
           {/* Total Amount Information */}
           <div>
             {/* Action Buttons */}
-            <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+            <div className="d-flex align-items-center px-5 py-3 rounded-2xl" 
+                style={{  gap: "20px" , 
+                          backgroundColor:'#f8d7da',
+                          boxShadow:'0 0 15px rgba(0, 0, 0, 0.1)'}}>
               <p
                 className="mb-1"
-                style={{ color: "#198754", fontSize: "24px" }}
+                style={{ color: "#721c24", fontSize: "24px" }}
               >
                 ยอดเงินในระบบ{" "}
               </p>
               <div className="bg-light p-2 rounded">
                 <h5
                   className="mb-0"
-                  style={{ color: "#198754", fontSize: "30px" }}
+                  style={{ color: "#721c24", fontSize: "30px" }}
                 >
                   {totalAmount.toLocaleString()} ฿
                 </h5>
               </div>
-              <a href="/user/wallet/deposit">
-                <button type="button" className="btn btn-primary">
-                  <span>เติมเงิน</span>
-                </button>
-              </a>
-              <a href="/user/wallet/withdraw">
-                <button type="button" className="btn btn-secondary">
-                  <span>ถอนเงิน</span>
-                </button>
-              </a>
+              <div className="flex flex-row ml-2" style={{boxShadow:'0 0 15px rgba(0, 0, 0, 0.1)'}}>
+                <a href="/user/wallet/deposit">
+                  <button type="button" /* className="btn btn-primary" */ 
+                  className="transition-all duration-200 text-white bg-blue-600 px-3 py-2 hover:bg-blue-800" 
+                  style={{  borderRadius:'10px 0 0 10px'}}>
+                    <span> + เติมเงิน</span>
+                  </button>
+                </a>
+                <a href="/user/wallet/withdraw">
+                  <button type="button" /* className="btn btn-secondary" */ className="transition-all duration-200 text-white bg-red-600 px-3 py-2 hover:bg-red-800" style={{borderRadius:'0 10px 10px 0'}}>
+                    <span>- ถอนเงิน</span>
+                  </button>
+                </a>
+              </div>
+              
             </div>
           </div>
         </div>

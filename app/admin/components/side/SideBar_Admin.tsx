@@ -164,9 +164,9 @@ const SideBar2 = () => {
       </div>
       <div>
       <button
-        className="sidebar-btn fixed top-0 py-3 px-3 rounded-md"
+        className="sidebar-btn fixed top-0 rounded-md"
         onClick={toggleSidebar}
-        style={{ zIndex: 99 }}
+        style={{ zIndex: 99 , padding:'0.75rem'}}
       >
         <Image src="/angle-circle-left.png" alt='button icon' width={20} height={20} style={{transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition:"transform 0.2s ease-out"}}/>
       </button>
@@ -178,8 +178,9 @@ const SideBar2 = () => {
           transition: 'width .2s ease', // Smooth transition
           fontFamily: anuphan.style.fontFamily,
         }}>
-          <Link href="/" style={{margin:'0', padding:'0'}}>
-          <Image className='sidebar-logo' src="/logo_MN1688_rmb.png" alt='web logo' width={100} height={100} />
+          <Link href="/" style={{margin:'0', padding:'0',display:'flex',justifyContent:'center'}}>
+          <Image className='sidebar-logo2' src="/new_logo_mn2.png" alt='web logo' width={50} height={50} style={{display: isCollapsed ? 'block' : 'none'}}/>
+          <Image className='sidebar-logo' src="/new_logo_mn.png" alt='web logo' width={300} height={100} style={{display: isCollapsed ? 'none' : 'block'}}/>
           </Link>
         
       <ul>

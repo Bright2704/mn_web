@@ -164,28 +164,31 @@ const DepositPage: React.FC = () => {
           {/* Total Amount Information */}
           <div>
             {/* Action Buttons */}
-            <div className="d-flex align-items-center" style={{ gap: "20px" }}>
+            <div className="d-flex align-items-center px-5 py-3 rounded-2xl" 
+                style={{  gap: "20px" , 
+                          backgroundColor:'#f8d7da',
+                          boxShadow:'0 0 15px rgba(0, 0, 0, 0.1)'}}>
               <p
                 className="mb-1"
-                style={{ color: "#198754", fontSize: "24px" }}
+                style={{ color: "#721c24", fontSize: "24px" }}
               >
                 ยอดเงินในระบบ{" "}
               </p>
               <div className="bg-light p-2 rounded">
                 <h5
                   className="mb-0"
-                  style={{ color: "#198754", fontSize: "30px" }}
+                  style={{ color: "#721c24", fontSize: "24px" }}
                 >
                   {totalAmount.toLocaleString()} ฿
                 </h5>
               </div>
               <button
-          className="btn btn-success px-4 py-2.5 ml-2 mr-10"
-          style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
-          onClick={() => setShowModal(true)}
-        >
-          เติมเงินเข้าระบบ
-        </button>
+                className="transition-all duration-200 text-white bg-blue-600 px-3 py-2 hover:bg-blue-800 ml-2"
+                style={{ /* backgroundColor: '#dc3545', borderColor: '#dc3545', */boxShadow:'0 0 15px rgba(0, 0, 0, 0.1)',borderRadius:'10px'}}
+                onClick={() => setShowModal(true)}
+              >
+                เติมเงินเข้าระบบ
+              </button>
             </div>
           </div>
         </div>

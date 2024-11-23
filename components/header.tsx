@@ -51,17 +51,17 @@ const NavBar = () => {
                 mr-10
               "
             >
-              <li className="py-3"><Link href="#">ภาษา</Link></li>
-              <li className="py-3"><Link href="/"> หน้าแรก </Link></li>
+              <li style={{paddingBlock:'0.75rem'}}><Link href="#">ภาษา</Link></li>
+              <li style={{paddingBlock:'0.75rem'}}><Link href="/"> หน้าแรก </Link></li>
               {!session ? (
                 <>
-                  <li className="py-3">
+                  <li style={{paddingBlock:'0.75rem'}}>
                     <Link href="/login">ลงชื่อเข้าใช้งาน</Link>
                   </li>
                 </>
               ) : (
                 <>
-                  <li className="user-dropdown h-full py-3">
+                  <li className="user-dropdown h-full" style={{paddingBlock:'0.75rem'}}>
                     <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
                       <FaUser className="text-lg" /> {/* User icon */}
                       {userId && <span>{userId}</span>} {/* Display the user_id */}
