@@ -86,12 +86,12 @@ const BalancePage: React.FC = () => {
                   <button type="button" /* className="btn btn-primary" */ 
                   className="transition-all duration-200 text-white bg-blue-600 px-3 py-2 hover:bg-blue-800" 
                   style={{  borderRadius:'10px 0 0 10px'}}>
-                    <span> + เติมเงิน</span>
+                    <span> + เติมเงินเข้าระบบ</span>
                   </button>
                 </a>
                 <a href="/user/wallet/withdraw">
                   <button type="button" /* className="btn btn-secondary" */ className="transition-all duration-200 text-white bg-red-600 px-3 py-2 hover:bg-red-800" style={{borderRadius:'0 10px 10px 0'}}>
-                    <span>- ถอนเงิน</span>
+                    <span>- ถอนเงินออกจากระบบ</span>
                   </button>
                 </a>
               </div>
