@@ -35,6 +35,7 @@ interface TrackingData {
   lot_type: string;
   cal_price: number;
   type_cal: "weightPrice" | "volumePrice";
+  user_rate: string;
 }
 
 interface Address {
@@ -103,19 +104,21 @@ const CreatePayment: React.FC = () => {
     setTrackingData(loadedTrackingData);
   }, []);
 
+  const calculateVolume = (wide: number, long: number, high: number) =>
+    (wide * long * high) / 1000000;
+
   useEffect(() => {
     const total = trackingData.reduce(
-      (sum, tracking) =>
-        sum +
-        calculateVolume(tracking.wide, tracking.long, tracking.high) *
-          tracking.number,
-      0
+        (sum, tracking) =>
+            sum +
+            ((tracking.wide * tracking.long * tracking.high) / 1000000) *
+            tracking.number,
+        0
     );
     setTotalAmount(total);
-  }, [trackingData]);
+}, [trackingData]);
 
-  const calculateVolume = (wide: number, long: number, high: number) =>
-    (wide * long * high) / 1000;
+  
 
   const calculateSum = (key: keyof TrackingData) => {
     return trackingData.reduce(
@@ -207,21 +210,34 @@ const CreatePayment: React.FC = () => {
           : null,
       };
 
-      await axios.post(
+      // Create payment and get the payment ID
+      const paymentResponse = await axios.post(
         "http://localhost:5000/createpayment",
         createPaymentData
       );
+      const pay_id = paymentResponse.data.pay_id;  // Assuming the API returns the payment ID
+
+      // Get next balance ID
+      const nextBalanceIdResponse = await axios.get('http://localhost:5000/balances/next-id');
+      const newBalanceId = nextBalanceIdResponse.data.nextId;
 
       const newBalanceAmount = balance - grandTotal;
       await axios.post("http://localhost:5000/balances", {
+        balance_id: newBalanceId,
         user_id: userName,
         balance_type: "payment",
-        balance_descri: `Payment for tracking IDs: ${trackingsData
-          .map((t) => t.tracking_id)
-          .join(", ")}`,
-        balance_amount: -grandTotal,
+        balance_descri: `รายการชำระค่านำเข้า ${pay_id}`,
+        balance_amount: grandTotal,
         balance_total: newBalanceAmount,
-        balance_date: new Date().toISOString(),
+        balance_date: new Date()
+          .toLocaleString('th-TH', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          .replace(',', '')
       });
 
       alert("Payment has been successfully processed!");
@@ -446,12 +462,11 @@ const CreatePayment: React.FC = () => {
       </Row>
 
       <TrackingTable
-        trackingData={trackingData}
-        calculateVolume={calculateVolume}
-        calculateSum={calculateSum}
-        transportFee={transportFee}
-        serviceFee={serviceFee}
-      />
+    trackingData={trackingData}
+    calculateSum={calculateSum}
+    transportFee={transportFee}
+    serviceFee={serviceFee}
+/>
 
       <ColorStatus />
     </main>

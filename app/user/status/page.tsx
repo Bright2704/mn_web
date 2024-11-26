@@ -16,6 +16,7 @@ import { Modal } from "antd";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { getSession } from "next-auth/react"; // Import getSession
+import ColorStatus from "../components/StatusStyle";
 
 interface TrackingData {
   tracking_id: string;
@@ -40,6 +41,7 @@ interface TrackingData {
   lot_type: string;
   cal_price: number;
   type_cal: "weightPrice" | "volumePrice";
+  user_rate: string;
 }
 
 const StatusPage: React.FC = () => {
@@ -82,9 +84,9 @@ const StatusPage: React.FC = () => {
         if (userId) {
           const { data } = await axios.get("http://localhost:5000/tracking");
 
-          // Filter tracking data by the current userId
+          // Filter tracking data by the current userId AND lot_id exists
           const filteredData = data.filter(
-            (item: TrackingData) => item.user_id === userId
+            (item: TrackingData) => item.user_id === userId && item.lot_id
           );
           setTrackingData(filteredData);
         }
@@ -102,12 +104,16 @@ const StatusPage: React.FC = () => {
 
   // Handle selecting/deselecting rows
   const handleSelectRow = (index: number) => {
-    if (selectedRows.includes(index)) {
-      setSelectedRows(selectedRows.filter((i) => i !== index));
-    } else {
-      setSelectedRows([...selectedRows, index]);
+    const tracking = trackingData[index];
+    // Only allow selection if in_th has a value
+    if (tracking.in_th) {
+        if (selectedRows.includes(index)) {
+            setSelectedRows(selectedRows.filter((i) => i !== index));
+        } else {
+            setSelectedRows([...selectedRows, index]);
+        }
     }
-  };
+};
 
   // Sum Calculation
   const calculateSum = (key: keyof TrackingData) => {
@@ -181,32 +187,70 @@ const StatusPage: React.FC = () => {
   // Select All Rows
   const handleSelectAll = () => {
     if (allSelected) {
-      setSelectedRows([]); // Deselect all
+        setSelectedRows([]); // Deselect all
     } else {
-      setSelectedRows(Array.from(Array(trackingData.length).keys())); // Select all rows
+        // Only select rows that have in_th value
+        const selectableIndices = trackingData
+            .map((tracking, index) => tracking.in_th ? index : -1)
+            .filter(index => index !== -1);
+        setSelectedRows(selectableIndices);
     }
     setAllSelected(!allSelected);
-  };
+};
+
   const calculateSelectedTotals = () => {
     let importCost = 0;
     let totalCost = 0;
 
-    selectedRows.forEach(index => {
+    selectedRows.forEach((index) => {
       const row = trackingData[index];
       importCost += row.cal_price * row.number;
-      totalCost += (row.cal_price * row.number) + 
-                   row.check_product_price +
-                   row.new_wrap +
-                   row.transport + 
-                   row.price_crate +
-                   row.other;
+      totalCost +=
+        row.cal_price * row.number +
+        row.check_product_price +
+        row.new_wrap +
+        row.transport +
+        row.price_crate +
+        row.other;
     });
 
     return { importCost, totalCost };
   };
-  
 
- 
+  const getRowClassName = (tracking: TrackingData) => {
+    const hasCheckProduct = tracking.check_product_price > 0;
+    const hasCrate = tracking.price_crate > 0;
+    let colorClass = "";
+
+    if (hasCheckProduct && hasCrate) {
+      // Yellow background for both check and crate
+      colorClass = "bg-[#F9FFA5]"; // or use 'bg-[rgb(249,255,165)]'
+    } else if (hasCheckProduct) {
+      // Green background for check only
+      colorClass = "bg-[#A5FFC5]"; // or use 'bg-[rgb(165,255,197)]'
+    } else if (hasCrate) {
+      // Orange background for crate only
+      colorClass = "bg-[#FFDFA5]"; // or use 'bg-[rgb(255,223,165)]'
+    }
+
+    // Combine with text-center class
+    return `text-center ${colorClass}`;
+  };
+
+  const getRowStyle = (tracking: TrackingData) => {
+    const hasCheckProduct = tracking.check_product_price > 0;
+    const hasCrate = tracking.price_crate > 0;
+
+    if (hasCheckProduct && hasCrate) {
+        return { backgroundColor: 'rgb(249, 255, 165)' }; // Yellow
+    } else if (hasCheckProduct) {
+        return { backgroundColor: 'rgb(165, 255, 197)' }; // Green
+    } else if (hasCrate) {
+        return { backgroundColor: 'rgb(255, 223, 165)' }; // Orange
+    }
+    return {};
+};
+
   return (
     <div className="card">
       <Head>
@@ -220,8 +264,13 @@ const StatusPage: React.FC = () => {
               style={{ maxWidth: "1200px", width: "100%" }}
             >
               {/* First Card */}
-              <Col xs={24} sm={8} lg={6} xl={6} 
-                style={{ display: "flex", justifyContent: "center" }}>
+              <Col
+                xs={24}
+                sm={8}
+                lg={6}
+                xl={6}
+                style={{ display: "flex", justifyContent: "center" }}
+              >
                 <StatusCard
                   card={{
                     title: "จำนวนรายการ",
@@ -233,12 +282,19 @@ const StatusPage: React.FC = () => {
               </Col>
 
               {/* Second Card */}
-              <Col xs={24} sm={8} lg={6} xl={6} 
-                style={{ display: "flex", justifyContent: "center" }}>
+              <Col
+                xs={24}
+                sm={8}
+                lg={6}
+                xl={6}
+                style={{ display: "flex", justifyContent: "center" }}
+              >
                 <StatusCard
                   card={{
                     title: "ค่านำเข้า",
-                    count: `${calculateSelectedTotals().importCost.toFixed(2)} ฿`,
+                    count: `${calculateSelectedTotals().importCost.toFixed(
+                      2
+                    )} ฿`,
                     backgroundColor: "rgb(255, 153, 177)",
                     color: "white",
                   }}
@@ -246,12 +302,19 @@ const StatusPage: React.FC = () => {
               </Col>
 
               {/* Third Card */}
-              <Col xs={24} sm={8} lg={6} xl={6} 
-                style={{ display: "flex", justifyContent: "center" }}>
+              <Col
+                xs={24}
+                sm={8}
+                lg={6}
+                xl={6}
+                style={{ display: "flex", justifyContent: "center" }}
+              >
                 <StatusCard
                   card={{
                     title: "ยอดที่ต้องชำระ",
-                    count: `${calculateSelectedTotals().totalCost.toFixed(2)} ฿`,
+                    count: `${calculateSelectedTotals().totalCost.toFixed(
+                      2
+                    )} ฿`,
                     backgroundColor: "rgb(255, 153, 177)",
                     color: "white",
                   }}
@@ -286,13 +349,17 @@ const StatusPage: React.FC = () => {
         <table className="table table-width-1" style={{ fontSize: 12 }}>
           <thead>
             <tr className="text-center">
-              <th>
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={handleSelectAll}
-                />
-              </th>
+            <th>
+    <input
+        type="checkbox"
+        checked={allSelected}
+        onChange={handleSelectAll}
+        disabled={!trackingData.some(item => item.in_th)}
+        style={{ 
+            cursor: trackingData.some(item => item.in_th) ? 'pointer' : 'not-allowed' 
+        }}
+    />
+</th>
               <th>ล็อต/ลำดับ</th>
               <th>รหัสพัสดุ</th>
               <th>รูปภาพ</th>
@@ -305,34 +372,9 @@ const StatusPage: React.FC = () => {
               <th>ยาว</th>
               <th>คิว.</th>
               <th>ประเภท</th>
-
-              <th>
-                <Tooltip
-                  title={
-                    <div>
-                      {
-                        trackingData.map((tracking) => (
-                          <div key={tracking.tracking_id}>
-                            <p>
-                              ค่าเช็คสินค้า:{" "}
-                              {tracking.check_product_price?.toFixed(2)}
-                            </p>
-                            <p>ค่าห่อใหม่: {tracking.new_wrap?.toFixed(2)}</p>
-                            <p>ค่าขนส่งจีน: {tracking.transport?.toFixed(2)}</p>
-                            <p>ค่าตีลัง: {tracking.price_crate?.toFixed(2)}</p>
-                            <p>ค่าอื่นๆ: {tracking.other?.toFixed(2)}</p>
-                          </div>
-                        ))[0]
-                      }
-                    </div>
-                  }
-                >
-                  ค่าบริการ <QuestionCircleOutlined />
-                </Tooltip>
-              </th>
-
-              <th>เข้าโกดังจีน</th>
-              <th>ออกจากจีน</th>
+              <th>ค่าบริการ</th>
+              {/* <th>เข้าโกดังจีน</th>
+              <th>ออกจากจีน</th> */}
               <th>ถึงไทย</th>
               <th>ราคากิโล</th>
               <th>ราคาคิว</th>
@@ -368,17 +410,21 @@ const StatusPage: React.FC = () => {
                   (sum, row) =>
                     sum + calculateVolume(row.wide, row.long, row.high),
                   0
-                )}
+                ).toFixed(4)}
               </td>
               <td></td>
-              <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>{(calculateSum("check_product_price")
-              +calculateSum("new_wrap")
-              +calculateSum("transport")
-              +calculateSum("price_crate")
-              +calculateSum("other")).toFixed(2)}</td>
+              <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
+                {(
+                  calculateSum("check_product_price") +
+                  calculateSum("new_wrap") +
+                  calculateSum("transport") +
+                  calculateSum("price_crate") +
+                  calculateSum("other")
+                ).toFixed(2)}
+              </td>
               <td></td>
-              <td></td>
-              <td></td>
+              {/* <td></td>
+              <td></td> */}
               <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
                 {trackingData.reduce(
                   (sum, row) =>
@@ -387,7 +433,7 @@ const StatusPage: React.FC = () => {
                       ? row.cal_price * row.number
                       : 0),
                   0
-                )}
+                ).toFixed(2)}
               </td>
               <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
                 {trackingData.reduce(
@@ -397,20 +443,26 @@ const StatusPage: React.FC = () => {
                       ? 0
                       : row.cal_price * row.number),
                   0
-                )}
+                ).toFixed(2)}
               </td>
             </tr>
 
             {/* Data Rows */}
             {trackingData.length > 0 ? (
-              trackingData.map((tracking, index) => (
-                <tr key={index} className="text-center">
+    trackingData.map((tracking, index) => (
+        <tr
+            key={index}
+            className="text-center"
+            style={getRowStyle(tracking)}
+        >
                   <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedRows.includes(index)}
-                      onChange={() => handleSelectRow(index)}
-                    />
+                  <input
+    type="checkbox"
+    checked={selectedRows.includes(index)}
+    onChange={() => handleSelectRow(index)}
+    disabled={!tracking.in_th} // Disable checkbox if in_th is empty
+    style={{ cursor: tracking.in_th ? 'pointer' : 'not-allowed' }}
+/>
                   </td>
                   <td>
                     {tracking.lot_type} {tracking.lot_id}
@@ -462,30 +514,45 @@ const StatusPage: React.FC = () => {
                       tracking.wide,
                       tracking.long,
                       tracking.high
-                    )}
+                    ).toFixed(4)}
                   </td>
-                  <td>{tracking.type_item}</td>
+                  <td>{tracking.user_rate}</td>
                   <td>
-                    {(
-                      tracking.check_product_price +
-                      tracking.new_wrap +
-                      tracking.transport +
-                      tracking.price_crate +
-                      tracking.other
-                    ).toFixed(2)}
+                    <Tooltip
+                      title={
+                        <div>
+                          <p>
+                            ค่าเช็คสินค้า:{" "}
+                            {tracking.check_product_price?.toFixed(2)}
+                          </p>
+                          <p>ค่าห่อใหม่: {tracking.new_wrap?.toFixed(2)}</p>
+                          <p>ค่าขนส่งจีน: {tracking.transport?.toFixed(2)}</p>
+                          <p>ค่าตีลัง: {tracking.price_crate?.toFixed(2)}</p>
+                          <p>ค่าอื่นๆ: {tracking.other?.toFixed(2)}</p>
+                        </div>
+                      }
+                    >
+                      {(
+                        tracking.check_product_price +
+                        tracking.new_wrap +
+                        tracking.transport +
+                        tracking.price_crate +
+                        tracking.other
+                      ).toFixed(2)}
+                    </Tooltip>
                   </td>
-                  <td>{tracking.in_cn}</td>
-                  <td>{tracking.out_cn}</td>
+                  {/* <td>{tracking.in_cn}</td>
+                  <td>{tracking.out_cn}</td> */}
                   <td>{tracking.in_th}</td>
                   <td>
                     {tracking.type_cal === "weightPrice"
-                      ? tracking.cal_price * tracking.number
+                      ? (tracking.cal_price * tracking.number).toFixed(2)
                       : 0}
                   </td>
                   <td>
                     {tracking.type_cal === "weightPrice"
                       ? 0
-                      : tracking.cal_price * tracking.number}
+                      : (tracking.cal_price * tracking.number).toFixed(2)}
                   </td>
                 </tr>
               ))
@@ -521,17 +588,21 @@ const StatusPage: React.FC = () => {
                   (sum, row) =>
                     sum + calculateVolume(row.wide, row.long, row.high),
                   0
-                )}
+                ).toFixed(4)}
               </td>
               <td></td>
-              <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>{(calculateSum("check_product_price")
-              +calculateSum("new_wrap")
-              +calculateSum("transport")
-              +calculateSum("price_crate")
-              +calculateSum("other")).toFixed(2)}</td>
+              <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
+                {(
+                  calculateSum("check_product_price") +
+                  calculateSum("new_wrap") +
+                  calculateSum("transport") +
+                  calculateSum("price_crate") +
+                  calculateSum("other")
+                ).toFixed(2)}
+              </td>
               <td></td>
-              <td></td>
-              <td></td>
+              {/* <td></td>
+              <td></td> */}
               <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
                 {trackingData.reduce(
                   (sum, row) =>
@@ -540,7 +611,7 @@ const StatusPage: React.FC = () => {
                       ? row.cal_price * row.number
                       : 0),
                   0
-                )}
+                ).toFixed(2)}
               </td>
               <td style={{ backgroundColor: "rgb(255, 167, 163)" }}>
                 {trackingData.reduce(
@@ -550,7 +621,7 @@ const StatusPage: React.FC = () => {
                       ? 0
                       : row.cal_price * row.number),
                   0
-                )}
+                ).toFixed(2)}
               </td>
             </tr>
           </tbody>
@@ -622,7 +693,7 @@ const StatusPage: React.FC = () => {
           </button>
         </Modal>
 
-        {/* <ColorStatus /> */}
+        <ColorStatus />
       </main>
     </div>
   );

@@ -13,8 +13,6 @@ const StatusStyle: React.FC = () => {
         { label: 'เช็คสินค้า / ตีลังไม้', color: 'rgb(249, 255, 165)' },
         { label: 'เช็คสินค้า', color: 'rgb(165, 255, 197)' },
         { label: 'ตีลัง', color: 'rgb(255, 223, 165)' },
-        { label: 'ไม่มีราคา', color: 'rgb(255, 12, 0)' },
-        { label: 'claim', color: 'rgb(231, 137, 255)' }
     ];
 
     return (
