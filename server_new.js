@@ -2,10 +2,21 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
+const http = require('http');
+const socketIO = require('socket.io');
+const path = require('path'); // Add this line
 
 const app = express();
-const port = 5000;
+const server = http.createServer(app);
+const io = socketIO(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Store io instance in app for use in controllers
+app.set('io', io);
 
 // Middleware
 app.use(cors());
@@ -18,6 +29,16 @@ mongoose.connect('mongodb://127.0.0.1:27017/MN_TEST', {
 })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
+
+// Socket.IO Connection Handling
+io.on('connection', (socket) => {
+  console.log('Client connected');
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
 
 // Route Imports
 const orderRoutes = require('./routes/orderRoutes');
@@ -34,6 +55,7 @@ const createPaymentRoutes = require('./routes/createPaymentRoutes');
 const taxInfoRoutes = require('./routes/taxInfoRoutes');
 const announcementRoutes = require('./routes/announcement'); 
 // const notificationRoutes = require('./routes/notificationRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 app.use('/storage', express.static(path.join(__dirname, 'public/storage')));
 
@@ -51,7 +73,9 @@ app.use('/createpayment', createPaymentRoutes);
 app.use('/tax_info', taxInfoRoutes);
 app.use('/api/announcement', announcementRoutes);
 // app.use('/api/notification', notificationRoutes);
+app.use('/chats', chatRoutes);
 
 app.use((req, res) => res.status(404).send('Not Found'));
 
-app.listen(port, () => console.log(`Server started on http://localhost:${port}`));
+const port = 5000;
+server.listen(port, () => console.log(`Server started on http://localhost:${port}`));

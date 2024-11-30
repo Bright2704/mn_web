@@ -192,7 +192,7 @@ const SideBar2 = () => {
             fontFamily: anuphan.style.fontFamily,
             }}>
             <Link href="/" style={{margin:'0', padding:'0', display:'flex', justifyContent:'center'}}>
-                <Image className='sidebar-logo2' src="/new_logo_mn2.png" alt='web logo' width={50} height={50} style={{display: isCollapsed ? 'block' : 'none'}}/>
+                <Image className='sidebar-logo2' src="/MN_small_logo.jpg" alt='web logo' width={50} height={50} style={{display: isCollapsed ? 'block' : 'none'}}/>
                 <Image className='sidebar-logo' src="/new_logo_mn.png" alt='web logo' width={300} height={100} style={{display: isCollapsed ? 'none' : 'block'}}/>
             </Link>
 

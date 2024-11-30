@@ -1,21 +1,35 @@
 // models/Chat.js
 const mongoose = require('mongoose');
 
-const ChatSchema = new mongoose.Schema({
-  chat_id: String,
-  user_id: String,
-  status: {
+const MessageSchema = new mongoose.Schema({
+  content: String,
+  sender: {
     type: String,
-    enum: ['active', 'closed'],
-    default: 'active'
+    enum: ['user', 'admin']
   },
-  created_at: {
+  timestamp: {
     type: Date,
     default: Date.now
   },
-  updated_at: {
-    type: Date,
-    default: Date.now
+  read: {
+    type: Boolean,
+    default: false
+  }
+});
+
+const ChatSchema = new mongoose.Schema({
+  chat_id: {
+    type: String,
+    unique: true
+  },
+  user_id: String,
+  user_name: String,
+  messages: [MessageSchema],
+  lastMessage: String,
+  lastMessageTime: Date,
+  unreadCount: {
+    type: Number,
+    default: 0
   }
 });
 

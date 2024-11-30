@@ -4,9 +4,9 @@ const router = express.Router();
 const ChatController = require('../controllers/ChatController');
 
 router.get('/', ChatController.getAllChats);
-router.post('/', ChatController.createChat);
-router.get('/:chatId/messages', ChatController.getChatMessages);
-router.post('/message', ChatController.sendMessage);
-router.put('/:chatId/read', ChatController.markAsRead);
+router.get('/:id', ChatController.getChatById);
+router.post('/', ChatController.createOrGetChat);  // Changed this route
+router.post('/:id/messages', ChatController.addMessage);
+router.put('/:id/read', ChatController.markMessagesAsRead);
 
 module.exports = router;

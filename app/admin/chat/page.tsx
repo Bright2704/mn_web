@@ -1,14 +1,17 @@
+// pages/admin/chat.tsx
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, MessageSquare } from 'lucide-react';
-import { socketService } from '../../services/socketService';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:5000');
 
 interface ChatMessage {
-  message_id: string; // Changed from id to match backend
+  id: string;
   content: string;
-  sender_type: 'user' | 'admin'; // Changed from sender to match backend
-  created_at: string; // Changed from timestamp to match backend
-  chat_id: string;
+  sender: 'user' | 'admin';
+  timestamp: string;
   read: boolean;
 }
 
@@ -17,6 +20,7 @@ interface ChatUser {
   name: string;
   lastMessage: string;
   lastMessageTime: string;
+  timestamp: Date;  // Add this
   unreadCount: number;
   avatar?: string;
 }
@@ -28,137 +32,162 @@ const AdminChatPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Function to fetch all chats
+  const fetchChats = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/chats');
+      const data = await response.json();
+      
+      const formattedUsers: ChatUser[] = data.map((chat: any) => ({
+        id: chat.chat_id || '',
+        name: chat.user_name || 'Unknown User',
+        lastMessage: chat.lastMessage || '',
+        lastMessageTime: chat.lastMessageTime ? new Date(chat.lastMessageTime).toLocaleString() : '',
+        timestamp: chat.lastMessageTime ? new Date(chat.lastMessageTime) : new Date(0),
+        unreadCount: chat.unreadCount || 0,
+      }));
+  
+      // Sort users by lastMessageTime in descending order with proper typing
+      const sortedUsers = formattedUsers.sort((a: ChatUser, b: ChatUser) => 
+        b.timestamp.getTime() - a.timestamp.getTime()
+      );
+  
+      setUsers(sortedUsers);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial setup of socket listeners and chat fetching
   useEffect(() => {
-    socketService.connect();
-    socketService.joinAdminRoom();
-
-    const fetchChats = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('http://localhost:5000/api/chat', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-        });
-    
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-    
-        const data = await response.json();
-        // ... rest of your code
-      } catch (error) {
-        console.error('Error fetching chats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChats();
 
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
+    // Listen for new messages
+    socket.on('newMessage', handleNewMessage);
+    
+    // Listen for chat updates (new chats, deleted chats, etc.)
+    socket.on('chatUpdate', fetchChats);
 
+    // Cleanup
+    return () => {
+      socket.off('newMessage');
+      socket.off('chatUpdate');
+    };
+  }, [selectedUser]);
+
+  // Auto scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Refresh messages when selected user changes
   useEffect(() => {
     if (selectedUser) {
-      socketService.joinChat(selectedUser.id);
-      
-      const fetchMessages = async () => {
-        try {
-          const response = await fetch(`http://localhost:5000/api/chat/${selectedUser.id}/messages`);
-          const data = await response.json();
-          setMessages(data);
-        } catch (error) {
-          console.error('Error fetching messages:', error);
-        }
-      };
-
-      fetchMessages();
-      
-      fetch(`http://localhost:5000/api/chat/${selectedUser.id}/read`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ reader_type: 'admin' }),
-      });
-
-      return () => {
-        socketService.leaveChat(selectedUser.id);
-      };
+      fetchUserMessages(selectedUser.id);
     }
   }, [selectedUser]);
 
-  useEffect(() => {
-    socketService.onNewMessage((newMessage) => {
-      if (selectedUser?.id === newMessage.chat_id) {
-        setMessages(prev => [...prev, newMessage]);
-      }
-      
-      setUsers(prev => prev.map(user => {
-        if (user.id === newMessage.chat_id) {
-          return {
-            ...user,
-            lastMessage: newMessage.content,
-            lastMessageTime: new Date(newMessage.created_at).toLocaleString(),
-            unreadCount: user.unreadCount + (newMessage.sender_type === 'user' ? 1 : 0)
-          };
-        }
-        return user;
-      }));
-    });
+  const fetchUserMessages = async (chatId: string) => {
+    try {
+      const response = await fetch(`http://localhost:5000/chats/${chatId}`);
+      const data = await response.json();
+      setMessages(data.messages);
+      markMessagesAsRead(chatId);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
 
-    return () => {
-      socketService.offNewMessage();
-    };
-  }, [selectedUser]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleNewMessage = (data: { chatId: string; message: ChatMessage }) => {
+    // Update messages if this is the currently selected chat
+    if (selectedUser?.id === data.chatId) {
+      setMessages(prev => [...prev, data.message]);
+      markMessagesAsRead(data.chatId);
+    }
+
+    // Update the users list with new message info
+    setUsers(prevUsers => {
+      const updatedUsers = prevUsers.map(user =>
+        user.id === data.chatId
+          ? {
+              ...user,
+              lastMessage: data.message.content,
+              lastMessageTime: new Date(data.message.timestamp).toLocaleString(),
+              timestamp: new Date(data.message.timestamp),
+              unreadCount: selectedUser?.id === data.chatId ? 0 : user.unreadCount + 1,
+            }
+          : user
+      );
+
+      // Sort users by most recent message
+      return updatedUsers.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    });
+  };
+
+  const handleUserSelect = (user: ChatUser) => {
+    setSelectedUser(user);
+  };
+
+  const markMessagesAsRead = async (chatId: string) => {
+    try {
+      await fetch(`http://localhost:5000/chats/${chatId}/read`, {
+        method: 'PUT',
+      });
+      
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user.id === chatId
+            ? { ...user, unreadCount: 0 }
+            : user
+        )
+      );
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedUser) return;
 
     try {
-      await fetch('http://localhost:5000/api/chat/message', {
+      const response = await fetch(`http://localhost:5000/chats/${selectedUser.id}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          chat_id: selectedUser.id,
-          sender_id: 'ADMIN_001',
-          sender_type: 'admin',
           content: newMessage,
+          sender: 'admin',
         }),
       });
 
-      setNewMessage('');
+      if (response.ok) {
+        setNewMessage('');
+        // Fetch updated messages after sending
+        fetchUserMessages(selectedUser.id);
+        // Fetch updated chat list
+        fetchChats();
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
-  useEffect(() => {
-    socketService.onConnect(() => {
-      console.log('Connected to socket server');
-    });
-  
-    socketService.onDisconnect(() => {
-      console.log('Disconnected from socket server');
-    });
-  
-    socketService.onError((error) => {
-      console.error('Socket connection error:', error);
-    });
-  
-    return () => {
-      socketService.disconnect();
-    };
-  }, []);
+  const filteredUsers = users.filter(user => 
+    user.name && searchTerm 
+      ? user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      : true
+  );
 
   return (
     <div className="flex h-screen bg-white">
@@ -184,28 +213,20 @@ const AdminChatPage = () => {
             </div>
           ) : (
             <div className="space-y-1">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => handleUserSelect(user)}
                   className={`flex items-center px-4 py-3 cursor-pointer hover:bg-gray-50 ${
                     selectedUser?.id === user.id ? 'bg-blue-50' : ''
                   }`}
                 >
                   <div className="flex-shrink-0">
-                    {user.avatar ? (
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500 text-lg">
-                          {user.name.charAt(0)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500 text-lg">
+                        {user.name.charAt(0)}
+                      </span>
+                    </div>
                   </div>
                   <div className="ml-3 flex-1">
                     <div className="flex items-center justify-between">
@@ -246,31 +267,32 @@ const AdminChatPage = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-  {messages.map((message) => (
-    <div
-      key={message.message_id}
-      className={`flex mb-4 ${
-        message.sender_type === 'admin' ? 'justify-end' : 'justify-start'
-      }`}
-    >
-      <div
-        className={`max-w-xs px-4 py-2 rounded-lg ${
-          message.sender_type === 'admin'
-            ? 'bg-blue-500 text-white'
-            : 'bg-gray-100 text-gray-800'
-        }`}
-      >
-        <p className="text-sm">{message.content}</p>
-        <p className="text-xs mt-1 opacity-75">
-          {new Date(message.created_at).toLocaleTimeString()}
-        </p>
-      </div>
-    </div>
-  ))}
-</div>
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex mb-4 ${
+                    message.sender === 'admin' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
+                  <div
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                      message.sender === 'admin'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                    <p className="text-xs mt-1 opacity-75">
+                      {new Date(message.timestamp).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
 
             <form onSubmit={handleSendMessage} className="p-4 border-t">
-              <div className="flex space-x-2">
+            <div className="flex space-x-2">
                 <input
                   type="text"
                   value={newMessage}
@@ -281,6 +303,7 @@ const AdminChatPage = () => {
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  disabled={!newMessage.trim()}
                 >
                   ส่ง
                 </button>
