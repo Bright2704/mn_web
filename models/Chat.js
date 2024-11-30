@@ -2,10 +2,16 @@
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({
-  content: String,
+  content: mongoose.Schema.Types.Mixed, // Can be string for text or object for files
+  messageType: {
+    type: String,
+    enum: ['text', 'image', 'file'],
+    default: 'text'
+  },
   sender: {
     type: String,
-    enum: ['user', 'admin']
+    enum: ['user', 'admin'],
+    required: true
   },
   timestamp: {
     type: Date,
@@ -18,10 +24,7 @@ const MessageSchema = new mongoose.Schema({
 });
 
 const ChatSchema = new mongoose.Schema({
-  chat_id: {
-    type: String,
-    unique: true
-  },
+  chat_id: String,
   user_id: String,
   user_name: String,
   messages: [MessageSchema],
@@ -33,4 +36,4 @@ const ChatSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Chat', ChatSchema, 'chats');
+module.exports = mongoose.model('Chat', ChatSchema);

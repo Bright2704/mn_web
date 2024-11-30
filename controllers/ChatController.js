@@ -57,18 +57,41 @@ exports.createOrGetChat = async (req, res) => {
 
 exports.addMessage = async (req, res) => {
   try {
+    // Validate required fields
+    if (!req.body.sender) {
+      return res.status(400).json({ error: 'Sender is required' });
+    }
+
     const chat = await Chat.findOne({ chat_id: req.params.id });
     if (!chat) return res.status(404).json({ error: 'Chat not found' });
 
+    let content = req.body.content;
+    let messageType = 'text';
+
+    if (req.file) {
+      const isImage = req.file.mimetype.startsWith('image/');
+      messageType = isImage ? 'image' : 'file';
+      const relativePath = `/storage/chat/${req.body.sender}/${isImage ? 'image' : 'file'}/${req.file.filename}`;
+      
+      content = {
+        fileName: req.file.originalname,
+        filePath: relativePath,
+        fileType: req.file.mimetype
+      };
+    } else if (!content) {
+      return res.status(400).json({ error: 'Either file or content is required' });
+    }
+
     const newMessage = {
-      content: req.body.content,
+      content,
+      messageType,
       sender: req.body.sender,
       timestamp: new Date(),
       read: req.body.sender === 'admin'
     };
 
     chat.messages.push(newMessage);
-    chat.lastMessage = req.body.content;
+    chat.lastMessage = messageType === 'text' ? content : `Sent a ${messageType}`;
     chat.lastMessageTime = new Date();
     if (req.body.sender === 'user') {
       chat.unreadCount += 1;
@@ -77,13 +100,16 @@ exports.addMessage = async (req, res) => {
     const updatedChat = await chat.save();
     
     // Emit socket event for real-time updates
-    req.app.get('io').emit('newMessage', {
-      chatId: req.params.id,
-      message: newMessage
-    });
+    if (req.app.get('io')) {
+      req.app.get('io').emit('newMessage', {
+        chatId: req.params.id,
+        message: newMessage
+      });
+    }
 
     res.json(updatedChat);
   } catch (err) {
+    console.error('Error in addMessage:', err);
     res.status(500).json({ error: err.message });
   }
 };
