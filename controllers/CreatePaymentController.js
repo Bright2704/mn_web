@@ -16,12 +16,13 @@ exports.getAllPayments = async (req, res) => {
 exports.createPayment = async (req, res) => {
   try {
     const nextPayId = await generateNextPayId();
-    const { taxInfo, ...paymentData } = req.body;
+    const { taxInfo, user_id, ...paymentData } = req.body;
 
-    // Initialize payment data with tax info directly from request
-    const paymentWithTax = {
+    // Initialize payment data with tax info and user_id
+    const paymentWithTaxAndUser = {
       ...paymentData,
       pay_id: nextPayId,
+      user_id, // Add user_id to the payment data
       taxInfo: taxInfo ? {
         name: taxInfo.name,
         address: taxInfo.address,
@@ -32,7 +33,7 @@ exports.createPayment = async (req, res) => {
       } : null
     };
 
-    const newPayment = new CreatePayment(paymentWithTax);
+    const newPayment = new CreatePayment(paymentWithTaxAndUser);
     const savedPayment = await newPayment.save();
     res.status(201).json(savedPayment);
   } catch (err) {
@@ -72,6 +73,16 @@ exports.updatePaymentStatus = async (req, res) => {
       );
       if (!payment) return res.status(404).json({ error: 'Payment not found' });
       res.json(payment);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
+
+  exports.getPaymentsByUserId = async (req, res) => {
+    try {
+      const payments = await CreatePayment.find({ user_id: req.params.userId })
+        .populate('taxInfo');
+      res.json(payments);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

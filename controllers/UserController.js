@@ -114,3 +114,28 @@ exports.getUserIdFromSession = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });  // ถ้ามีข้อผิดพลาดในการดึงข้อมูลจะส่งสถานะ 500 (Internal Server Error)
   }
 };
+
+exports.getUserIds = async (req, res) => {
+  try {
+    const users = await User.find({}, { user_id: 1, name: 1, _id: 0 })
+      .sort({ user_id: 1 })
+      .lean();
+    
+    if (!users || users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'ไม่พบข้อมูลผู้ใช้',
+        data: []
+      });
+    }
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching user IDs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการโหลดข้อมูล',
+      error: error.message
+    });
+  }
+};

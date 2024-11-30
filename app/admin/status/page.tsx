@@ -70,19 +70,37 @@ const StatusPage: React.FC = () => {
   const swiperRef = useRef<any>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [userError, setUserError] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoadingUsers(true);
+      setUserError(null);
+      try {
+        // Updated URL to match backend route
+        const response = await axios.get("http://localhost:5000/users/ids");
+        
+        if (response.data) {
+          setUsers(response.data);
+        } else {
+          throw new Error('No data received from server');
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        if (error.response?.status === 404) {
+          setUserError("ไม่พบเส้นทางการเรียกข้อมูล กรุณาติดต่อผู้ดูแลระบบ");
+        } else {
+          setUserError("ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
+        }
+        setUsers([]);
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+  
     fetchUsers();
   }, []);
-
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/users/ids");
-      setUsers(response.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  };
 
   const handleUserSelect = async (value: string) => {
     setSelectedUserId(value);
@@ -338,26 +356,43 @@ const StatusPage: React.FC = () => {
         </Row>
 
         <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
-          <div className="flex items-center gap-2 px-4 py-3">
-            <Select
-              showSearch
-              placeholder="เลือกรหัสสมาชิก"
-              className="w-64"
-              value={selectedUserId}
-              onChange={handleUserSelect}
-              filterOption={(input, option) =>
-                (option?.value?.toString() ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-            >
-              {users.map((user) => (
-                <Option key={user.user_id} value={user.user_id}>
-                  {user.user_id}
-                </Option>
-              ))}
-            </Select>
-          </div>
+        <div className="flex flex-col gap-2 px-4 py-3">
+  <Select
+    showSearch
+    placeholder={isLoadingUsers ? "กำลังโหลดข้อมูล..." : "เลือกรหัสสมาชิก"}
+    className="w-64"
+    value={selectedUserId}
+    onChange={handleUserSelect}
+    loading={isLoadingUsers}
+    disabled={isLoadingUsers}
+    notFoundContent={
+      userError 
+        ? <span className="text-red-500">ไม่พบข้อมูลผู้ใช้</span> 
+        : isLoadingUsers 
+          ? <span>กำลังโหลด...</span>
+          : <span>ไม่พบข้อมูล</span>
+    }
+    filterOption={(input, option) =>
+      (option?.value?.toString() ?? "")
+        .toLowerCase()
+        .includes(input.toLowerCase()) ||
+      (option?.children?.toString() ?? "")
+        .toLowerCase()
+        .includes(input.toLowerCase())
+    }
+  >
+    {users.map((user) => (
+      <Option key={user.user_id} value={user.user_id}>
+        {user.user_id} {user.name ? `- ${user.name}` : ''}
+      </Option>
+    ))}
+  </Select>
+  {userError && (
+    <div className="text-red-500 text-sm mt-1">
+      {userError}
+    </div>
+  )}
+</div>
         </div>
         <table className="table table-width-1" style={{ fontSize: 12 }}>
           <thead>

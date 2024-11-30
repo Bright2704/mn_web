@@ -8,6 +8,7 @@ import NavBar from '@/components/header'
 import Footer from './components/footer/Footer';
 import SideBar2 from './components/side/SideBar3';
 import Announcement from './components/Announcement';
+import ChatWidget from './components/ChatWidget'; // Add this import
 import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -21,20 +22,17 @@ export default function RootLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return; // Wait for session to load
+    if (status === 'loading') return;
 
     if (status === 'unauthenticated') {
-      // If the user is not authenticated, redirect to /unauthorized
       router.replace('/unauthorized');
     }
   }, [status, router]);
 
   if (status === 'loading') {
-    // While session is loading, you could return a loading state here
     return <div>Loading...</div>;
   }
 
-  // If the user is authenticated, render the layout and children
   return (
     <div className='flex'>
       <section>
@@ -45,11 +43,12 @@ export default function RootLayout({
         <div className="flex-grow ml-4">
           <Announcement />
           <main className="flex-grow">
-            {children} {/* Render the page content */}
+            {children}
           </main>
         </div>
         <Footer/>
       </section>
+      <ChatWidget /> {/* Add the ChatWidget here */}
     </div>
-  )
+  );
 }

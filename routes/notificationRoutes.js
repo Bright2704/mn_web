@@ -1,7 +1,7 @@
 // routes/notification.js
 const express = require('express');
 const router = express.Router();
-const { sendMessageToGroup } = require('../controllers/Notification'); // นำเข้า Controller
+const { sendMessageToGroup } = require('../controllers/NotificationController'); // นำเข้า Controller
 
 // Webhook endpoint ที่ Line API จะส่งข้อมูลมาที่นี่
 router.post('/webhook', async (req, res) => {
@@ -20,9 +20,8 @@ router.post('/webhook', async (req, res) => {
 
   // ตอบกลับเพื่อยืนยันว่า webhook ได้รับข้อมูล
   res.status(200).send('OK');
-});const express = require('express');
-const axios = require('axios');
-const app = express();
+});
+
 app.use(express.json());
 
 const LINE_BOT_API = 'https://api.line.me/v2/bot';
@@ -52,25 +51,6 @@ app.post('/webhook', async (req, res) => {
     res.status(200).send('OK');
 });
 
-// ฟังก์ชันส่งข้อความไปยังกลุ่ม
-const sendMessageToGroup = async (groupId, message) => {
-    const body = {
-        to: groupId,
-        messages: [
-            {
-                type: 'text',
-                text: message
-            }
-        ]
-    };
-
-    try {
-        const response = await axios.post(`${LINE_BOT_API}/message/push`, body, { headers });
-        console.log('Response from LINE API:', response.data);
-    } catch (error) {
-        console.error('Error sending message:', error);
-    }
-};
 
 app.listen(4000, () => {
     console.log('Server is running on http://localhost:4000');

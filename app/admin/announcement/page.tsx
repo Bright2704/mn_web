@@ -6,7 +6,7 @@ import EasyMDE from 'easymde'; // นำเข้า EasyMDE
 import { marked } from 'marked'; // นำเข้า Marked.js สำหรับแปลง Markdown
 import 'easymde/dist/easymde.min.css'; // โหลด CSS ของ EasyMDE
 
-const API_URL = 'http://localhost:5001/api/announcement'; // ระบุ URL ของ API ที่ backend
+const API_URL = 'http:///api/announcement'; // ระบุ URL ของ API ที่ backend
 
 const AnnouncementList = () => {
   const [announcements, setAnnouncements] = useState([]);

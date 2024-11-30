@@ -1,124 +1,257 @@
 "use client";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { AlertCircle, Eye, Search } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import React, { useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'font-awesome/css/font-awesome.min.css';
-import '../../../styles/globals.css';
+interface PaymentSenderDetails {
+  name: string;
+  address: string;
+  phone: string;
+}
 
-type DepositNew = {
-  deposit_id: string;
-  date_deposit: string;
-  date_success: string;
-  amount: number | string;
-  bank: string;
-  status: string;
-  slip: string;
-};
+interface Payment {
+  pay_id: string;
+  selectedCarrier: string;
+  createdAt: string;
+  approveAt?: string;
+  senderOption: string;
+  senderDetails: PaymentSenderDetails;
+  total: number;
+  transportFee_th: number;
+  status: "wait" | "del_thai" | "del_mn" | "success" | "failed";
+}
 
-const statuses = [
-  { label: 'สถานะทั้งหมด', value: 'all' },
-  { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
-  { label: 'สำเร็จ', value: 'สำเร็จ' },
-  { label: 'ไม่สำเร็จ', value: 'ไม่สำเร็จ' },
-];
+interface StatusOption {
+  label: string;
+  value: string;
+}
 
-const DepositPage: React.FC = () => {
-  const [deposits, setDeposits] = useState<DepositNew[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+interface SearchTopic {
+  label: string;
+  value: keyof Payment;
+}
 
-  const handleManageClick = (depositId: string) => {
-    // Placeholder for managing a deposit
-    console.log("Manage deposit ID:", depositId);
+const ExportPage: React.FC = () => {
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [searchTopic, setSearchTopic] = useState<keyof Payment>("pay_id");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filteredPayments, setFilteredPayments] = useState<Payment[]>([]);
+
+  const statuses: StatusOption[] = [
+    { label: "สถานะทั้งหมด", value: "all" },
+    { label: "รอตรวจสอบ", value: "wait" },
+    { label: "รอจัดส่งในไทย", value: "del_thai" },
+    { label: "รอมารับของ", value: "del_mn" },
+    { label: "สำเร็จ", value: "success" },
+    { label: "ไม่สำเร็จ", value: "failed" },
+  ];
+
+  const searchTopics: SearchTopic[] = [
+    { label: "หมายเลขรายการ", value: "pay_id" },
+    { label: "ประเภทการจัดส่ง", value: "selectedCarrier" },
+  ];
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  useEffect(() => {
+    filterPayments();
+  }, [payments, selectedStatus, searchTerm, searchTopic]);
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get<Payment[]>(
+        "http://localhost:5000/createpayment",
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        }
+      );
+      setPayments(response.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch payments");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const filterPayments = () => {
+    let filtered = [...payments];
+
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(
+        (payment) => payment.status === selectedStatus
+      );
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((payment) => {
+        const value = String(payment[searchTopic]).toLowerCase();
+        return value.includes(searchTerm.toLowerCase());
+      });
+    }
+
+    setFilteredPayments(filtered);
+  };
+
+  const getStatusBadge = (status: Payment["status"]) => {
+    const styles: Record<Payment["status"], string> = {
+      wait: "bg-yellow-500",
+      success: "bg-green-500",
+      failed: "bg-red-500",
+      del_thai: "bg-blue-500",
+      del_mn: "bg-purple-500",
+    };
+
+    const labels: Record<Payment["status"], string> = {
+      wait: "รอตรวจสอบ",
+      success: "สำเร็จ",
+      failed: "ไม่สำเร็จ",
+      del_thai: "รอจัดส่งในไทย",
+      del_mn: "รอมารับของ",
+    };
+
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-white text-sm ${styles[status]}`}
+      >
+        {labels[status]}
+      </span>
+    );
+  };
+
+  const formatDate = (dateString: string | undefined): string => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <div className="card">
-      <div className="d-lg-flex justify-between items-center px-2 py-2 mt-2 mb-2">
-        <h3 className="font-weight-bolder text-lg font-semibold">รายการฝากเงิน</h3>
-        <button
-          className="btn btn-success px-4 py-2.5 ml-2 mr-10"
-          style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }}
-          onClick={() => console.log("Add money to the system")}
-        >
-          เติมเงินเข้าระบบ
-        </button>
+    <div className="p-4 bg-white rounded-lg shadow">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold">รายการส่งออกสินค้า</h1>
       </div>
 
-      <div className="nav-panel">
-        <div className="anan-tabs__nav">
-          <div className="anan-tabs__nav-warp px-2 table-container" style={{ marginTop: '5px' }}>
-            <div className="anan-tabs__nav-tabs">
-              {statuses.map(status => (
-                <div
-                  key={status.value}
-                  className={`anan-tabs__nav-tab ${selectedStatus === status.value ? 'active' : ''}`}
-                  onClick={() => setSelectedStatus(status.value)}
-                >
-                  <span>{status.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="mb-6">
+        <div className="flex space-x-2 overflow-x-auto">
+          {statuses.map((status) => (
+            <button
+              key={status.value}
+              onClick={() => setSelectedStatus(status.value)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                selectedStatus === status.value
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+            >
+              {status.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="p-2 table-container">
-        <table className="table table-width-1">
-          <thead>
-            <tr className="text-center">
-              <th>วันที่ทำรายการ</th>
-              <th>วันที่อนุมัติ</th>
-              <th>จำนวน</th>
-              <th>ธนาคาร</th>
-              <th>หลักฐาน</th>
-              <th>สถานะ</th>
-              <th>ตรวจสอบ</th>
+      <div className="flex mb-6">
+        <div className="flex w-full max-w-md">
+          <input
+            type="text"
+            placeholder="ค้นหา..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-1 px-4 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={searchTopic}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setSearchTopic(e.target.value as keyof Payment)
+            }
+            className="px-4 py-2 border-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {searchTopics.map((topic) => (
+              <option key={topic.value} value={topic.value}>
+                {topic.label}
+              </option>
+            ))}
+          </select>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600">
+            <Search className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left">หมายเลขรายการ</th>
+              <th className="px-4 py-3 text-left">วันที่สร้าง</th>
+              <th className="px-4 py-3 text-left">วันที่อนุมัติ</th>
+              <th className="px-4 py-3 text-left">ประเภทการจัดส่ง</th>
+              <th className="px-4 py-3 text-left">ผู้ส่ง</th>
+              <th className="px-4 py-3 text-right">จำนวน</th>
+              <th className="px-4 py-3 text-center">สถานะ</th>
+              <th className="px-4 py-3 text-center">ตรวจสอบ</th>
             </tr>
           </thead>
-          <tbody>
-            {deposits.length === 0 ? (
+          <tbody className="divide-y">
+            {loading ? (
               <tr>
-                <td colSpan={7} className="text-center p-3">No deposits found.</td>
+                <td colSpan={8} className="text-center py-4">
+                  กำลังโหลด...
+                </td>
+              </tr>
+            ) : filteredPayments.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="text-center py-4">
+                  ไม่พบข้อมูล
+                </td>
               </tr>
             ) : (
-              deposits.map(deposit => (
-                <tr key={deposit.deposit_id}>
-                  <td>{deposit.date_deposit}</td>
-                  <td>{deposit.date_success}</td>
-                  <td>{deposit.amount}</td>
-                  <td className="text-center">
-                    {deposit.bank === 'kbank' ? (
-                      <img
-                        src="/storage/icon/bank/kbank.jpg"
-                        alt="ธนาคารกสิกรไทย"
-                        className="centered-img_icon_bank"
-                        style={{ width: '50px', height: '50px', objectFit: 'contain' }}
-                      />
-                    ) : (
-                      deposit.bank
-                    )}
+              filteredPayments.map((payment) => (
+                <tr key={payment.pay_id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">{payment.pay_id}</td>
+                  <td className="px-4 py-3">{formatDate(payment.createdAt)}</td>
+                  <td className="px-4 py-3">{formatDate(payment.approveAt)}</td>
+                  <td className="px-4 py-3">{payment.selectedCarrier}</td>
+                  <td className="px-4 py-3">
+                    {payment.senderOption === "details"
+                      ? payment.senderDetails.name
+                      : payment.senderOption}
                   </td>
-                  <td className="text-center">
-                    {deposit.slip ? (
-                      <img
-                        src={deposit.slip}
-                        alt="Slip"
-                        className="centered-img_icon_bank"
-                        style={{ width: '70px', height: '70px', objectFit: 'contain', cursor: 'pointer' }}
-                        onClick={() => window.open(deposit.slip, '_blank')}
-                      />
-                    ) : (
-                      'N/A'
-                    )}
+                  <td className="px-4 py-3 text-right">
+                    {(
+                      payment.transportFee_th || payment.total
+                    ).toLocaleString()}{" "}
+                    บาท
                   </td>
-                  <td>{deposit.status}</td>
-                  <td>
-                    <button
-                      className="btn btn-success"
-                      onClick={() => handleManageClick(deposit.deposit_id)}
-                      style={{ backgroundColor: '#0d6efd', borderColor: '#0d6efd' }}
-                    >
-                      รายละเอียด
+                  <td className="px-4 py-3 text-center">
+                    {getStatusBadge(payment.status)}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button className="p-2 text-blue-500 hover:bg-blue-50 rounded-full">
+                      <Eye className="w-5 h-5" />
                     </button>
                   </td>
                 </tr>
@@ -126,14 +259,9 @@ const DepositPage: React.FC = () => {
             )}
           </tbody>
         </table>
-        <div className="demo-spacing-0 d-flex justify-content-end">
-          <ul className="pagination mb-0">
-            {/* Add pagination controls here */}
-          </ul>
-        </div>
       </div>
     </div>
   );
 };
 
-export default DepositPage;
+export default ExportPage;

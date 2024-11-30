@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import '@/styles/globals.css';
-import 'font-awesome/css/font-awesome.min.css';
-import ModalComponent, { Product as ImportedProduct } from '../components/buylist_detail/ModalComponent';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@/styles/globals.css";
+import "font-awesome/css/font-awesome.min.css";
+import ModalComponent, {
+  Product as ImportedProduct,
+} from "../components/buylist_detail/ModalComponent";
 
 type LocalProduct = {
   order_id: string;
@@ -17,21 +19,21 @@ type LocalProduct = {
 };
 
 const statuses = [
-  { label: 'สถานะทั้งหมด', value: 'all' },
-  { label: 'รอตรวจสอบ', value: 'รอตรวจสอบ' },
-  { label: 'รอชำระเงิน', value: 'รอชำระเงิน' },
-  { label: 'จ่ายเงินแล้ว', value: 'จ่ายเงินแล้ว' },
-  { label: 'สั่งซื้อสำเร็จ', value: 'สั่งซื้อสำเร็จ' },
-  { label: 'มีแทรคครบ', value: 'มีแทรคครบ' },
-  { label: 'เข้าโกดังจีนครบ', value: 'เข้าโกดังจีนครบ' },
-  { label: 'ออกโกดังจีนครบ', value: 'ออกโกดังจีนครบ' },
-  { label: 'เข้าโกดังไทยครบ', value: 'เข้าโกดังไทยครบ' },
-  { label: 'ยกเลิก', value: 'ยกเลิกการสั่งซื้อ' },
+  { label: "สถานะทั้งหมด", value: "all" },
+  { label: "รอตรวจสอบ", value: "รอตรวจสอบ" },
+  { label: "รอชำระเงิน", value: "รอชำระเงิน" },
+  { label: "จ่ายเงินแล้ว", value: "จ่ายเงินแล้ว" },
+  { label: "สั่งซื้อสำเร็จ", value: "สั่งซื้อสำเร็จ" },
+  { label: "มีแทรคครบ", value: "มีแทรคครบ" },
+  { label: "เข้าโกดังจีนครบ", value: "เข้าโกดังจีนครบ" },
+  { label: "ออกโกดังจีนครบ", value: "ออกโกดังจีนครบ" },
+  { label: "เข้าโกดังไทยครบ", value: "เข้าโกดังไทยครบ" },
+  { label: "ยกเลิก", value: "ยกเลิกการสั่งซื้อ" },
 ];
 
 const searchTopics = [
-  { label: 'หมายเลข', value: 'order_id' },
-  { label: 'ลูกค้า', value: 'cus_id' },
+  { label: "หมายเลข", value: "order_id" },
+  { label: "ลูกค้า", value: "cus_id" },
 ];
 
 const BuylistPage: React.FC = () => {
@@ -39,32 +41,40 @@ const BuylistPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedProduct, setSelectedProduct] = useState<ImportedProduct | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [searchTopic, setSearchTopic] = useState<keyof LocalProduct>('order_id');
+  const [selectedProduct, setSelectedProduct] =
+    useState<ImportedProduct | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTopic, setSearchTopic] =
+    useState<keyof LocalProduct>("order_id");
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         let response;
-        if (selectedStatus === 'all') {
+        if (selectedStatus === "all") {
           // Fetch all statuses separately and combine the results
-          const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
-          );
+          const requests = statuses
+            .filter((status) => status.value !== "all")
+            .map((status) =>
+              axios.get<LocalProduct[]>(
+                `http://localhost:5000/orders/status/${status.value}`
+              )
+            );
           const results = await Promise.all(requests);
-          const allProducts = results.flatMap(result => result.data);
+          const allProducts = results.flatMap((result) => result.data);
           response = { data: allProducts };
         } else {
-          response = await axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+          response = await axios.get<LocalProduct[]>(
+            `http://localhost:5000/orders/status/${selectedStatus}`
+          );
         }
         setProducts(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching orders:', error);
-        setError('Failed to fetch order data');
+        console.error("Error fetching orders:", error);
+        setError("Failed to fetch order data");
         setLoading(false);
       }
     };
@@ -89,15 +99,16 @@ const BuylistPage: React.FC = () => {
   return (
     <div className="card-body">
       <div className="mb-4">
-        {statuses.map(status => (
+        {statuses.map((status) => (
           <button
             key={status.value}
             onClick={() => setSelectedStatus(status.value)}
             className="btn mr-2 mb-2"
             style={{
-              borderRadius: '9999px',
-              backgroundColor: selectedStatus === status.value ? '#dc3545' : '#e9e9e9',
-              color: selectedStatus === status.value ? 'white' : 'black'
+              borderRadius: "9999px",
+              backgroundColor:
+                selectedStatus === status.value ? "#dc3545" : "#e9e9e9",
+              color: selectedStatus === status.value ? "white" : "black",
             }}
           >
             {status.label}
@@ -105,7 +116,7 @@ const BuylistPage: React.FC = () => {
         ))}
       </div>
       <form className="form-inline mb-4" onSubmit={handleSearch}>
-        <div className="input-group" style={{ width: '40%' }}>
+        <div className="input-group" style={{ width: "40%" }}>
           <input
             type="text"
             className="form-control col-md-6"
@@ -116,9 +127,11 @@ const BuylistPage: React.FC = () => {
           <select
             className="form-control col-md-2"
             value={searchTopic}
-            onChange={(e) => setSearchTopic(e.target.value as keyof LocalProduct)}
+            onChange={(e) =>
+              setSearchTopic(e.target.value as keyof LocalProduct)
+            }
           >
-            {searchTopics.map(topic => (
+            {searchTopics.map((topic) => (
               <option key={topic.value} value={topic.value}>
                 {topic.label}
               </option>
@@ -135,10 +148,12 @@ const BuylistPage: React.FC = () => {
         <table className="table table-borderless table-forwarder-show">
           <thead>
             <tr>
-              <th>หมายเลข</th>
-              <th>ลูกค้า</th>
-              <th>สินค้า</th>
-              <th>วลีช่วยจำ(ผู้ดูแล)</th>
+              <th>หมายเลขรายการ</th>
+              <th>วันที่สร้าง</th>
+              <th>วันที่อนุมัติ</th>
+              <th>ประเภทการจัดส่ง</th>
+              <th>ผู้ส่ง</th>
+              <th>จำนวน</th>
               <th>สถานะ</th>
               <th>จัดการ</th>
             </tr>
@@ -146,22 +161,31 @@ const BuylistPage: React.FC = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Loading...</td>
+                <td colSpan={6} className="text-center p-3">
+                  Loading...
+                </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">Error: {error}</td>
+                <td colSpan={6} className="text-center p-3">
+                  Error: {error}
+                </td>
               </tr>
             ) : products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center p-3">No orders found.</td>
+                <td colSpan={6} className="text-center p-3">
+                  No orders found.
+                </td>
               </tr>
             ) : (
               products
-                .filter(product =>
-                  product[searchTopic].toString().toLowerCase().includes(searchTerm.toLowerCase())
+                .filter((product) =>
+                  product[searchTopic]
+                    .toString()
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase())
                 )
-                .map(product => (
+                .map((product) => (
                   <tr key={product.order_id}>
                     <td>{product.order_id}</td>
                     <td>{product.cus_id}</td>
@@ -170,7 +194,9 @@ const BuylistPage: React.FC = () => {
                     <td>{product.status}</td>
                     <td>
                       <button
-                        onClick={() => handleShowModal(product as ImportedProduct)}
+                        onClick={() =>
+                          handleShowModal(product as ImportedProduct)
+                        }
                         className="btn btn-success"
                       >
                         จัดการ
@@ -181,7 +207,11 @@ const BuylistPage: React.FC = () => {
             )}
           </tbody>
         </table>
-        <ModalComponent show={showModal} onClose={handleCloseModal} product={selectedProduct} />
+        <ModalComponent
+          show={showModal}
+          onClose={handleCloseModal}
+          product={selectedProduct}
+        />
       </div>
     </div>
   );

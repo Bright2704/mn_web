@@ -235,7 +235,7 @@ const CreatePayment: React.FC = () => {
         ...addressData,
         ...paymentData,
         trackings: trackingsData,
-        user_id: userName,
+        user_id: selectedUser?.user_id, // Use selectedUser instead of userData
         createdAt: new Date().toISOString(),
         taxInfo: taxInfo
           ? {
@@ -264,7 +264,7 @@ const CreatePayment: React.FC = () => {
       const newBalanceAmount = balance - grandTotal;
       await axios.post("http://localhost:5000/balances", {
         balance_id: newBalanceId,
-        user_id: userName,
+        user_id: selectedUser?.user_id,
         balance_type: "payment",
         balance_descri: `รายการชำระค่านำเข้า ${pay_id}`,
         balance_amount: grandTotal,

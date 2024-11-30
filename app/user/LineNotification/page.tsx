@@ -63,12 +63,12 @@ const LineLoginPage = () => {
   const updateUserLineId = async (profile) => {
     try {
       // ดึง User ID จาก session
-      const responseSession = await fetch('http://localhost:5001/api/users/get-user-id');
+      const responseSession = await fetch('http://localhost:5000/api/users/get-user-id');
       const data = await responseSession.json();
       
       if (data.user_id) {
         // ส่งข้อมูลไปอัปเดตในฐานข้อมูล
-        const response = await fetch(`http://localhost:5001/api/users/update/${data.user_id}`, {
+        const response = await fetch(`http://localhost:5000/api/users/update/${data.user_id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ const LineLoginPage = () => {
   // ฟังก์ชันสำหรับดึง user ID จากเซิร์ฟเวอร์
   const getUserId = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/users/get-user-id');
+      const response = await fetch('http://localhost:5000/api/users/get-user-id');
       const data = await response.json();
 
       if (data.user_id) {

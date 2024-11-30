@@ -3,10 +3,11 @@ const mongoose = require('mongoose');
 
 const CreatePaymentSchema = new mongoose.Schema({
   pay_id: String,
+  user_id: String, // Add user_id field
   status: {
     type: String,
     default: 'wait',
-    enum: ['wait', 'approved', 'rejected', 'cancelled']
+    enum: ['wait', 'del_thai', 'del_mn', 'success','failed']
   },
   recipientName: String,
   address: String,
@@ -53,6 +54,14 @@ const CreatePaymentSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  approveAt: {
+    type: Date,
+    default: null
+  },
+  transportFee_th: {
+    type: Number,
+    default: 0
   }
 });
 
