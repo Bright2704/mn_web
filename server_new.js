@@ -5,7 +5,8 @@ const cors = require('cors');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path'); // Add this line
-
+require('dotenv').config();
+const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server, {
@@ -74,6 +75,42 @@ app.use('/tax_info', taxInfoRoutes);
 app.use('/api/announcement', announcementRoutes);
 // app.use('/api/notification', notificationRoutes);
 app.use('/chats', chatRoutes);
+
+app.post('/line/', async (req, res) => {
+  const LINE_BOT_API = process.env.LINE_BASE_URL;
+  const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  try {
+      const { message } = req.body;
+
+      const body = {
+          to: "Cf9e35a863d4101476bb003a885b6b98b",
+          messages: [
+              {
+                  type: 'text',
+                  text: message
+              }
+          ]
+      };
+
+      // Adding headers for Authorization
+      const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`  // Corrected Authorization header
+      };
+
+      // Send request to LINE API
+      const response = await axios.post(`${LINE_BOT_API}/message/push`, body, { headers });
+      console.log('Response from LINE API:', response.data);
+
+      res.send({
+          status: 'success',
+          message: response.data
+      });
+  } catch (error) {
+      console.error('Error sending message:', error);
+      res.status(500).send('Error sending message');
+  }
+});
 
 app.use((req, res) => res.status(404).send('Not Found'));
 

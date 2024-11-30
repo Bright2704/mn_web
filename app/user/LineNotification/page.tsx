@@ -8,6 +8,7 @@ const LineLoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [loginStatus, setLoginStatus] = useState<string>(''); // ใช้สถานะเดียว
   const [userIdFromServer, setUserIdFromServer] = useState<string>(''); // เก็บ user_id ที่ดึงมา
+  const [showPopup, setShowPopup] = useState(false); // สถานะการแสดง popup
 
   useEffect(() => {
     if (loading) {
@@ -48,10 +49,12 @@ const LineLoginPage = () => {
     window.liff.getProfile()
       .then((profile: any) => {
         setUserProfile(profile);
+        console.log('User profile:', profile);
         setIsLoggedIn(true);
         setLoading(false);
-        updateUserLineId(profile);
-        setLoginStatus('success');  // เมื่อ login สำเร็จ
+        updateUserLineId(profile); // อัพเดต lineId
+        setLoginStatus('success');
+        setShowPopup(true); // แสดง popup เมื่อ login สำเร็จ
       })
       .catch((err: any) => {
         console.error('Failed to get user profile', err);
@@ -59,54 +62,41 @@ const LineLoginPage = () => {
         setLoginStatus('failed');
       });
   };
-
   const updateUserLineId = async (profile) => {
     try {
-      // ดึง User ID จาก session
-      const responseSession = await fetch('http://localhost:5000/api/users/get-user-id');
+      // Fetch the session data
+      const responseSession = await fetch('http://localhost:3000/api/auth/session');
       const data = await responseSession.json();
-      
-      if (data.user_id) {
-        // ส่งข้อมูลไปอัปเดตในฐานข้อมูล
-        const response = await fetch(`http://localhost:5000/api/users/update/${data.user_id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            lineId: profile.userId,  // ใช้ profile.userId ที่ได้จาก LIFF
-          }),
-        });
-
-        if (response.ok) {
-          const updatedUser = await response.json();
-          console.log('User updated:', updatedUser);
-        } else {
-          console.error('Error updating user line ID:', response.status);
-        }
+      console.log('Session data:', data);
+  
+      // Check if user_id exists in the session data (inside the user object)
+      if (!data.user || !data.user.user_id) {
+        console.error('User ID not found in session data');
+        return; // Exit early if user_id is missing
+      }
+  
+      // Proceed with the PATCH request to update the user
+      const response = await fetch(`http://localhost:5000/users/update/${data.user.user_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lineId: profile.userId,  // ใช้ profile.userId ที่ได้จาก LIFF
+        }),
+      });
+  
+      if (response.ok) {
+        const updatedUser = await response.json();
+        console.log('User updated:', updatedUser);
       } else {
-        console.error('User ID not found in session');
+        console.error('Error updating user line ID:', response.status);
       }
     } catch (error) {
       console.error('Error updating user line ID:', error);
     }
   };
-
-  // ฟังก์ชันสำหรับดึง user ID จากเซิร์ฟเวอร์
-  const getUserId = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/users/get-user-id');
-      const data = await response.json();
-
-      if (data.user_id) {
-        setUserIdFromServer(data.user_id); // เก็บ user_id ที่ดึงมา
-      } else {
-        console.error('No user ID found');
-      }
-    } catch (error) {
-      console.error('Error fetching user ID:', error);
-    }
-  };
+  
 
   const logout = () => {
     window.liff.logout();
@@ -119,41 +109,7 @@ const LineLoginPage = () => {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '20px' }}>
-      {loginStatus === 'success' && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#28a745',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            zIndex: 9999,
-          }}
-        >
-          Login สำเร็จ
-        </div>
-      )}
-
-      {loginStatus === 'failed' && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            padding: '10px 20px',
-            borderRadius: '5px',
-            zIndex: 9999,
-          }}
-        >
-          Login ล้มเหลว
-        </div>
-      )}
+  
 
       {!isLoggedIn ? (
         <button
@@ -192,22 +148,6 @@ const LineLoginPage = () => {
           </button>
         </>
       )}
-
-      {/* ปุ่มสำหรับเรียกใช้ get-user-id */}
-      <button
-        onClick={getUserId}
-        style={{
-          backgroundColor: '#007bff',
-          color: 'white',
-          padding: '10px 20px',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          marginTop: '20px',
-        }}
-      >
-        Get User ID
-      </button>
 
       {userIdFromServer && (
         <div style={{ marginTop: '20px' }}>

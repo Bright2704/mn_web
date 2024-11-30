@@ -66,37 +66,39 @@ exports.updateUser = async (req, res) => {
 
 exports.updateLineId = async (req, res) => {
   try {
-    const session = await getSession({ req });
+    // Extract userId from the URL parameters (e.g., /update/<userId>)
+    const { userId } = req.params;  // userId will be in req.params
 
-    // ถ้า session ไม่มี หรือไม่ได้ล็อกอิน
-    if (!session) {
-      return res.status(401).json({ message: "User not logged in" });
+    // Extract the lineId from the request body
+    const { lineId } = req.body;
+
+    // Check if lineId is provided
+    if (!lineId) {
+      return res.status(400).json({ error: "Line ID is required" });
     }
 
-    // ใช้ user_id จาก session
-    const { lineId } = req.body;
-    const userId = session.user.user_id; // ใช้ session user_id ในการค้นหาผู้ใช้
+    console.log('User ID from request params:', userId);  // Check the userId from the URL params
 
-    console.log('User ID from session:', userId);  // ตรวจสอบค่า user_id ที่ใช้ในการค้นหาผู้ใช้
-
-    // ค้นหาผู้ใช้โดยใช้ user_id
+    // Find and update the user by userId
     const updatedUser = await User.findOneAndUpdate(
-      { user_id: userId },  // ใช้ user_id ในการค้นหาผู้ใช้
-      { line_id: lineId },  // อัปเดต line_id
-      { new: true }
+      { user_id: userId },  // Find the user by userId from the URL
+      { line_id: lineId },   // Update the line_id
+      { new: true }           // Return the updated user document
     );
 
-    // ถ้าไม่พบผู้ใช้
+    // If no user is found with the given userId
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json(updatedUser);  // ส่งผลลัพธ์ที่อัปเดตแล้ว
+    // Return the updated user information
+    res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error updating line ID" });
+    res.status(500).json({ error: "Error updating line ID" });
   }
 };
+
 
 exports.getUserIdFromSession = async (req, res) => {
   try {
@@ -112,30 +114,5 @@ exports.getUserIdFromSession = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user ID from token:', error);
     res.status(500).json({ message: "Internal server error" });  // ถ้ามีข้อผิดพลาดในการดึงข้อมูลจะส่งสถานะ 500 (Internal Server Error)
-  }
-};
-
-exports.getUserIds = async (req, res) => {
-  try {
-    const users = await User.find({}, { user_id: 1, name: 1, _id: 0 })
-      .sort({ user_id: 1 })
-      .lean();
-    
-    if (!users || users.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'ไม่พบข้อมูลผู้ใช้',
-        data: []
-      });
-    }
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Error fetching user IDs:', error);
-    res.status(500).json({
-      success: false,
-      message: 'เกิดข้อผิดพลาดในการโหลดข้อมูล',
-      error: error.message
-    });
   }
 };

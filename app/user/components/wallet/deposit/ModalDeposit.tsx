@@ -36,6 +36,94 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
   const [selectedMinute, setSelectedMinute] = useState<string>('00');
   const [userId, setUserId] = useState<string | null>(null);
 
+  const axios = require('axios');
+// const { CHANNEL_ACCESS_TOKEN } = process.env.CHANNEL_ACCESS_TOKEN;
+
+// Function to format the date to 'DD/MM/YYYY HH:MM' format
+const formatDate = (date) => {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
+const submit = async () => {
+  try {
+    // Fetch the session data
+    const responseSession = await fetch('https://2e67-223-205-233-212.ngrok-free.app/api/auth/session');
+    const data = await responseSession.json();
+    console.log('Session data:', data);
+
+    // Check if user_id exists in the session data (inside the user object)
+    if (!data.user || !data.user.user_id) {
+      console.error('User ID not found in session data');
+      return; // Exit early if user_id is missing
+    }
+
+    // Format the dates to the required 'DD/MM/YYYY HH:MM' format
+    const formattedDateDeposit = formatDate(selectedDate);  // Format date_deposit
+    const formattedDateSuccess = formatDate(new Date());  // Format date_success
+
+    const depositData = {
+      date_deposit: formattedDateDeposit,  // Formatted date_deposit
+      date_success: formattedDateSuccess,  // Formatted date_success
+      user_id: data.user.user_id,  // From session data
+      amount: amount,  // Amount can be dynamic based on input
+      bank: 'Bank of Thailand',  // Replace with actual bank name
+      status: 'wait',  // Deposit status
+      note: 'Pending',  // Additional note
+      six_digits: '123456'  // Example value, replace with actual one
+    };
+
+    // Log the depositData to ensure it’s being sent correctly
+    console.log('Sending deposit data:', depositData);
+
+    const depositResponse = await fetch('http://localhost:5000/deposits/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(depositData),
+    });
+
+    if (!depositResponse.ok) {
+      const errorResponse = await depositResponse.json();
+      console.error('Failed to create deposit:', errorResponse);
+      throw new Error('Failed to create deposit');
+    }
+
+    const depositResponseData = await depositResponse.json();
+    console.log('Deposit created:', depositResponseData);
+
+    // Send a message via Line
+    const text = `${data.user.user_id} ได้ทำการเติมเงินจำนวน ${depositData.amount} บาท`;
+    await sendLineMessage(text);  // Assuming sendLineMessage is defined elsewhere
+
+  } catch (error) {
+    console.error('Error processing deposit:', error);
+  }
+};
+
+const sendLineMessage = async (message: string) => {
+  try {
+    const response = await axios.post('http://localhost:5000/line', {
+      userId,
+      message,
+    });
+    console.log(response.data);
+
+  } catch (error) {
+    console.error('Error sending message:', error);
+
+  }
+}; 
+
+
+
   useEffect(() => {
     const fetchSession = async () => {
       const session = await getSession();
@@ -48,7 +136,6 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
         }
       }
     };
-  
     fetchSession();
   }, []);
   
@@ -269,7 +356,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, onClose }) => {
                 )}
               </div>
               <div className="form-group _tal-r-lg _mgt-30" style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
-                <button className="btn btn-secondary" style={{ backgroundColor: '#28a745', borderColor: '#28a745' }} type="submit" disabled={loading}>
+                <button onClick={submit} className="btn btn-secondary" style={{ backgroundColor: '#28a745', borderColor: '#28a745' }} type="submit" disabled={loading}>
                   {loading ? 'บันทึก...' : 'บันทึก'}
                 </button>
                 <button className="btn btn-secondary ml-3" style={{ backgroundColor: '#dc3545', borderColor: '#dc3545' }} type="button" onClick={onClose}>

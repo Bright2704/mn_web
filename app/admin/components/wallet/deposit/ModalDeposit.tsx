@@ -54,6 +54,38 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false); // State to show success popup
   const [showRejectionModal, setShowRejectionModal] = useState<boolean>(false);
 
+  const [userData, setUserData] = useState(null);
+  useEffect(() => {
+    if (depositDetails && depositDetails.user_id) {
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/users/${depositDetails.user_id}`);
+          const data = await response.json();
+          console.log("User data", data);
+          setUserData(data);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      };
+      fetchUserData();
+    }
+  }, [depositDetails]);
+
+  const sendLineMessage = async (message: string) => {
+    const lineId = userData.line_id || 0;
+    try {
+      const response = await axios.post('http://localhost:5000/line', {
+        lineId,
+        message,
+      });
+      console.log(response.data);
+  
+    } catch (error) {
+      console.error('Error sending message:', error);
+  
+    }
+  }; 
+
   useEffect(() => {
     if (show && depositId) {
       setLoading(true);
@@ -294,9 +326,11 @@ const renderRejectionModal = () => {
 
   const handleConfirm = async () => {
     const currentDateSuccess = getCurrentFormattedDate();
+    const text = `รายการเติมเงินเลขที่ ${depositDetails.deposit_id} จำนวนเงิน ${depositDetails.amount} "ดำเนินการเสร็จสิ้น"`;
+    sendLineMessage(text);
     try {
       await updateDepositStatus('succeed', currentDateSuccess);
-      await createBalanceRecord(); // Call this after updating the deposit status
+      await createBalanceRecord(); 
       setShowSuccessPopup(true);
     } catch (error) {
       console.error('Error during confirmation process:', error);
