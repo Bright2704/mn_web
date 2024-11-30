@@ -18,25 +18,25 @@ export default function RootLayout({
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    // While the session is loading, do nothing
-    if (status === 'loading') return;
+  // useEffect(() => {
+  //   // While the session is loading, do nothing
+  //   if (status === 'loading') return;
 
-    // If the user is not authenticated, redirect to /unauthorized
-    if (!session) {
-      router.replace('/unauthorized');
-    }
+  //   // If the user is not authenticated, redirect to /unauthorized
+  //   if (!session) {
+  //     router.replace('/unauthorized');
+  //   }
 
-    // If the user is authenticated but the role is 'user', redirect to /unauthorized
-    if (session?.user?.role === 'user') {
-      router.replace('/unauthorized');
-    }
-  }, [session, status, router]);
+  //   // If the user is authenticated but the role is 'user', redirect to /unauthorized
+  //   if (session?.user?.role === 'user') {
+  //     router.replace('/unauthorized');
+  //   }
+  // }, [session, status, router]);
 
-  // While session is being loaded, show a loading state
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
+  // // While session is being loaded, show a loading state
+  // if (status === 'loading') {
+  //   return <div>Loading...</div>;
+  // }
 
   // If the user is authenticated and has the right role, render the layout
   return (

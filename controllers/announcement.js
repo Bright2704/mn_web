@@ -1,66 +1,76 @@
-// controllers/announcementController.js
 const Announcement = require('../models/Announcement');
+const marked = require('marked');
 
-// GET method latest
-exports.getLatestAnnouncement = async (req, res)=> {
-    try{
-        const LatestAnnouncement = await Announcement.findOne().sort({ create_date : -1});
-        
-        if (!LatestAnnouncement){
-            return res.status(404).json({ message : "no annonucement found"});
-        }
-        console.log(" get Latest Announcement");
-        res.status(200).json({
-            message : "Latest Announcement retrived successfully",
-            announcement : LatestAnnouncement
-        });
-    }catch(err){
-        console.log(err);
-        res.status(500).json({message : "Server Error"});
-    }
+// สร้างประกาศใหม่
+exports.createAnnouncement = async (req, res) => {
+  const { content, color, Items } = req.body;
+
+  try {
+    // แปลง Markdown เป็น HTML ก่อนบันทึก
+    const contentHtml = marked(content || 'ประกาศใหม่');
+
+    // สร้างประกาศใหม่โดยใช้ HTML ที่แปลงแล้ว
+    const newAnnouncement = new Announcement({
+      content: contentHtml, // บันทึกเป็น HTML ที่แปลงแล้ว
+      color: color || '#FFF9C4',
+      Items: Items || [], // ส่ง Items ถ้ามี หรือใช้ [] หากไม่มี
+    });
+
+    // บันทึกลงฐานข้อมูล
+    await newAnnouncement.save();
+
+    // ส่งประกาศที่บันทึกแล้วกลับไป
+    res.status(201).json(newAnnouncement);
+  } catch (error) {
+    console.error('Error creating announcement:', error);
+    res.status(500).json({ error: 'Failed to create announcement' });
+  }
 };
 
-exports.getAllAnnouncement = async (req, res)=> {
-    try{
-        const Announcements = await Announcement.find().sort({ create_date : -1});
-        
-        if (!Announcements || Announcements.length === 0){
-            return res.status(404).json({ message : "no annonucement found"});
-        }
-        console.log(" get all Announcement");
-        res.status(200).json({
-            message : "Announcements retrived successfully",
-            announcement : Announcements
-        });
-    }catch(err){
-        console.log(err);
-        res.status(500).json({message : "Server Error"});
+// อัปเดตประกาศ
+exports.updateAnnouncement = async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  try {
+    const updatedAnnouncement = await Announcement.findByIdAndUpdate(
+      id,
+      { content },
+      { new: true }
+    );
+    if (!updatedAnnouncement) {
+      return res.status(404).json({ error: 'Announcement not found' });
     }
+    res.status(200).json(updatedAnnouncement);
+  } catch (error) {
+    console.error('Error updating announcement:', error);
+    res.status(500).json({ error: 'Failed to update announcement' });
+  }
 };
 
-// Post method
-exports.AnnouncementCreate = async (req, res)=>{
-    try{
-        // Extract 'Items' from the request body
-        const { Items, User_id }  = req.body;
+// ดึงประกาศทั้งหมด
+exports.getAllAnnouncements = async (req, res) => {
+  try {
+    const announcements = await Announcement.find();
+    res.status(200).json(announcements);
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    res.status(500).json({ error: 'Failed to fetch announcements' });
+  }
+};
 
-        // Check if 'Items' and User_id exist
-        if (!User_id || !Items) {
-            res.send(400).json({ message : "User and Items are required"});
-            }
-        const NewAnnouncement = new Announcement({
-            Items,
-            User_id,
-            create : new Date() // Use current date
-        });
-        // Save the new announcement to the database
-        const SavedAnnouncement = await NewAnnouncement.save();
-        res.status(201).json({
-            message : "Announcement create successfully",
-            announcement: SavedAnnouncement
-        })
-    }catch(err){
-        console.log(err)
-        res.status(500).json({ message : "Server Error"})
+// ลบประกาศ
+exports.deleteAnnouncement = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await Announcement.findByIdAndDelete(id);
+    if (!result) {
+      return res.status(404).json({ error: 'Announcement not found' });
     }
+    res.status(200).json({ message: 'Announcement deleted successfully!' });
+  } catch (error) {
+    console.error('Error deleting announcement:', error);
+    res.status(500).json({ error: 'Failed to delete announcement' });
+  }
 };

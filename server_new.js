@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const port = 5000;
+const port = 5001;
 
 // Middleware
 app.use(cors());
@@ -32,6 +32,7 @@ const bookAddressRoutes = require('./routes/bookAddressRoutes');
 const userRoutes = require('./routes/userRoutes');
 const createPaymentRoutes = require('./routes/createPaymentRoutes');
 const taxInfoRoutes = require('./routes/taxInfoRoutes');
+const announcementRoutes = require('./routes/announcement'); 
 
 // Static files for uploaded images, etc.
 app.use('/storage', express.static(path.join(__dirname, 'public/storage')));
@@ -49,6 +50,7 @@ app.use('/book_address', bookAddressRoutes);
 app.use('/users', userRoutes);
 app.use('/createpayment', createPaymentRoutes);
 app.use('/tax_info', taxInfoRoutes);
+app.use('/api/announcement', announcementRoutes);
 
 // Error Handling for Unhandled Routes
 app.use((req, res) => res.status(404).send('Not Found'));

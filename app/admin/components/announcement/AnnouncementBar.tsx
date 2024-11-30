@@ -1,24 +1,69 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { marked } from 'marked';
 
 const AnnouncementBar = () => {
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await axios.get('http://localhost:5001/api/announcement/get');
+        console.log('Fetched announcements:', response.data); // เพิ่มการ log ข้อมูลที่ได้รับ
+        if (Array.isArray(response.data)) {
+          setAnnouncements(response.data); 
+        } else {
+          console.error('Data is not an array:', response.data);
+          setAnnouncements([]); 
+        }
+      } catch (error) {
+        console.error('Error fetching announcements:', error); 
+        setError('ไม่สามารถดึงข้อมูลประกาศได้');
+      } finally {
+        setLoading(false); // เมื่อโหลดเสร็จแล้ว
+      }
+    };
+  
+    fetchAnnouncements();
+  }, []);
+  
+
+  if (loading) {
+    return <div>กำลังโหลดประกาศ...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (announcements.length === 0) {
+    console.log('No announcements to display');
+    return null;
+  }
+
   return (
     <div>
-      <div className="announcement-bar green-bar">
-        <span>
-          หมายเหตุสินค้าที่เข้าโกดังไทยคืนนี้: วันที่ 28 มิ.ย. 67 ตู้รถล็อต 1954,1955,1956,1959,1960
-          <br />
-          คลังห้องเย็น 12/06/2024 (ตู้เรือล็อต 1735,1736) ติดตรวจ ยังอยู่ในขั้นตอนแยกพัสดุ รอแจ้งเตือนอีกครั้ง
-        </span>
-      </div>
-      <div className="announcement-bar red-bar">
-        <span>
-          วันอาทิตย์ ลูกค้าสามารถเข้ารับสินค้าได้เช่นกัน ตั้งแต่เวลา 08.30-21.00 น.
-          <br />
-          รายชื่อขนส่งที่จัดส่งได้ในวันอาทิตย์ Flash Express, Kerry Express, Best Express, J&T
-          <br />
-          ไทเกอร์รูปและไปรษณีย์ไทย (นอกเหนือจากนี้จัดส่งได้ในวันทำการเท่านั้น)
-        </span>
-      </div>
+      {announcements.map((announcement, index) => (
+        <div
+          key={index}
+          className={`announcement-bar ${announcement.color === '#f44336' ? 'red-bar' : 'green-bar'}`}
+          style={{
+            backgroundColor: announcement.color || '#FFF9C4',
+            padding: '10px',
+            borderRadius: '8px',
+            marginBottom: '10px',
+          }}
+        >
+          <div
+            dangerouslySetInnerHTML={{
+              __html: marked(announcement.content || '', { breaks: true }), // เพิ่ม { breaks: true }
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 };
