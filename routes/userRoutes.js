@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const UserController = require('../controllers/UserController');
+const userController = require('../controllers/UserController');  // นำเข้า UserController
 
-router.get('/ids', UserController.getAllUserIds);
-router.get('/search', UserController.searchUsers);
-router.get('/:userId', UserController.getUserById);
-router.put('/:userId', UserController.updateUser);
+router.get('/:userId', userController.getUserById);
+router.put('/:userId', userController.updateUser);
+
+router.patch("/update/:userId", authenticate, userController.updateLineId);
+router.get('/get-user-id', userController.getUserIdFromSession);
+
 
 module.exports = router;
