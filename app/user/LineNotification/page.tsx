@@ -10,6 +10,17 @@ const LineLoginPage = () => {
   const [userIdFromServer, setUserIdFromServer] = useState<string>(''); // เก็บ user_id ที่ดึงมา
   const [showPopup, setShowPopup] = useState(false); // สถานะการแสดง popup
 
+  const checkFriend = () => {
+    liff.getFriendship().then(data => {
+      if (data.friendFlag) {
+        // something you want to do
+      } else {
+        // not friend or being blocked, force to add friend
+        window.location = 'https://line.me/R/ti/p/@676mougl'
+      }
+    })
+  }
+
   useEffect(() => {
     if (loading) {
       const script = document.createElement('script');
@@ -45,16 +56,21 @@ const LineLoginPage = () => {
     }
   };
 
+
   const getProfile = () => {
     window.liff.getProfile()
       .then((profile: any) => {
         setUserProfile(profile);
         console.log('User profile:', profile);
+  
+        // อัพเดตสถานะเป็นล็อกอินสำเร็จ
         setIsLoggedIn(true);
         setLoading(false);
-        updateUserLineId(profile); // อัพเดต lineId
         setLoginStatus('success');
-        setShowPopup(true); // แสดง popup เมื่อ login สำเร็จ
+        setShowPopup(true); // แสดง popup หลัง Login สำเร็จ
+  
+        // อัพเดต Line ID ของผู้ใช้ในฐานข้อมูล
+        updateUserLineId(profile);
       })
       .catch((err: any) => {
         console.error('Failed to get user profile', err);
@@ -62,6 +78,9 @@ const LineLoginPage = () => {
         setLoginStatus('failed');
       });
   };
+
+  
+
   const updateUserLineId = async (profile) => {
     try {
       // Fetch the session data

@@ -112,6 +112,98 @@ app.post('/line/', async (req, res) => {
   }
 });
 
+app.post('/line-user/', async (req, res) => {
+  const LINE_BOT_API = process.env.LINE_BASE_URL || 'https://api.line.me/v2/bot';
+  const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+
+  try {
+    const { message, userID } = req.body;
+
+    if (!message || !userID) {
+      return res.status(400).send({ status: 'error', message: 'Missing message or userID' });
+    }
+
+    const body = {
+      to: userID,
+      messages: [
+        {
+          type: 'text',
+          text: message
+        }
+      ]
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
+    };
+
+    // ส่งข้อความไปยัง LINE API
+    const response = await axios.post(`${LINE_BOT_API}/message/push`, body, { headers });
+    console.log('Response from LINE API:', response.data);
+
+    res.send({
+      status: 'success',
+      message: 'Message sent successfully',
+      response: response.data
+    });
+  } catch (error) {
+    console.error('Error sending message:', error.response?.data || error.message);
+    res.status(500).send({
+      status: 'error',
+      message: 'Error sending message',
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+app.post('/line-webhook', async (req, res) => {
+  try {
+    // Get the event data from the webhook payload
+    const { events } = req.body;
+
+    // For each event, check if it's a message event and handle it
+    for (const event of events) {
+      const userId = event.source.userId;
+      
+      // Check if the event is a follow event (i.e., user has added the bot)
+      if (event.type === 'follow') {
+        // Send a welcome message
+        await sendWelcomeMessage(userId);
+      }
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error');
+  }
+});
+
+async function sendWelcomeMessage(userId) {
+  const message = {
+    type: 'text',
+    text: 'ขอบคุณที่เพิ่มเราเป็นเพื่อน! ท่านสามารถเริ่มต้นใช้งานได้ที่นี่'
+  };
+
+  const response = await axios.post('https://api.line.me/v2/bot/message/push', {
+    to: userId,
+    messages: [message]
+  }, {
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': Bearer ${LINE_ACCESS_TOKEN}
+    }
+  });
+
+  console.log(response.data);
+}
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+
 app.use((req, res) => res.status(404).send('Not Found'));
 
 const port = 5000;

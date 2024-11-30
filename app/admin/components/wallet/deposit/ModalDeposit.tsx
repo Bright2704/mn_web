@@ -73,6 +73,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
 
   const sendLineMessage = async (message: string) => {
     const lineId = userData.line_id || 0;
+    console.log(lineId)
     try {
       const response = await axios.post('http://localhost:5000/line', {
         lineId,
