@@ -41,7 +41,6 @@ io.on('connection', (socket) => {
 });
 
 
-// Route Imports
 const orderRoutes = require('./routes/orderRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const depositRoutes = require('./routes/depositRoutes');
