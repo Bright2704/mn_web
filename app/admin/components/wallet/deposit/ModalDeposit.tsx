@@ -72,20 +72,18 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
   }, [depositDetails]);
 
   const sendLineMessage = async (message: string) => {
-    const lineId = userData.line_id || 0;
-    console.log(lineId)
+    const userID = userData.line_id || 0; // Match the server's expected `userID`
+    console.log(userID);
     try {
-      const response = await axios.post('http://localhost:5000/line', {
-        lineId,
+      const response = await axios.post('http://localhost:5000/line-user/', {
+        userID, // Ensure key matches server expectation
         message,
       });
       console.log(response.data);
-  
     } catch (error) {
       console.error('Error sending message:', error);
-  
     }
-  }; 
+  };
 
   useEffect(() => {
     if (show && depositId) {

@@ -54,11 +54,10 @@ const formatDate = (date) => {
 const submit = async () => {
   try {
     // Fetch the session data
-    const responseSession = await fetch('https://2e67-223-205-233-212.ngrok-free.app/api/auth/session');
+    const responseSession = await fetch('https://9b07-223-205-233-212.ngrok-free.app/api/auth/session');
     const data = await responseSession.json();
     console.log('Session data:', data);
 
-    // Check if user_id exists in the session data (inside the user object)
     if (!data.user || !data.user.user_id) {
       console.error('User ID not found in session data');
       return; // Exit early if user_id is missing

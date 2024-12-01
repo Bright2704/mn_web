@@ -10,17 +10,6 @@ const LineLoginPage = () => {
   const [userIdFromServer, setUserIdFromServer] = useState<string>(''); // เก็บ user_id ที่ดึงมา
   const [showPopup, setShowPopup] = useState(false); // สถานะการแสดง popup
 
-  const checkFriend = () => {
-    liff.getFriendship().then(data => {
-      if (data.friendFlag) {
-        // something you want to do
-      } else {
-        // not friend or being blocked, force to add friend
-        window.location = 'https://line.me/R/ti/p/@676mougl'
-      }
-    })
-  }
-
   useEffect(() => {
     if (loading) {
       const script = document.createElement('script');
@@ -56,27 +45,45 @@ const LineLoginPage = () => {
     }
   };
 
-
   const getProfile = () => {
     window.liff.getProfile()
       .then((profile: any) => {
         setUserProfile(profile);
         console.log('User profile:', profile);
   
-        // อัพเดตสถานะเป็นล็อกอินสำเร็จ
+        // Update status to logged in
         setIsLoggedIn(true);
         setLoading(false);
         setLoginStatus('success');
-        setShowPopup(true); // แสดง popup หลัง Login สำเร็จ
-  
-        // อัพเดต Line ID ของผู้ใช้ในฐานข้อมูล
+        setShowPopup(true); // Show popup after login success
+
+        // Update Line ID of the user in the database
         updateUserLineId(profile);
+  
+        // Check the friendship status after getting the profile
+        checkFriend();
       })
       .catch((err: any) => {
         console.error('Failed to get user profile', err);
         setLoading(false);
         setLoginStatus('failed');
       });
+  };
+
+  const checkFriend = () => {
+    window.liff.getFriendship().then(data => {
+      if (data.friendFlag) {
+        // User is already a friend
+        console.log('User is a friend');
+        // Perform actions if the user is a friend
+      } else {
+        // User is not a friend or blocked, force to add friend
+        console.log('User is not a friend or blocked');
+        window.location.href = 'https://line.me/R/ti/p/@676mougl'; // Redirect to add friend
+      }
+    }).catch((err: any) => {
+      console.error('Failed to check friendship status', err);
+    });
   };
 
   
