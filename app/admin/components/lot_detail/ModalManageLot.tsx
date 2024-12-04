@@ -29,7 +29,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
   const refreshData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/lots/${lotId}`);
+      const response = await fetch(`http://localhost:5001/lots/${lotId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch lot data");
       }
@@ -49,7 +49,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
   const fetchTrackingData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/tracking/lot/${lotId}`);
+      const response = await fetch(`http://localhost:5001/tracking/lot/${lotId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch tracking data");
       }

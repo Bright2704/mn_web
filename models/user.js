@@ -1,5 +1,6 @@
 // ./models/User.js
 const mongoose = require("mongoose");
+
 const UserSchema = new mongoose.Schema(
   {
     name: {
@@ -31,11 +32,12 @@ const UserSchema = new mongoose.Schema(
       unique: true,
     },
     line_id: { type: String },
+    status_line: { type: Boolean, default: false },
     facebook: { type: String },
     user_type: {
       type: String,
       required: true,
-      default: "normal", // New field with default value "normal"
+      default: "normal",
     },
     resetToken: {
       type: String,

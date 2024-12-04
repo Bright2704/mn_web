@@ -55,7 +55,7 @@ const WithdrawPageUser: React.FC = () => {
       if (!userId) return;
       
       try {
-        const response = await axios.get(`http://localhost:5000/withdraws/user/${userId}`);
+        const response = await axios.get(`http://localhost:5001/withdraws/user/${userId}`);
         let filteredWithdraws = response.data;
         
         if (selectedStatus !== 'all') {
@@ -118,7 +118,7 @@ const WithdrawPageUser: React.FC = () => {
 
   const fetchLastBalance = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      const response = await axios.get(`http://localhost:5001/balances/user/${userId}/last`);
       if (response.data) {
         console.log('Latest balance record:', response.data); // Debug log
         setTotalAmount(response.data.balance_total);

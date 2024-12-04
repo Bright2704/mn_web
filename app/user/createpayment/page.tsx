@@ -212,17 +212,17 @@ const CreatePayment: React.FC = () => {
 
       // Create payment and get the payment ID
       const paymentResponse = await axios.post(
-        "http://localhost:5000/createpayment",
+        "http://localhost:5001/createpayment",
         createPaymentData
       );
       const pay_id = paymentResponse.data.pay_id;  // Assuming the API returns the payment ID
 
       // Get next balance ID
-      const nextBalanceIdResponse = await axios.get('http://localhost:5000/balances/next-id');
+      const nextBalanceIdResponse = await axios.get('http://localhost:5001/balances/next-id');
       const newBalanceId = nextBalanceIdResponse.data.nextId;
 
       const newBalanceAmount = balance - grandTotal;
-      await axios.post("http://localhost:5000/balances", {
+      await axios.post("http://localhost:5001/balances", {
         balance_id: newBalanceId,
         user_id: userName,
         balance_type: "payment",
@@ -379,7 +379,7 @@ const CreatePayment: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/balances")
+      .get("http://localhost:5001/balances")
       .then((response) => {
         const fetchedBalances = response.data;
         if (fetchedBalances.length > 0) {

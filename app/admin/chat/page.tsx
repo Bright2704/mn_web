@@ -4,7 +4,7 @@ import { Search, MessageSquare, Paperclip, X } from "lucide-react";
 import Image from "next/image";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+const socket = io("http://localhost:5001");
 
 interface ChatMessage {
   id: string;
@@ -53,7 +53,7 @@ const AdminChatPage = () => {
   const fetchChats = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/chats");
+      const response = await fetch("http://localhost:5001/chats");
       const data = await response.json();
 
       const formattedUsers: ChatUser[] = data.map((chat: any) => ({
@@ -188,7 +188,7 @@ const AdminChatPage = () => {
 
   const fetchUserMessages = async (chatId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/chats/${chatId}`);
+      const response = await fetch(`http://localhost:5001/chats/${chatId}`);
       const data = await response.json();
       setMessages(data.messages);
       markMessagesAsRead(chatId);
@@ -199,7 +199,7 @@ const AdminChatPage = () => {
 
   const markMessagesAsRead = async (chatId: string) => {
     try {
-      await fetch(`http://localhost:5000/chats/${chatId}/read`, {
+      await fetch(`http://localhost:5001/chats/${chatId}/read`, {
         method: "PUT",
       });
 
@@ -241,7 +241,7 @@ const AdminChatPage = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5000/chats/${selectedUser.id}/messages`,
+        `http://localhost:5001/chats/${selectedUser.id}/messages`,
         {
           method: "POST",
           body: formData,

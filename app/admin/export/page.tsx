@@ -102,7 +102,7 @@ const BuylistPage: React.FC = () => {
         if (selectedStatus === 'all') {
           // Fetch all statuses separately and combine the results
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            // axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            // axios.get<LocalProduct[]>(`http://localhost:5001/orders/status/${status.value}`)
             // axios.get<LocalProduct[]>(`/api/orders`)
             axios.get<LocalPayment[]>(`/api/payments`)
           );
@@ -110,7 +110,7 @@ const BuylistPage: React.FC = () => {
           const allProducts = results.flatMap(result => result.data);
           response = { data: allProducts };
         } else {
-          response = await axios.get<LocalPayment[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+          response = await axios.get<LocalPayment[]>(`http://localhost:5001/orders/status/${selectedStatus}`);
         }
         setProducts(response.data);
         setLoading(false);

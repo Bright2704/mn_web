@@ -55,7 +55,7 @@ const AddTaxInformationModal: React.FC<AddTaxInformationModalProps> = ({
       formData.append('customerType', customerType);
       formData.append('document', document);
 
-      await axios.post('http://localhost:5000/tax_info', formData, {
+      await axios.post('http://localhost:5001/tax_info', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

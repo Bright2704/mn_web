@@ -183,7 +183,7 @@ function checkFileType(file, cb) {
 // Define the upload configuration
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5000000 }, // Increased limit to 5MB
+  limits: { fileSize: 5001000 }, // Increased limit to 5MB
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   }
@@ -966,7 +966,7 @@ app.use((req, res) => {
   res.status(404).send('Not Found');
 });
 
-const port = 5000;
+const port = 5001;
 app.listen(port, () => {
   console.log(`Server started on http://localhost:${port}`);
 });

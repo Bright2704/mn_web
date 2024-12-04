@@ -38,7 +38,7 @@ const ModalComponent: React.FC<ModalProps> = ({ show, onClose, product }) => {
   const handleConfirmStatus = async () => {
     try {
       setLoading(true);
-      const response = await axios.put(`http://localhost:5000/orders/${product.order_id}/status`, { status: newStatus });
+      const response = await axios.put(`http://localhost:5001/orders/${product.order_id}/status`, { status: newStatus });
       console.log('Status updated:', response.data);
       setLoading(false);
       onClose(); // Close the modal after successful update

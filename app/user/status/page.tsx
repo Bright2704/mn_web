@@ -82,7 +82,7 @@ const StatusPage: React.FC = () => {
       setIsLoading(true);
       try {
         if (userId) {
-          const { data } = await axios.get("http://localhost:5000/tracking");
+          const { data } = await axios.get("http://localhost:5001/tracking");
 
           // Filter tracking data by the current userId AND lot_id exists
           const filteredData = data.filter(

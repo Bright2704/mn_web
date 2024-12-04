@@ -81,7 +81,7 @@ const submit = async () => {
     // Log the depositData to ensure it’s being sent correctly
     console.log('Sending deposit data:', depositData);
 
-    const depositResponse = await fetch('http://localhost:5000/deposits/', {
+    const depositResponse = await fetch('http://localhost:5001/deposits/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ const submit = async () => {
 
 const sendLineMessage = async (message: string) => {
   try {
-    const response = await axios.post('http://localhost:5000/line', {
+    const response = await axios.post('http://localhost:5001/line', {
       userId,
       message,
     });
@@ -161,7 +161,7 @@ const sendLineMessage = async (message: string) => {
     setError('');
 
     try {
-      const response = await axios.get('http://localhost:5000/deposits/next-id');
+      const response = await axios.get('http://localhost:5001/deposits/next-id');
       const nextDepositId = response.data.next_deposit_id;
 
       const formattedDate = selectedDate
@@ -187,7 +187,7 @@ const sendLineMessage = async (message: string) => {
         throw new Error('File is required.');
       }
 
-      const depositResponse = await axios.post('http://localhost:5000/deposits', depositData, {
+      const depositResponse = await axios.post('http://localhost:5001/deposits', depositData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

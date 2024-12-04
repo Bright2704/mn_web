@@ -81,7 +81,7 @@ const ModalWithdraw: React.FC<ModalWithdrawProps> = ({ show, onClose }) => {
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/balances');
+        const response = await axios.get('http://localhost:5001/balances');
         const fetchedBalances = response.data;
         if (fetchedBalances.length > 0) {
           const latestBalanceTotal = fetchedBalances[fetchedBalances.length - 1].balance_total;
@@ -124,7 +124,7 @@ const ModalWithdraw: React.FC<ModalWithdrawProps> = ({ show, onClose }) => {
         withdraw_amount: parseFloat(amount)
       };
       
-      await axios.post<WithdrawData>('http://localhost:5000/withdraws', withdrawData);
+      await axios.post<WithdrawData>('http://localhost:5001/withdraws', withdrawData);
       
       // Clear form
       setAmount("");

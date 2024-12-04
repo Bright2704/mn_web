@@ -17,7 +17,7 @@ const LotPage: React.FC = () => {
 
   // Fetch lots from the API when the component loads
   useEffect(() => {
-    fetch('http://localhost:5000/lots')
+    fetch('http://localhost:5001/lots')
       .then((response) => response.json())
       .then((data) => setLots(data))
       .catch((error) => console.error('Error fetching lots:', error));
@@ -48,7 +48,7 @@ const LotPage: React.FC = () => {
   // Handle saving a new lot
   const handleSaveLot = (lotData: { lot_id: string; lot_type: string }) => {
     // Send the new lot to the back-end to be saved in the database
-    fetch('http://localhost:5000/lots', {
+    fetch('http://localhost:5001/lots', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -50,13 +50,13 @@ const BuylistPage: React.FC = () => {
         let response;
         if (selectedStatus === 'all') {
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${status.value}`)
+            axios.get<LocalProduct[]>(`http://localhost:5001/orders/status/${status.value}`)
           );
           const results = await Promise.all(requests);
           const allProducts = results.flatMap(result => result.data);
           response = { data: allProducts };
         } else {
-          response = await axios.get<LocalProduct[]>(`http://localhost:5000/orders/status/${selectedStatus}`);
+          response = await axios.get<LocalProduct[]>(`http://localhost:5001/orders/status/${selectedStatus}`);
         }
         setProducts(response.data);
         setLoading(false);

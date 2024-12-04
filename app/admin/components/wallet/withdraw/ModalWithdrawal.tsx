@@ -42,7 +42,7 @@ interface WithdrawDetails {
     const fetchWithdrawDetails = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/withdraws/${withdrawId}`
+          `http://localhost:5001/withdraws/${withdrawId}`
         );
         if (!response.ok) throw new Error("Network response was not ok");
         const data = await response.json();
@@ -73,7 +73,7 @@ interface WithdrawDetails {
 
   const generateNextBalanceId = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/balances/next-id');
+      const response = await axios.get('http://localhost:5001/balances/next-id');
       return response.data.nextId;
     } catch (err) {
       console.error('Error generating next balance_id:', err);
@@ -84,7 +84,7 @@ interface WithdrawDetails {
    // Fetch the last balance total for a specific user
    const getLastBalanceTotal = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      const response = await axios.get(`http://localhost:5001/balances/user/${userId}/last`);
       // Since your endpoint returns the last balance directly (not in an array)
       return response.data?.balance_total || 0;
     } catch (err) {
@@ -121,7 +121,7 @@ const createBalanceRecord = async () => {
         balance_total: lastBalanceTotal - withdrawDetails.withdraw_amount,
       };
   
-      await axios.post('http://localhost:5000/balances', newBalance);
+      await axios.post('http://localhost:5001/balances', newBalance);
       console.log('Balance record created successfully');
     } catch (err) {
       console.error('Error creating balance record:', err);
@@ -161,7 +161,7 @@ const createBalanceRecord = async () => {
       }
   
       const response = await axios.patch(
-        `http://localhost:5000/withdraws/${withdrawId}/status`,
+        `http://localhost:5001/withdraws/${withdrawId}/status`,
         formData
       );
   
@@ -200,12 +200,12 @@ const createBalanceRecord = async () => {
           </h6>
           <div className="mt-4">
             <img
-              src={`http://localhost:5000${withdrawDetails.slip}`}
+              src={`http://localhost:5001${withdrawDetails.slip}`}
               alt="Slip"
               className="max-w-full h-auto rounded-lg cursor-pointer"
               onClick={() =>
                 window.open(
-                  `http://localhost:5000${withdrawDetails.slip}`,
+                  `http://localhost:5001${withdrawDetails.slip}`,
                   "_blank"
                 )
               }
@@ -286,7 +286,7 @@ const createBalanceRecord = async () => {
       formData.append('note', rejectionNote);
 
       const response = await fetch(
-        `http://localhost:5000/withdraws/${withdrawId}/status`,
+        `http://localhost:5001/withdraws/${withdrawId}/status`,
         {
           method: 'PATCH',
           body: formData,

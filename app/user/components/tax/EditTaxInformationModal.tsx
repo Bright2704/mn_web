@@ -49,7 +49,7 @@ const EditTaxInformationModal: React.FC<EditTaxInformationModalProps> = ({
         formData.append('document', document);
       }
 
-      await axios.put(`http://localhost:5000/tax_info/${taxInfo._id}`, formData, {
+      await axios.put(`http://localhost:5001/tax_info/${taxInfo._id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -144,7 +144,7 @@ const EditTaxInformationModal: React.FC<EditTaxInformationModalProps> = ({
             {taxInfo.document && (
               <div className="mt-2">
                 <a
-                  href={`http://localhost:5000${taxInfo.document}`}
+                  href={`http://localhost:5001${taxInfo.document}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline"

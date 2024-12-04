@@ -76,7 +76,7 @@ const TrackingDataTable: React.FC<TrackingDataTableProps> = ({
   
           // Update the selected field with the new date and adjust the status
           const response = await fetch(
-            `http://localhost:5000/tracking/${tracking.tracking_id}/updateFields`,
+            `http://localhost:5001/tracking/${tracking.tracking_id}/updateFields`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -122,7 +122,7 @@ const TrackingDataTable: React.FC<TrackingDataTableProps> = ({
           const trackingId = trackingData[index].tracking_id;
   
           await fetch(
-            `http://localhost:5000/tracking/${trackingId}/removeFromLot`,
+            `http://localhost:5001/tracking/${trackingId}/removeFromLot`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -167,7 +167,7 @@ const TrackingDataTable: React.FC<TrackingDataTableProps> = ({
           const trackingId = trackingData[index].tracking_id;
   
           await fetch(
-            `http://localhost:5000/tracking/${trackingId}/resetDates`,
+            `http://localhost:5001/tracking/${trackingId}/resetDates`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },

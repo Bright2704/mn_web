@@ -50,7 +50,7 @@ const PaymentDetailsPage: React.FC = () => {
                     const response = await axios.get(`/api/payments/${paymentNumber}`);  // Fetch payment details by paymentNumber
                     setPaymentData(response.data);
                     const trackingPromises = response.data.tracking.map((track: any) =>
-                        axios.get(`http://localhost:5000/tracking/${track.trackingID}`) // Adjusted for your external tracking endpoint
+                        axios.get(`http://localhost:5001/tracking/${track.trackingID}`) // Adjusted for your external tracking endpoint
                             );
                     // Wait for all tracking details to be fetched
                     const trackingResponses = await Promise.all(trackingPromises);

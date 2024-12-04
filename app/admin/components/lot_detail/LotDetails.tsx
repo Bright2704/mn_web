@@ -71,7 +71,7 @@ const LotDetails: React.FC<LotDetailsProps> = ({
       if (image) formData.append("lotImage", image);
 
       const response = await fetch(
-        `http://localhost:5000/lots/${lotData.lot_id}`,
+        `http://localhost:5001/lots/${lotData.lot_id}`,
         {
           method: "PUT",
           body: formData,
@@ -230,7 +230,7 @@ const LotDetails: React.FC<LotDetailsProps> = ({
                         />
                         {lotData.file_path && (
                           <a
-                            href={`http://localhost:5000${lotData.file_path}`}
+                            href={`http://localhost:5001${lotData.file_path}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -259,7 +259,7 @@ const LotDetails: React.FC<LotDetailsProps> = ({
                         />
                         {lotData.image_path && (
                           <Image
-                            src={`http://localhost:5000${lotData.image_path}`}
+                            src={`http://localhost:5001${lotData.image_path}`}
                             alt="Lot"
                             className="mt-2"
                             width={200}

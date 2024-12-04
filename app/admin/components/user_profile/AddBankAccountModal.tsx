@@ -89,7 +89,7 @@ const AddBankAccountModal: React.FC<AddBankAccountModalProps> = ({
         branch: branch,
       };
 
-      await axios.post("http://localhost:5000/book_bank", bankAccountData);
+      await axios.post("http://localhost:5001/book_bank", bankAccountData);
       setError(null); // Clear any previous errors
       onClose(); // Close modal after successful submission
     } catch (error) {

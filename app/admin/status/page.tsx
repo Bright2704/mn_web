@@ -79,7 +79,7 @@ const StatusPage: React.FC = () => {
       setUserError(null);
       try {
         // Updated URL to match backend route
-        const response = await axios.get("http://localhost:5000/users/ids");
+        const response = await axios.get("http://localhost:5001/users/ids");
         
         if (response.data) {
           setUsers(response.data);
@@ -105,7 +105,7 @@ const StatusPage: React.FC = () => {
   const handleUserSelect = async (value: string) => {
     setSelectedUserId(value);
     try {
-      const { data } = await axios.get("http://localhost:5000/tracking");
+      const { data } = await axios.get("http://localhost:5001/tracking");
       const filteredData = data.filter(
         (item: TrackingData) => item.user_id === value && item.lot_id
       );
@@ -120,7 +120,7 @@ const StatusPage: React.FC = () => {
       setIsLoading(true);
       try {
         if (userId) {
-          const { data } = await axios.get("http://localhost:5000/tracking");
+          const { data } = await axios.get("http://localhost:5001/tracking");
 
           // Filter tracking data by the current userId AND lot_id exists
           const filteredData = data.filter(

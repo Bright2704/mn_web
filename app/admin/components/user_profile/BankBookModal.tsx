@@ -44,7 +44,7 @@ interface BankAccount {
 
     const fetchBankAccounts = async (userId: string) => {
         try {
-          const response = await axios.get(`http://localhost:5000/book_bank/user/${userId}`);
+          const response = await axios.get(`http://localhost:5001/book_bank/user/${userId}`);
           setBankAccounts(response.data);
         } catch (error) {
           console.error('Error fetching bank accounts:', error);
@@ -53,7 +53,7 @@ interface BankAccount {
     
       const handleDelete = async (accountId: string) => {
         try {
-          await axios.delete(`http://localhost:5000/book_bank/${accountId}`);
+          await axios.delete(`http://localhost:5001/book_bank/${accountId}`);
           if (userId) fetchBankAccounts(userId);
         } catch (error) {
           console.error('Error deleting bank account:', error);

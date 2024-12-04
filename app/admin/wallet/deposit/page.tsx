@@ -64,13 +64,13 @@ const DepositPage: React.FC = () => {
         let response;
         if (selectedStatus === 'all') {
           const requests = statuses.filter(status => status.value !== 'all').map(status =>
-            axios.get<DepositNew[]>(`http://localhost:5000/deposits/status/${status.value}`)
+            axios.get<DepositNew[]>(`http://localhost:5001/deposits/status/${status.value}`)
           );
           const results = await Promise.all(requests);
           const allDeposits = results.flatMap(result => result.data);
           response = { data: allDeposits };
         } else {
-          response = await axios.get<DepositNew[]>(`http://localhost:5000/deposits/status/${selectedStatus}`);
+          response = await axios.get<DepositNew[]>(`http://localhost:5001/deposits/status/${selectedStatus}`);
         }
         setDeposits(response.data);
         setLoading(false);

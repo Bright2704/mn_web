@@ -59,7 +59,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
     if (depositDetails && depositDetails.user_id) {
       const fetchUserData = async () => {
         try {
-          const response = await fetch(`http://localhost:5000/users/${depositDetails.user_id}`);
+          const response = await fetch(`http://localhost:5001/users/${depositDetails.user_id}`);
           const data = await response.json();
           console.log("User data", data);
           setUserData(data);
@@ -75,7 +75,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
     const userID = userData.line_id || 0; // Match the server's expected `userID`
     console.log(userID);
     try {
-      const response = await axios.post('http://localhost:5000/line-user/', {
+      const response = await axios.post('http://localhost:5001/line-user/', {
         userID, // Ensure key matches server expectation
         message,
       });
@@ -90,7 +90,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
       setLoading(true);
       setError(''); // Reset error before fetching
       axios
-        .get(`http://localhost:5000/deposits/${depositId}`)
+        .get(`http://localhost:5001/deposits/${depositId}`)
         .then((response) => {
           setDepositDetails(response.data);
           setLoading(false);
@@ -107,7 +107,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
     if (searchTerm.length === 6) {
       setLoading(true);
       axios
-        .get(`http://localhost:5000/deposits/six_digits/${searchTerm}`)
+        .get(`http://localhost:5001/deposits/six_digits/${searchTerm}`)
         .then((response) => {
           const deposits: Deposit[] = response.data;
           
@@ -123,7 +123,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
             setIsConfirmDisabled(false);
             
             // Update six_digits
-            return axios.put(`http://localhost:5000/deposits/${depositId}/update-six-digits`, {
+            return axios.put(`http://localhost:5001/deposits/${depositId}/update-six-digits`, {
               six_digits: searchTerm
             });
           }
@@ -190,7 +190,7 @@ const ModalDeposit: React.FC<ModalDepositProps> = ({ show, depositId, onClose })
       date_success: dateSuccess
     };
     
-    axios.put(`http://localhost:5000/deposits/${depositId}`, updateData)
+    axios.put(`http://localhost:5001/deposits/${depositId}`, updateData)
       .then((response) => {
         setDepositDetails(response.data);
         setShowSuccessPopup(true);
@@ -228,7 +228,7 @@ const handleRejectionSubmit = () => {
   };
 
   axios
-    .put(`http://localhost:5000/deposits/${depositId}`, updatedDetails)
+    .put(`http://localhost:5001/deposits/${depositId}`, updatedDetails)
     .then(() => {
       setDepositDetails(updatedDetails);
       setShowRejectionModal(false);
@@ -279,7 +279,7 @@ const renderRejectionModal = () => {
   // Fetch the next balance ID from the backend
   const generateNextBalanceId = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/balances/next-id');
+      const response = await axios.get('http://localhost:5001/balances/next-id');
       return response.data.nextId;
     } catch (err) {
       console.error('Error generating next balance_id:', err);
@@ -290,7 +290,7 @@ const renderRejectionModal = () => {
   // Fetch the last balance total for a specific user
   const getLastBalanceTotal = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      const response = await axios.get(`http://localhost:5001/balances/user/${userId}/last`);
       return response.data?.balance_total || 0;
     } catch (err) {
       console.error('Error fetching last balance total:', err);
@@ -316,7 +316,7 @@ const renderRejectionModal = () => {
         balance_total: lastBalanceTotal + parseFloat(depositDetails.amount),
       };
 
-      await axios.post('http://localhost:5000/balances', newBalance);
+      await axios.post('http://localhost:5001/balances', newBalance);
       console.log('Balance record created successfully');
     } catch (err) {
       console.error('Error creating balance record:', err);

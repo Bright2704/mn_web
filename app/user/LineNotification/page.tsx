@@ -3,185 +3,209 @@
 import React, { useState, useEffect } from 'react';
 
 const LineLoginPage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [loginStatus, setLoginStatus] = useState<string>(''); // ใช้สถานะเดียว
-  const [userIdFromServer, setUserIdFromServer] = useState<string>(''); // เก็บ user_id ที่ดึงมา
-  const [showPopup, setShowPopup] = useState(false); // สถานะการแสดง popup
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const [userProfile, setUserProfile] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [loginStatus, setLoginStatus] = useState<string>(''); 
+    const [statusLine, setStatusLine] = useState<boolean | null>(null); 
+    const [showPopup, setShowPopup] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (loading) {
-      const script = document.createElement('script');
-      script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
-      script.onload = () => {
-        initializeApp();
-      };
-      document.body.appendChild(script);
+    const fetchStatusLine = async () => {
+        try {
+            const responseSession = await fetch('http://localhost:3000/api/auth/session');
+            const data = await responseSession.json();
 
-      return () => {
-        document.body.removeChild(script);
-      };
-    }
-  }, [loading]);
+            if (!data.user || !data.user.user_id) {
+                console.error('User ID not found in session data');
+                return;
+            }
 
-  const initializeApp = () => {
-    window.liff.init({ liffId: '2006545984-bnyRkq1E' })
-      .then(() => {
-        checkLoginStatus();
-      })
-      .catch((err: any) => {
-        console.error('LIFF initialization failed', err);
+            const responseStatus = await fetch(`http://localhost:5001/users/status/${data.user.user_id}`)
+            const statusData = await responseStatus.json();
+
+            if (statusData.status_line !== undefined) {
+                setStatusLine(statusData.status_line);
+                console.log('Status Line:', statusData.status_line); 
+            } else {
+                console.error('Status line not found in the response');
+            }
+        } catch (error) {
+            console.error('Error fetching status line:', error);
+        }
+    };
+
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+        script.onload = () => {
+            initializeApp(); 
+        };
+        document.body.appendChild(script);
+
+        const storedUserProfile = localStorage.getItem('userProfile');
+        if (storedUserProfile) {
+            setUserProfile(JSON.parse(storedUserProfile));
+            setIsLoggedIn(true);
+            setLoginStatus('success');
+        }
+
+        fetchStatusLine();
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    const initializeApp = () => {
+        window.liff.init({ liffId: '2006545984-bnyRkq1E' })
+            .then(() => {
+                checkLoginStatus();
+            })
+            .catch((err: any) => {
+                console.error('LIFF initialization failed', err);
+                setLoading(false);
+                setLoginStatus('failed');
+            });
+    };
+
+    const checkLoginStatus = () => {
+        if (window.liff.isLoggedIn()) {
+            getProfile();
+        } else {
+            setIsLoggedIn(false);
+        }
         setLoading(false);
-        setLoginStatus('failed');
+    };
+
+    const getProfile = () => {
+        window.liff.getProfile()
+            .then((profile: any) => {
+                setUserProfile(profile);
+                console.log('User profile:', profile);
+                setIsLoggedIn(true);
+                setLoginStatus('success');
+                setShowPopup(true);
+
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+
+                updateUserLineId(profile);
+            })
+            .catch((err: any) => {
+                console.error('Failed to get user profile', err);
+                setLoginStatus('failed');
+            });
+    };
+
+    const updateUserLineId = async (profile: any) => {
+        try {
+            const responseSession = await fetch('http://localhost:3000/api/auth/session');
+            const data = await responseSession.json();
+            if (!data.user || !data.user.user_id) {
+                console.error('User ID not found in session data');
+                return;
+            }
+
+            const response = await fetch(`http://localhost:5001/users/update/${data.user.user_id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lineId: profile.userId }),
       });
-  };
 
-  const checkLoginStatus = () => {
-    if (window.liff.isLoggedIn()) {
-      getProfile();
-    } else {
-      window.liff.login();
-    }
-  };
-
-  const getProfile = () => {
-    window.liff.getProfile()
-      .then((profile: any) => {
-        setUserProfile(profile);
-        console.log('User profile:', profile);
-  
-        // Update status to logged in
-        setIsLoggedIn(true);
-        setLoading(false);
-        setLoginStatus('success');
-        setShowPopup(true); // Show popup after login success
-
-        // Update Line ID of the user in the database
-        updateUserLineId(profile);
-  
-        // Check the friendship status after getting the profile
-        checkFriend();
-      })
-      .catch((err: any) => {
-        console.error('Failed to get user profile', err);
-        setLoading(false);
-        setLoginStatus('failed');
-      });
-  };
-
-  const checkFriend = () => {
-    window.liff.getFriendship().then(data => {
-      if (data.friendFlag) {
-        // User is already a friend
-        console.log('User is a friend');
-        // Perform actions if the user is a friend
-      } else {
-        // User is not a friend or blocked, force to add friend
-        console.log('User is not a friend or blocked');
-        window.location.href = 'https://line.me/R/ti/p/@676mougl'; // Redirect to add friend
-      }
-    }).catch((err: any) => {
-      console.error('Failed to check friendship status', err);
-    });
-  };
-
-  
-
-  const updateUserLineId = async (profile) => {
-    try {
-      // Fetch the session data
-      const responseSession = await fetch('http://localhost:3000/api/auth/session');
-      const data = await responseSession.json();
-      console.log('Session data:', data);
-  
-      // Check if user_id exists in the session data (inside the user object)
-      if (!data.user || !data.user.user_id) {
-        console.error('User ID not found in session data');
-        return; // Exit early if user_id is missing
-      }
-  
-      // Proceed with the PATCH request to update the user
-      const response = await fetch(`http://localhost:5000/users/update/${data.user.user_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          lineId: profile.userId,  // ใช้ profile.userId ที่ได้จาก LIFF
-        }),
-      });
-  
-      if (response.ok) {
-        const updatedUser = await response.json();
-        console.log('User updated:', updatedUser);
-      } else {
-        console.error('Error updating user line ID:', response.status);
-      }
+        if (response.ok) {
+            const updatedUser = await response.json();
+            console.log('User updated:', updatedUser);
+        } else {
+            console.error('Error updating user line ID:', response.status);
+        }
     } catch (error) {
-      console.error('Error updating user line ID:', error);
+        console.error('Error updating user line ID:', error);
     }
-  };
-  
+};
 
-  const logout = () => {
-    window.liff.logout();
-    window.location.reload();
+const deleteUserLineId = async () => {
+    try {
+        const responseSession = await fetch('http://localhost:3000/api/auth/session');
+        const data = await responseSession.json();
+        if (!data.user || !data.user.user_id) {
+            console.error('User ID not found in session data');
+            return;
+        }
+
+        const response = await fetch(`http://localhost:5001/users/remove/${data.user.user_id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+      });
+
+    if (response.ok) {
+        const updatedUser = await response.json();
+        console.log('User line ID removed:', updatedUser);
+        setStatusLine(false); // Set status to false when lineId is removed
+        setUserProfile(null); // Clear user profile
+        window.liff.logout(); // Logout the user from Line
+        setIsLoggedIn(false); // Update login status
+    } else {
+        console.error('Error removing user line ID:', response.status);
+    }
+} catch (error) {
+    console.error('Error removing user line ID:', error);
+}
   };
 
-  if (loading) {
+const handleLoginClick = () => {
+    setLoading(true);
+    window.liff.login();
+};
+
+if (loading) {
     return <p>กำลังล็อกอิน...</p>;
-  }
+}
 
-  return (
+return (
     <div style={{ textAlign: 'center', marginTop: '20px' }}>
-  
+        {statusLine === null ? (
+            <p>กำลังโหลดสถานะ...</p> 
+        ) : statusLine ? (
+            <>
+                <h2>เชื่อมต่อแล้ว</h2>
+                <button
+                    onClick={deleteUserLineId}
+                    style={{
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        padding: '10px 20px',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                        marginTop: '10px',
+                    }}
+                >
+                    Logout
+                </button>
+            </>
+        ) : (
+            <>
+                <button
+                    onClick={handleLoginClick}
+                    style={{
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        padding: '10px 20px',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Login with Line
+                </button>
+            </>
+        )}
 
-      {!isLoggedIn ? (
-        <button
-          onClick={() => setLoading(true)}
-          style={{
-            backgroundColor: '#28a745',
-            color: 'white',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
-        >
-          Login with Line
-        </button>
-      ) : (
-        <>
-          <h2>User Profile</h2>
-          <p><strong>Display Name:</strong> {userProfile.displayName}</p>
-          <p><strong>Status Message:</strong> {userProfile.statusMessage}</p>
-          <p><strong>User ID:</strong> {userProfile.userId}</p>
-          <p><strong>Language:</strong> {userProfile.language}</p>
-          <img src={userProfile.pictureUrl} alt="User Profile" />
-          <button
-            onClick={logout}
-            style={{
-              backgroundColor: '#dc3545',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-            }}
-          >
-            Logout
-          </button>
-        </>
-      )}
-
-      {userIdFromServer && (
-        <div style={{ marginTop: '20px' }}>
-          <p><strong>User ID from Server:</strong> {userIdFromServer}</p>
-        </div>
-      )}
+        {showPopup && (
+            <div style={{ marginTop: '20px' }}>
+            </div>
+        )}
     </div>
-  );
+);
 };
 
 export default LineLoginPage;

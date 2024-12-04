@@ -40,7 +40,7 @@ const WithdrawPageAdmin: React.FC = () => {
   useEffect(() => {
     const fetchWithdraws = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/withdraws');
+        const response = await axios.get('http://localhost:5001/withdraws');
         let filteredWithdraws = response.data;
         
         if (selectedStatus !== 'all') {

@@ -36,7 +36,7 @@ const BalancePage: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/balances")
+      .get("http://localhost:5001/balances")
       .then((response) => {
         const fetchedBalances: Balance[] = response.data;
         setBalances(fetchedBalances);

@@ -64,15 +64,13 @@ exports.updateUser = async (req, res) => {
   }
 };
 
+// controllers/UserControllers.js
+
 exports.updateLineId = async (req, res) => {
   try {
-    // Extract userId from the URL parameters (e.g., /update/<userId>)
-    const { userId } = req.params;  // userId will be in req.params
+    const { userId } = req.params;  // userId from the URL params
+    const { lineId } = req.body;    // lineId from the request body
 
-    // Extract the lineId from the request body
-    const { lineId } = req.body;
-
-    // Check if lineId is provided
     if (!lineId) {
       return res.status(400).json({ error: "Line ID is required" });
     }
@@ -82,7 +80,10 @@ exports.updateLineId = async (req, res) => {
     // Find and update the user by userId
     const updatedUser = await User.findOneAndUpdate(
       { user_id: userId },  // Find the user by userId from the URL
-      { line_id: lineId },   // Update the line_id
+      { 
+        line_id: lineId,    // Update the line_id
+        status_line: true    // Set status_line to true
+      },
       { new: true }           // Return the updated user document
     );
 
@@ -95,9 +96,10 @@ exports.updateLineId = async (req, res) => {
     res.status(200).json({ success: true, user: updatedUser });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error updating line ID" });
+    res.status(500).json({ error: "Error updating Line ID" });
   }
 };
+
 
 
 exports.getUserIdFromSession = async (req, res) => {
@@ -114,5 +116,52 @@ exports.getUserIdFromSession = async (req, res) => {
   } catch (error) {
     console.error('Error fetching user ID from token:', error);
     res.status(500).json({ message: "Internal server error" });  // ถ้ามีข้อผิดพลาดในการดึงข้อมูลจะส่งสถานะ 500 (Internal Server Error)
+  }
+};
+
+// controllers/UserController.js
+
+exports.removeUserLineId = async (req, res) => {
+  try {
+    const { userId } = req.params;  // รับ userId จาก URL params
+
+    // ค้นหาผู้ใช้และลบ lineId
+    const updatedUser = await User.findOneAndUpdate(
+      { user_id: userId },  // ค้นหาผู้ใช้โดยใช้ user_id
+      { line_id: null, status_line: false },  // ลบ line_id และตั้ง status_line เป็น false
+      { new: true }  // คืนค่าผู้ใช้ที่อัปเดตแล้ว
+    );
+
+    // ถ้าผู้ใช้ไม่พบ
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // ส่งข้อมูลผู้ใช้ที่อัปเดตแล้วกลับไป
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error('Error removing Line ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
+exports.getStatusLine = async (req, res) => {
+  try {
+    // รับ userId จาก URL params
+    const { userId } = req.params;
+
+    // ค้นหาผู้ใช้ในฐานข้อมูลโดยใช้ user_id
+    const user = await User.findOne({ user_id: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // ส่งสถานะ status_line ของผู้ใช้กลับไป
+    res.status(200).json({ status_line: user.status_line });
+  } catch (error) {
+    console.error('Error fetching status line:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

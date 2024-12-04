@@ -47,7 +47,7 @@ const TaxInformationModal: React.FC<TaxInformationModalProps> = ({
 
   const fetchTaxInfo = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:5000/tax_info/user/${userId}`);
+      const response = await axios.get(`http://localhost:5001/tax_info/user/${userId}`);
       setTaxInfoList(response.data);
     } catch (error) {
       console.error('Error fetching tax information:', error);
@@ -56,7 +56,7 @@ const TaxInformationModal: React.FC<TaxInformationModalProps> = ({
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:5000/tax_info/${id}`);
+      await axios.delete(`http://localhost:5001/tax_info/${id}`);
       if (userId) fetchTaxInfo(userId);
     } catch (error) {
       console.error('Error deleting tax information:', error);
@@ -117,7 +117,7 @@ const TaxInformationModal: React.FC<TaxInformationModalProps> = ({
                   <td>{info.customerType}</td>
                   <td>
                     {info.document && (
-                      <a href={`http://localhost:5000${info.document}`} target="_blank" rel="noopener noreferrer">
+                      <a href={`http://localhost:5001${info.document}`} target="_blank" rel="noopener noreferrer">
                         ดูเอกสาร
                       </a>
                     )}

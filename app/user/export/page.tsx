@@ -68,7 +68,7 @@ const ExportPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await axios.get<Payment[]>(
-        "http://localhost:5000/createpayment",
+        "http://localhost:5001/createpayment",
         {
           headers: {
             "Cache-Control": "no-cache",

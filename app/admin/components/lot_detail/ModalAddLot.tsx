@@ -13,7 +13,7 @@ const ModalAddLot: React.FC<ModalAddLotProps> = ({ show, onClose, onSave }) => {
   // Fetch the latest lot_id from the server and generate the next one
   useEffect(() => {
     if (show) {
-      fetch('http://localhost:5000/lots/latest') // Endpoint to get the latest lot_id
+      fetch('http://localhost:5001/lots/latest') // Endpoint to get the latest lot_id
         .then((response) => response.json())
         .then((data) => {
           const lastLotId = data?.lot_id || 'LOT-00000'; // Default if no data

@@ -55,7 +55,7 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
   useEffect(() => {
     const fetchWithdrawDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/withdraws/${withdrawId}`);
+        const response = await fetch(`http://localhost:5001/withdraws/${withdrawId}`);
         if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         setWithdrawDetails(data);
@@ -117,7 +117,7 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
       }
 
       const response = await fetch(
-        `http://localhost:5000/withdraws/${withdrawId}/status`,
+        `http://localhost:5001/withdraws/${withdrawId}/status`,
         {
           method: 'PATCH',
           body: formData,
@@ -144,12 +144,12 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
           </h6>
           <div className="mt-4">
             <img
-              src={`http://localhost:5000${withdrawDetails.slip}`}
+              src={`http://localhost:5001${withdrawDetails.slip}`}
               alt="Slip"
               className="max-w-full h-auto rounded-lg cursor-pointer"
               onClick={() =>
                 window.open(
-                  `http://localhost:5000${withdrawDetails.slip}`,
+                  `http://localhost:5001${withdrawDetails.slip}`,
                   "_blank"
                 )
               }
@@ -232,7 +232,7 @@ const ModalWithdrawDetails: React.FC<ModalWithdrawDetailsProps> = ({ show, withd
       );
 
       const response = await fetch(
-        `http://localhost:5000/withdraws/${withdrawId}/status`,
+        `http://localhost:5001/withdraws/${withdrawId}/status`,
         {
           method: 'PATCH',
           body: formData,

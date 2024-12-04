@@ -48,7 +48,7 @@ interface User {
     const fetchAddresses = async () => {
         try {
           if (selectedUser?.user_id) {
-            const response = await axios.get(`http://localhost:5000/book_address/user/${selectedUser.user_id}`);
+            const response = await axios.get(`http://localhost:5001/book_address/user/${selectedUser.user_id}`);
             setAddresses(response.data);
           }
         } catch (error) {
@@ -58,7 +58,7 @@ interface User {
     
       const handleDelete = async (addressId: string) => {
         try {
-          await axios.delete(`http://localhost:5000/book_address/${addressId}`);
+          await axios.delete(`http://localhost:5001/book_address/${addressId}`);
           fetchAddresses();
         } catch (error) {
           console.error('Error deleting address:', error);

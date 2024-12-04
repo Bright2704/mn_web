@@ -40,7 +40,7 @@ const ModalDepositDetails: React.FC<ModalDepositDetailsProps> = ({ show, deposit
       setLoading(true);
       setError(''); // Reset error before fetching
       axios
-        .get(`http://localhost:5000/deposits/${depositId}`)
+        .get(`http://localhost:5001/deposits/${depositId}`)
         .then((response) => {
           setDepositDetails(response.data);
           setLoading(false);

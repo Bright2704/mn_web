@@ -45,7 +45,7 @@ const AddressBookModal: React.FC<AddressBookModalProps> = ({ show, onClose, onSe
 
     const fetchAddresses = async (userId: string) => {
         try {
-            const response = await axios.get(`http://localhost:5000/book_address/user/${userId}`);
+            const response = await axios.get(`http://localhost:5001/book_address/user/${userId}`);
             setAddresses(response.data);
         } catch (error) {
             console.error('Error fetching addresses:', error);
@@ -54,7 +54,7 @@ const AddressBookModal: React.FC<AddressBookModalProps> = ({ show, onClose, onSe
 
     const handleDelete = async (addressId: string) => {
         try {
-            await axios.delete(`http://localhost:5000/book_address/${addressId}`);
+            await axios.delete(`http://localhost:5001/book_address/${addressId}`);
             if (userId) fetchAddresses(userId);
         } catch (error) {
             console.error('Error deleting address:', error);

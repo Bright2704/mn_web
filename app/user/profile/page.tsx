@@ -58,7 +58,7 @@ const ProfilePage: React.FC = () => {
 
   // Fetch balances
   useEffect(() => {
-    axios.get('http://localhost:5000/balances')
+    axios.get('http://localhost:5001/balances')
       .then(response => {
         const fetchedBalances: Balance[] = response.data;
         setBalances(fetchedBalances);
@@ -92,7 +92,7 @@ const ProfilePage: React.FC = () => {
   const fetchBankAccounts = async () => {
     if (!userId) return;
     try {
-      const response = await axios.get(`http://localhost:5000/book_bank/user/${userId}`);
+      const response = await axios.get(`http://localhost:5001/book_bank/user/${userId}`);
       setBankAccounts(response.data);
     } catch (error) {
       console.error('Error fetching bank accounts:', error);
@@ -114,7 +114,7 @@ const ProfilePage: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:5000/book_bank/${accountId}`);
+          await axios.delete(`http://localhost:5001/book_bank/${accountId}`);
           fetchBankAccounts();
         } catch (error) {
           console.error('Error deleting bank account:', error);
@@ -137,7 +137,7 @@ const ProfilePage: React.FC = () => {
   const fetchUserData = async () => {
     if (!userId) return;
     try {
-      const response = await axios.get(`http://localhost:5000/users/${userId}`);
+      const response = await axios.get(`http://localhost:5001/users/${userId}`);
       if (response.status === 200) {
         const data = response.data;
         setUserData(data);
@@ -170,7 +170,7 @@ const ProfilePage: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      await axios.put(`http://localhost:5000/users/${userId}`, values);
+      await axios.put(`http://localhost:5001/users/${userId}`, values);
       setUserData(values);
       setIsEditing(false);
       Modal.success({
@@ -189,7 +189,7 @@ const ProfilePage: React.FC = () => {
   const fetchAddresses = async () => {
     if (!userId) return;
     try {
-      const response = await axios.get(`http://localhost:5000/book_address/user/${userId}`);
+      const response = await axios.get(`http://localhost:5001/book_address/user/${userId}`);
       setAddresses(response.data);
     } catch (error) {
       console.error('Error fetching addresses:', error);
@@ -211,7 +211,7 @@ const ProfilePage: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          await axios.delete(`http://localhost:5000/book_address/${addressId}`);
+          await axios.delete(`http://localhost:5001/book_address/${addressId}`);
           fetchAddresses();
         } catch (error) {
           console.error('Error deleting address:', error);

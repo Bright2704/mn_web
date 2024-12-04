@@ -66,7 +66,7 @@ const EditBankAccountModal: React.FC<EditBankAccountModalProps> = ({ show, onClo
         branch,
       };
 
-      await axios.put(`http://localhost:5000/book_bank/${account._id}`, updatedAccountData);
+      await axios.put(`http://localhost:5001/book_bank/${account._id}`, updatedAccountData);
       setError(null); // Clear any previous errors
       onSave(); // Refresh data after updating
       onClose(); // Close modal after successful update

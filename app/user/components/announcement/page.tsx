@@ -11,7 +11,7 @@ const AnnouncementBar = () => {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/announcement/get');
+        const response = await axios.get('http://localhost:5001/api/announcement/get');
         console.log('Fetched announcements:', response.data); // เพิ่มการ log ข้อมูลที่ได้รับ
         if (Array.isArray(response.data)) {
           setAnnouncements(response.data); 

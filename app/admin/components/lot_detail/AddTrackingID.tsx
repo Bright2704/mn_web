@@ -39,7 +39,7 @@ const AddTrackingID: React.FC<AddTrackingIDProps> = ({
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://localhost:5000/tracking/search?q=${value}&lotId=null` // Changed to only search for null lot_id
+          `http://localhost:5001/tracking/search?q=${value}&lotId=null` // Changed to only search for null lot_id
         );
         if (!response.ok) throw new Error('Failed to search tracking IDs');
         const data = await response.json();
@@ -60,7 +60,7 @@ const AddTrackingID: React.FC<AddTrackingIDProps> = ({
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:5000/tracking/${id}`);
+      const response = await fetch(`http://localhost:5001/tracking/${id}`);
       if (!response.ok) throw new Error("Failed to fetch tracking details");
       const tracking = await response.json();
 
@@ -95,7 +95,7 @@ const AddTrackingID: React.FC<AddTrackingIDProps> = ({
 
       // Update tracking to associate with the current lot
       const trackingResponse = await fetch(
-        `http://localhost:5000/tracking/${selectedTracking.tracking_id}/update-lot-id`,
+        `http://localhost:5001/tracking/${selectedTracking.tracking_id}/update-lot-id`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

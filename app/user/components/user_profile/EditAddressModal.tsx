@@ -75,7 +75,7 @@ const EditAddressModal: React.FC<EditAddressModalProps> = ({
       };
 
       await axios.put(
-        `http://localhost:5000/book_address/${address._id}`,
+        `http://localhost:5001/book_address/${address._id}`,
         updatedAddressData
       );
       setError(null);

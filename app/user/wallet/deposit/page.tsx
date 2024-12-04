@@ -75,7 +75,7 @@ const DepositPage: React.FC = () => {
 
       try {
         if (userId) {
-          const response = await axios.get(`http://localhost:5000/deposits/user_id/${userId}/status/${selectedStatus}`);
+          const response = await axios.get(`http://localhost:5001/deposits/user_id/${userId}/status/${selectedStatus}`);
 
           setAllDeposits(response.data);
         }
@@ -117,7 +117,7 @@ const DepositPage: React.FC = () => {
 
   const fetchLastBalance = async (userId: string) => {
     try {
-      const response = await axios.get(`http://localhost:5000/balances/user/${userId}/last`);
+      const response = await axios.get(`http://localhost:5001/balances/user/${userId}/last`);
       if (response.data) {
         console.log('Latest balance record:', response.data); // Debug log
         setTotalAmount(response.data.balance_total);

@@ -6,7 +6,7 @@ import { io } from 'socket.io-client';
 import { getSession } from "next-auth/react";
 import Image from 'next/image';
 
-const socket = io('http://localhost:5000');
+const socket = io('http://localhost:5001');
 
 interface ChatWidgetProps {
   initialUserName?: string;
@@ -113,7 +113,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ initialUserName }) => {
 
   const initializeChat = async () => {
     try {
-      const response = await fetch('http://localhost:5000/chats', {
+      const response = await fetch('http://localhost:5001/chats', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ initialUserName }) => {
         formData.append('content', message);
       }
   
-      const response = await fetch(`http://localhost:5000/chats/${chatId}/messages`, {
+      const response = await fetch(`http://localhost:5001/chats/${chatId}/messages`, {
         method: 'POST',
         body: formData,
       });
@@ -238,7 +238,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ initialUserName }) => {
     // Update read status on server
     if (chatId) {
       try {
-        await fetch(`http://localhost:5000/chats/${chatId}/mark-read`, {
+        await fetch(`http://localhost:5001/chats/${chatId}/mark-read`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

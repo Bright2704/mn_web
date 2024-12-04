@@ -93,7 +93,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
 
   // Fetch Lot Data
   const refreshData = () => {
-    fetch(`http://localhost:5000/lots/${lotId}`)
+    fetch(`http://localhost:5001/lots/${lotId}`)
       .then((response) => response.json())
       .then((data) => {
         setLotData(data);
@@ -105,7 +105,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
   const fetchTrackingData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/tracking/lot/${lotId}`
+        `http://localhost:5001/tracking/lot/${lotId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch tracking data");
@@ -162,7 +162,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
 
     try {
       // Update the lot
-      const lotResponse = await fetch(`http://localhost:5000/lots/${lotId}`, {
+      const lotResponse = await fetch(`http://localhost:5001/lots/${lotId}`, {
         method: "PUT",
         body: formData,
       });
@@ -175,7 +175,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
       // If there's a selected tracking, update it as well
       if (selectedTracking) {
         const trackingResponse = await fetch(
-          `http://localhost:5000/tracking/${selectedTracking.tracking_id}/update-lot-id`,
+          `http://localhost:5001/tracking/${selectedTracking.tracking_id}/update-lot-id`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -319,7 +319,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
           else if (tracking.in_cn) newStatus = 'in_cn';
 
           const response = await fetch(
-            `http://localhost:5000/tracking/${tracking.tracking_id}/updateFields`,
+            `http://localhost:5001/tracking/${tracking.tracking_id}/updateFields`,
             {
               method: "PUT",
               headers: {
@@ -370,7 +370,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
     if (value) {
       try {
         const response = await fetch(
-          `http://localhost:5000/tracking/search?q=${value}&lotId=${lotData.lot_id}`
+          `http://localhost:5001/tracking/search?q=${value}&lotId=${lotData.lot_id}`
         );
         const data = await response.json();
         setFilteredTrackingIds(data);
@@ -384,7 +384,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
 
   const handleTrackingSelect = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/tracking/${id}`);
+      const response = await fetch(`http://localhost:5001/tracking/${id}`);
       const tracking = await response.json();
 
       if (tracking.lot_id && tracking.lot_id !== lotData.lot_id) {
@@ -431,7 +431,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
       await Promise.all(
         selectedTrackings.map(async (trackingId) => {
           const response = await fetch(
-            `http://localhost:5000/tracking/${trackingId}/removeFromLot`,
+            `http://localhost:5001/tracking/${trackingId}/removeFromLot`,
             {
               method: "PUT",
               headers: {
@@ -462,7 +462,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
       await Promise.all(
         remainingTrackings.map(async (tracking, newIndex) => {
           const response = await fetch(
-            `http://localhost:5000/tracking/${tracking.tracking_id}/updateFields`,
+            `http://localhost:5001/tracking/${tracking.tracking_id}/updateFields`,
             {
               method: "PUT",
               headers: {
@@ -498,7 +498,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
       await Promise.all(
         selectedTrackings.map(async (trackingId) => {
           const response = await fetch(
-            `http://localhost:5000/tracking/${trackingId}/resetDates`,
+            `http://localhost:5001/tracking/${trackingId}/resetDates`,
             {
               method: "PUT",
               headers: {
@@ -667,7 +667,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
                         />
                         {lotData.file_path && (
                           <a
-                            href={`http://localhost:5000${lotData.file_path}`}
+                            href={`http://localhost:5001${lotData.file_path}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -696,7 +696,7 @@ const ModalManageLot: React.FC<ModalManageLotProps> = ({
                         />
                         {lotData.image_path && (
                           <Image
-                            src={`http://localhost:5000${lotData.image_path}`}
+                            src={`http://localhost:5001${lotData.image_path}`}
                             alt="Lot"
                             className="mt-2"
                             width={200}
